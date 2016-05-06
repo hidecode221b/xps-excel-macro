@@ -15,7 +15,7 @@ Ctrl+Q is a powerful code for XPS data analysis based on the Microsoft Excel VBA
 The code is based on the VBA, and installed in the VBE as a Personal Workbook Macro with shortcut key assignment. Solver function also needs to be installed in Excel as a default add-in and registered in the VBE for curve fit procedure. Run the code "CLAM2" from the Macro menu or assign the shortcut key "Ctrl" & "q" to run the "CLAM2" from the Option of Macro menu.
 
 ##Data loading
-Any data opened in the Excel spreadsheet can be analysed in the code. The energy and intensity data in the spreadsheet are prepared in the two columns started from A2 and B2 with “KE/eV” at A1 cell if the kinetic energy is used as x axis. "BE/eV" represents for binding energy, "PE/eV" photon energy, and so on.
+Any data opened in the Excel spreadsheet can be analysed in the code. The energy and intensity data in the spreadsheet are prepared in the two columns started from A2 and B2 cells. “KE/eV” at the A1 cell in the same sheet makes the first column as the kinetic energy scale. "BE/eV" at the A1 cell is recognized as the binding energy to the first column data, "PE/eV" at the A1 cell the photon energy, and so on. The workbook must be saved as a name represent for a spectrum data, and then run the code. The code makes several sheets additional to the original sheet named after the workbook filename such as Graph_filename and Fit_filename.
 
 ##Energy and intensity calibrations
 Standard sample data is used to calibrate the peak energy or normalisation factor. The code has a function to compare the data processed, so the you can easily identify the calibration factors. The package also provides the standard element binding energy and sensitivity data to calibrate the energy.
@@ -41,6 +41,11 @@ The peaks identified in the energy calibration are processed in the curve fittin
 Once the XPS data is analyzed, you can apply the same analysis conditions in the another files in the energy and intensity calibration or fitting curve as initial parameters. All processed data are summarized in the single Excel sheet to evaluate the atomic element ratio.
 
 ##Notes
-Ctrl+Q has been used for many users during the experiment and post-data processing to publish the data in the manuscript in Tier-one journals.
+Ctrl+Q has been used for many users during the experiment and post-data processing to publish the data in the manuscript in peer-reviewd journals in the following.
 
-Currently, the package including database is distributed only for users and workshop participants at SLRI.
+- http://dx.doi.org/10.1016/j.snb.2013.12.017
+- http://dx.doi.org/10.1016/j.apsusc.2016.01.180
+- http://dx.doi.org/10.1016/j.carbon.2015.01.018
+- http://dx.doi.org/10.1016/j.jenvman.2015.09.036
+
+Currently, the package including database is distributed only for users and workshop participants at SLRI. However, the user-defined database workbook is automatically generated in the directory specified in the code to add your elements and its relative sensitivities for AlKa.
