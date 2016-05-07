@@ -7264,6 +7264,9 @@ Sub EachComp()
             If str4 = "Be" Then
                 Cells(11, (5 + (i * 3))).FormulaR1C1 = "=R4C + RC[-1]"
                 Cells(10 + (imax), (5 + (i * 3))).FormulaR1C1 = "=R4C + R[-" & (imax - 1) & "]C[-1]"
+            ElseIf str4 = "Ek" Then ' this is a trigger to handle "BE/eV" data
+                Cells(11, (4 + (i * 3))).FormulaR1C1 = "=R2C[1] - RC[1] - R3C[1]"
+                Cells(10 + (imax), (5 + (i * 3))).FormulaR1C1 = "=-R4C + R[-" & (imax - 1) & "]C"
             Else
                 Cells(11, (5 + (i * 3))).FormulaR1C1 = "=R2C - R3C - R4C - RC[-1]"
                 Cells(10 + (imax), (5 + (i * 3))).FormulaR1C1 = "=R2C - R3C - R4C - R[-" & (imax - 1) & "]C[-1]"
@@ -7289,7 +7292,11 @@ Sub EachComp()
             GoTo AESmode
         End If
         
-        Range(Cells(11, (5 + (i * 3))), Cells((imax), (5 + (i * 3)))).FillDown
+        If str1 = "Ke" And str3 = "In" And str4 = "Ek" Then
+            Range(Cells(11, (4 + (i * 3))), Cells((imax), (4 + (i * 3)))).FillDown
+        Else
+            Range(Cells(11, (5 + (i * 3))), Cells((imax), (5 + (i * 3)))).FillDown
+        End If
         Cells(10 + (imax), (4 + (i * 3))).FormulaR1C1 = "=R[-" & (imax - 1) & "]C"
         Range(Cells(10 + (imax), (4 + (i * 3))), Cells((2 * imax) - 1, (4 + (i * 3)))).FillDown
         Range(Cells(10 + (imax), (5 + (i * 3))), Cells((2 * imax) - 1, (5 + (i * 3)))).FillDown
@@ -7339,7 +7346,7 @@ AESmode:
             SourceRangeColor1 = .Border.Color
         End With
         
-        If str1 = "Ke" And str4 = "Ke" Then
+        If str1 = "Ke" And (str4 = "Ke" Or str4 = "Ek") Then
             ActiveSheet.ChartObjects(2).Activate
             If i > ncomp - 1 Then
                 ActiveChart.SeriesCollection.NewSeries
@@ -7466,7 +7473,7 @@ Sub descriptGraph()
         Cells(5, 1).Value = "Start BE"
         Cells(6, 1).Value = "End BE"
         Cells(7, 1).Value = "Step BE"
-        Cells(10, 1).Value = "Ke"
+        Cells(10, 1).Value = "Ek"   ' this is a trigger to handle getCompare correctly
         Cells(10, 2).Value = "Be"
         Cells(10, 3).Value = "In"
         Range(Cells(11, 2), Cells(11, 2).Offset(numData - 1, 0)).Value = Range(Cells(11, 1), Cells(11, 1).Offset(numData - 1, 0)).Value
