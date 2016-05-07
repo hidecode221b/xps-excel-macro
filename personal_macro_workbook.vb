@@ -30,7 +30,7 @@ Option Explicit
     Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long
     
 Sub CLAM2()
-    ver = "7.99p"                             ' Version of this code.
+    ver = "8.00p"                             ' Version of this code.
     'direc = "E:\DATA\hideki\XPS\"            ' a  directory location of database (this is for PC with SSD storage.)
     direc = "D:\DATA\hideki\XPS\"            ' this is for PC with HDD storage.
     'direc = "C:\Users\Public\Data\"         ' this is for BOOTCAMP on MacBookAir.
@@ -7466,14 +7466,15 @@ Sub descriptGraph()
         Cells(5, 1).Value = "Start BE"
         Cells(6, 1).Value = "End BE"
         Cells(7, 1).Value = "Step BE"
-        Cells(10, 1).Value = "Be"
-        Cells(10, 2).Value = "+shift"
+        Cells(10, 1).Value = "Ke"
+        Cells(10, 2).Value = "Be"
         Cells(10, 3).Value = "In"
-        Cells(11, 2).FormulaR1C1 = "=R4C2 + RC[-1]"
-        Cells(10 + (imax), 2).FormulaR1C1 = "=R4C2 + R[-" & (imax - 1) & "]C[-1]"
+        Range(Cells(11, 2), Cells(11, 2).Offset(numData - 1, 0)).Value = Range(Cells(11, 1), Cells(11, 1).Offset(numData - 1, 0)).Value
+        Cells(11, 1).FormulaR1C1 = "=R2C2 - RC[1] - R3C2"
+        Cells(10 + (imax), 2).FormulaR1C1 = "=-R4C2 + R[-" & (imax - 1) & "]C"
         strLabel = "Binding energy (eV)"
-        str1 = "Be"
-        str2 = "Sh"
+        str1 = "Ke"
+        str2 = "Be"
         str3 = "In"
     ElseIf strTest = "AE/eV" Then
         Cells(2, 2).Value = pe
@@ -7526,7 +7527,11 @@ Sub descriptGraph()
         Set dataBeGraph = dataKeGraph.Offset(, 1)
         Set dataIntGraph = dataKeGraph.Offset(, 2)
     Else
-        Range(Cells(11, 2), Cells((10 + numData), 2)).FillDown
+        If strTest = "BE/eV" Then
+            Range(Cells(11, 1), Cells((10 + numData), 1)).FillDown
+        Else
+            Range(Cells(11, 2), Cells((10 + numData), 2)).FillDown
+        End If
         Cells(10 + (imax), 1).FormulaR1C1 = "=R[-" & (imax - 1) & "]C"
         Range(Cells(10 + (imax), 1), Cells((2 * imax) - 1, 1)).FillDown
         Range(Cells(10 + (imax), 2), Cells((2 * imax) - 1, 2)).FillDown
@@ -7537,6 +7542,10 @@ Sub descriptGraph()
         Set dataKeGraph = Range(Cells(10 + (imax), 1), Cells(10 + (imax), 1).Offset(numData - 1, 0))
         Set dataBeGraph = dataKeGraph.Offset(, 1)
         Set dataIntGraph = dataKeGraph.Offset(, 2)
+        If strTest = "BE/eV" Then
+            startEk = Cells(11, 1).Value
+            endEk = Cells(10 + numData, 1).Value
+        End If
     End If
 End Sub
 
