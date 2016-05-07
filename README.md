@@ -48,4 +48,59 @@ Ctrl+Q has been used for many users during the experiment and post-data processi
 - http://dx.doi.org/10.1016/j.carbon.2015.01.018
 - http://dx.doi.org/10.1016/j.jenvman.2015.09.036
 
-Currently, the package including database is distributed only for users and workshop participants at SLRI. However, the user-defined database workbook is automatically generated in the directory specified in the code to add your elements and its relative sensitivities for AlKa.
+Currently, the package including database is distributed only for users and workshop participants at SLRI. However, the user-defined database workbook (UD.xlsx) is automatically generated in the directory specified in the code to add your elements and its relative sensitivities for AlKa.
+
+###References for database
+Database files are available only in PC at the beamline because the software is only licensed in PC at the beamline.
+However, the demo or preview version of software can be downloaded and installed to refer the database.
+On-line database links are also freely available for everyone to identify the database references.
+
+- http://www.uksaf.org/data.html
+
+####XPS
+X-ray data booklet
+- http://xdb.lbl.gov/
+
+Values compiled by Gwyn P. Williams (updated Excel file and poster available)
+- https://userweb.jlab.org/~gwyn/
+
+Scofield photoionization cross-section database combined with x-ray booklet binding energy database
+"Hartree-Slater subshell photoionization cross-sections at 1254 and 1487 eV"
+J. H. Scofield
+Journal of Electron Spectroscopy and Related Phenomena, 8129-137 (1976).
+- http://dx.doi.org/10.1016/0368-2048(76)80015-1
+
+####AES
+"Calculated Auger yields and sensitivity factors for KLL-NOO transitions with 1-10 kV primary beams"
+S. Mroczkowski and D. Lichtman, J. Vac. Sci. Technol. A 3, 1860 (1985).
+- http://dx.doi.org/10.1116/1.572933
+- http://www.materialinterface.com/wp-content/uploads/2014/11/Calculated-AES-yields-Matl-Interface.pdf
+
+(Electron beam energy at 1, 3, 5, and 10 keV for relative cross section and derivative factors)
+
+
+####WebCross folder
+Photoionization cross section online database files should be downloaded and placed in this folder.
+- https://vuo.elettra.eu/services/elements/WebElements.html
+
+"Atomic Calculation of Photoionization Cross-Sections and Asymmetry Parameters"
+J.J. Yeh, Gordon and Breach Science Publishers, Langhorne, PE (USA), 1993.
+
+"Atomic subshell photoionization cross sections and asymmetry parameters: 1 <= Z <= 103"
+J.J. Yeh and I.Lindau, Atomic Data and Nuclear Data Tables, 32, 1-155 (1985).
+- http://dx.doi.org/10.1016/0092-640X(85)90016-6
+
+Note that database are supposed to be revised and updated locally based on the experiment.
+All the database files are based on AlKa source energy at 1486.6 eV, and webCross data normalize the RSF.
+You may also check spectral lines and profiles in the link below;
+
+NIST X-ray Photoelectron Spectroscopy Database
+- http://srdata.nist.gov/xps/
+
+"The NIST X-ray photoelectron spectroscopy (XPS) database"
+C. D. Wagner, NIST Technical Note 1289 (1991).
+- https://archive.org/details/nistxrayphotoele1289wagn
+
+The Surface Analysis Society of Japan: Common Data Processing System
+- http://www.sasj.jp/COMPRO/index.html
+
