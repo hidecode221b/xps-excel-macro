@@ -670,7 +670,12 @@ Sub GetAutoScale()
     
     Cells(40, para + 11).Value = Cells(1, 1).Value
     Cells(1, 1).Value = "Grating"
-    If ncomp > 0 Then strErr = "skip"
+    If ncomp > 0 Then
+        strErr = "skip"
+    Else
+        off = 0
+        multi = 1
+    End If
 End Sub
 
 Sub ExportCmp()
