@@ -522,10 +522,10 @@ Sub GetAutoScale()
                 
                 If Application.WorksheetFunction.Average(dataData) > Application.WorksheetFunction.Average(rng) Then  ' PES mode
                     Cells(9, 3 * i + 2).Value = Application.WorksheetFunction.Average(rng)
-                    Cells(9, 3 * i + 3).Value = 1 / (Application.WorksheetFunction.Average(dataData) - Cells(9, 3 * i + 2).Value)
+                    Cells(9, 3 * i + 3).Value = 1 / Abs(Application.WorksheetFunction.Average(dataData) - Cells(9, 3 * i + 2).Value)
                 Else ' XAS mode
                     Cells(9, 3 * i + 2).Value = Application.WorksheetFunction.Average(dataData)
-                    Cells(9, 3 * i + 3).Value = 1 / (Application.WorksheetFunction.Average(rng) - Cells(9, 3 * i + 2).Value)
+                    Cells(9, 3 * i + 3).Value = 1 / Abs(Application.WorksheetFunction.Average(rng) - Cells(9, 3 * i + 2).Value)
                 End If
             ElseIf StrComp(mid$(Cells(1, 1).Value, 5, 1), "[", 1) = 0 And StrComp(mid$(Cells(1, 1).Value, Len(Cells(1, 1)), 1), "]", 1) = 0 Then
                 If IsNumeric(mid$(Cells(1, 1).Value, 6, InStr(6, Cells(1, 1), ":", 1) - 6)) And IsNumeric(mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ",", 1) + 1, Len(Cells(1, 1)) - InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) - 1)) Then
@@ -586,7 +586,7 @@ Sub GetAutoScale()
                         
                         If p >= 1 And q > p Then
                             Set dataData = Range(Cells(10 + numDataT - q + 1, (3 + (i * 3))), Cells(10 + numDataT - p + 1, (3 + (i * 3))))
-                            Cells(9, 3 * i + 3).Value = 1 / (Application.WorksheetFunction.Average(dataData) - Cells(9, 3 * i + 2).Value)
+                            Cells(9, 3 * i + 3).Value = 1 / Abs(Application.WorksheetFunction.Average(dataData) - Cells(9, 3 * i + 2).Value)
                         End If
                     Else
                         For j = 0 To numDataT - 1
@@ -624,7 +624,7 @@ Sub GetAutoScale()
                         
                         If p >= 1 And q > p Then
                             Set dataData = Range(Cells(11 + p - 1, (3 + (i * 3))), Cells(11 + q - 1, (3 + (i * 3))))
-                            Cells(9, 3 * i + 3).Value = 1 / (Application.WorksheetFunction.Average(dataData) - Cells(9, 3 * i + 2).Value)
+                            Cells(9, 3 * i + 3).Value = 1 / Abs(Application.WorksheetFunction.Average(dataData) - Cells(9, 3 * i + 2).Value)
                         End If
                     End If
                 End If
