@@ -530,11 +530,26 @@ Sub GetAutoScale()
             ElseIf StrComp(mid$(Cells(1, 1).Value, 5, 1), "[", 1) = 0 And StrComp(mid$(Cells(1, 1).Value, Len(Cells(1, 1)), 1), "]", 1) = 0 Then
                 If IsNumeric(mid$(Cells(1, 1).Value, 6, InStr(6, Cells(1, 1), ":", 1) - 6)) And IsNumeric(mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ",", 1) + 1, Len(Cells(1, 1)) - InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) - 1)) Then
                     stepEk = Abs(Cells(7, 3 * i + 2).Value)
-                    iniRow1 = Application.Floor(mid$(Cells(1, 1).Value, 6, InStr(6, Cells(1, 1), ":", 1) - 6), stepEk)
-                    iniRow2 = Application.Floor(mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ",", 1) + 1, Len(Cells(1, 1)) - InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) - 1), stepEk)
-                    endRow1 = Application.Ceiling(mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ":", 1) + 1, InStr(InStr(6, Cells(1, 1), ":", 1) + 1, Cells(1, 1), ",", 1) - InStr(6, Cells(1, 1), ":", 1) - 1), stepEk)
-                    endRow2 = Application.Ceiling(mid$(Cells(1, 1).Value, InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) + 1, Len(Cells(1, 1)) - InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) - 1), stepEk)
-                    
+                    If mid$(Cells(1, 1).Value, 6, InStr(6, Cells(1, 1), ":", 1) - 6) < 0 Then
+                        iniRow1 = Application.Floor(mid$(Cells(1, 1).Value, 6, InStr(6, Cells(1, 1), ":", 1) - 6), -1 * stepEk)
+                    Else
+                        iniRow1 = Application.Floor(mid$(Cells(1, 1).Value, 6, InStr(6, Cells(1, 1), ":", 1) - 6), stepEk)
+                    End If
+                    If mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ",", 1) + 1, Len(Cells(1, 1)) - InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) - 1) < 0 Then
+                        iniRow2 = Application.Floor(mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ",", 1) + 1, Len(Cells(1, 1)) - InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) - 1), -1 * stepEk)
+                    Else
+                        iniRow2 = Application.Floor(mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ",", 1) + 1, Len(Cells(1, 1)) - InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) - 1), stepEk)
+                    End If
+                    If mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ":", 1) + 1, InStr(InStr(6, Cells(1, 1), ":", 1) + 1, Cells(1, 1), ",", 1) - InStr(6, Cells(1, 1), ":", 1) - 1) < 0 Then
+                        endRow1 = Application.Ceiling(mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ":", 1) + 1, InStr(InStr(6, Cells(1, 1), ":", 1) + 1, Cells(1, 1), ",", 1) - InStr(6, Cells(1, 1), ":", 1) - 1), -1 * stepEk)
+                    Else
+                        endRow1 = Application.Ceiling(mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ":", 1) + 1, InStr(InStr(6, Cells(1, 1), ":", 1) + 1, Cells(1, 1), ",", 1) - InStr(6, Cells(1, 1), ":", 1) - 1), stepEk)
+                    End If
+                    If mid$(Cells(1, 1).Value, InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) + 1, Len(Cells(1, 1)) - InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) - 1) < 0 Then
+                        endRow2 = Application.Ceiling(mid$(Cells(1, 1).Value, InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) + 1, Len(Cells(1, 1)) - InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) - 1), -1 * stepEk)
+                    Else
+                        endRow2 = Application.Ceiling(mid$(Cells(1, 1).Value, InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) + 1, Len(Cells(1, 1)) - InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) - 1), stepEk)
+                    End If                    
                     If StrComp(LCase(Cells(10, 3 * i + 1).Value), "pe", 1) = 0 Then
                         For j = 0 To numDataT - 1
                             If iniRow1 <= Cells(12 + numDataT + 8 + j, 3 * i + 2).Value Then
@@ -655,7 +670,7 @@ Sub GetAutoScale()
     
     Cells(40, para + 11).Value = Cells(1, 1).Value
     Cells(1, 1).Value = "Grating"
-    strErr = "skip"
+    If ncomp > 0 Then strErr = "skip"
 End Sub
 
 Sub ExportCmp()
@@ -8420,7 +8435,7 @@ Sub FitEquations()
         Else
             For i = 1 To (j - q)
                 Range(Cells(1, (4 + q + i)), Cells(9 + sftfit2, (4 + q + i))).Value = Range(Cells(1, (4 + q)), Cells(9 + sftfit2, (4 + q))).Value
-                Cells(1, (4 + q + i)).Value = Cells(1, 5).Value + "s" + CStr((i))
+                Cells(1, (4 + q + i)).Value = Cells(1, 5).Value + "s" + CStr((4 + q + i)-5)
                 Cells(2, (4 + q + i)).Value = Cells(2, (4 + q)).Value + i * (Cells(8, 103).Value / Cells(8 + sftfit2, 2).Value)
             Next
         End If
