@@ -8152,7 +8152,11 @@ Sub PolynominalBG()
     Range(Cells(startR, 99), Cells(endR, 99)).FillDown
     Cells(startR, 3).FormulaR1C1 = "=R2C2 + (R3C2 * RC99) + (R4C2 * (RC99)^2) + (R5C2 * (RC99)^3)"
     Range(Cells(startR, 3), Cells(endR, 3)).FillDown
-    Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
+    If Cells(2, 2).Value = 0 Or Cells(startR, 3).Value = 0 Then
+        Cells(startR, 100).FormulaR1C1 = "=(RC2 - RC3)^2" ' CV this is the case for RC3 = 0
+    Else
+        Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
+    End If
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
     Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(5, 2))
