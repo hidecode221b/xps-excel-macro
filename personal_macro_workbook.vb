@@ -7468,23 +7468,7 @@ Sub descriptGraph()
         str1 = "Pe"
         str2 = "Sh"
         str3 = "Ab"
-    ElseIf strTest = "ME/eV"  Or mid$(strTest, 2, 4) = "E/eV" Then
-        Cells(2, 2).Value = pe
-        Cells(2, 1).Value = "Shifts"
-        Cells(5, 1).Value = "Start"
-        Cells(6, 1).Value = "End"
-        Cells(7, 1).Value = "Step"
-        [C2:C7].Value = "a.u."
-        Range(Cells(3, 1), Cells(4, 3)).Clear
-        Cells(10, 1).Value = "Po"
-        Cells(10, 2).Value = "+shift"
-        Cells(10, 3).Value = "Ab"
-        Cells(11, 2).FormulaR1C1 = "=R2C2 + RC[-1]"
-        Cells(10 + (imax), 2).FormulaR1C1 = "=R2C2 + R[-" & (imax - 1) & "]C[-1]"
-        strLabel = "Position (arb. unit)"
-        str1 = "Po"
-        str2 = "Sh"
-        str3 = "Ab"
+    
     ElseIf strTest = "BE/eV" Then
         Cells(2, 2).Value = pe
         Cells(2, 1).Value = "PE"
@@ -7503,6 +7487,7 @@ Sub descriptGraph()
         str1 = "Ke"
         str2 = "Be"
         str3 = "In"
+        
     ElseIf strTest = "AE/eV" Then
         Cells(2, 2).Value = pe
         Cells(2, 1).Value = "KE shifts"
@@ -7516,6 +7501,7 @@ Sub descriptGraph()
         [B3:C3].Interior.ColorIndex = 44
         Range(Cells(4, 1), Cells(4, 3)).Clear
         Cells(1, 1).Value = "AES elec."
+        
         If g = 0 Then
             g = 5
         ElseIf g = 10 Then
@@ -7532,6 +7518,25 @@ Sub descriptGraph()
         str1 = "Ke"
         str2 = "Ae"
         str3 = "De"
+        
+    ElseIf strTest = "ME/eV"  Or mid$(strTest, 2, 4) = "E/eV" Then
+        Cells(2, 2).Value = pe
+        Cells(2, 1).Value = "Shifts"
+        Cells(5, 1).Value = "Start"
+        Cells(6, 1).Value = "End"
+        Cells(7, 1).Value = "Step"
+        [C2:C7].Value = "a.u."
+        Range(Cells(3, 1), Cells(4, 3)).Clear
+        Cells(10, 1).Value = "Po"
+        Cells(10, 2).Value = "+shift"
+        Cells(10, 3).Value = "Ab"
+        Cells(11, 2).FormulaR1C1 = "=R2C2 + RC[-1]"
+        Cells(10 + (imax), 2).FormulaR1C1 = "=R2C2 + R[-" & (imax - 1) & "]C[-1]"
+        strLabel = "Position (arb. unit)"
+        str1 = "Po"
+        str2 = "Sh"
+        str3 = "Ab"
+        
     Else
         Cells(11, 2).FormulaR1C1 = "=R2C2 - R3C2 - R4C2 - RC[-1]"
         Cells(10 + (imax), 2).FormulaR1C1 = "=R2C - R3C - R4C - R[-" & (imax - 1) & "]C[-1]"
@@ -7772,7 +7777,7 @@ Sub descriptFit()
         Cells(9, 103).Value = "Sum"
     End If
     
-    If mid$(Cells(25 + sftfit2, 1).Value, 1, 1) <> "B" Then   ' manual set
+    If mid$(Cells(25 + sftfit2, 1).Value, 1, 1) = "M" Then   ' manual set
         Cells(2, 103).Value = 10       ' max FWHM1 limit
         Cells(3, 103).Value = 0.01       ' min FWHM1 limit
         Cells(4, 103).Value = 10       ' max FWHM2 limit
