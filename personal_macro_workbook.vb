@@ -30,7 +30,7 @@ Option Explicit
     Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long
     
 Sub CLAM2()
-    ver = "8.00p"                             ' Version of this code.
+    ver = "8.02p"                             ' Version of this code.
     'direc = "E:\DATA\hideki\XPS\"            ' a  directory location of database (this is for PC with SSD storage.)
     direc = "D:\DATA\hideki\XPS\"            ' this is for PC with HDD storage.
     'direc = "C:\Users\Public\Data\"         ' this is for BOOTCAMP on MacBookAir.
@@ -3756,7 +3756,7 @@ Sub FitCurve()
         Range("DE31").CurrentRegion.ClearContents
     End If
     
-    If Cells(11 + sftfit2, 2).Value < 0 And Cells(12 + sftfit2, 2).Value > 0 And (Cells(12 + sftfit2, 2).Value - Cells(11 + sftfit2, 2).Value) < 6 Then
+    If Cells(11 + sftfit2, 2).Value < 0 And Cells(12 + sftfit2, 2).Value > 0 And (Cells(12 + sftfit2, 2).Value - Cells(11 + sftfit2, 2).Value) < 6 And mid$(Cells(sftfit2 + 25, 1).Value, 1, 1) = "B" Then
         Call FitEF
         Call GetOutFit
         Exit Sub
@@ -7468,7 +7468,7 @@ Sub descriptGraph()
         str1 = "Pe"
         str2 = "Sh"
         str3 = "Ab"
-    ElseIf strTest = "ME/eV" Then
+    ElseIf strTest = "ME/eV"  Or mid$(strTest, 2, 4) = "E/eV" Then
         Cells(2, 2).Value = pe
         Cells(2, 1).Value = "Shifts"
         Cells(5, 1).Value = "Start"
@@ -7772,7 +7772,17 @@ Sub descriptFit()
         Cells(9, 103).Value = "Sum"
     End If
     
-    If Cells(15 + sftfit2, 2).Value = 1 Then   ' grating #1
+    If mid$(Cells(25 + sftfit2, 1).Value, 1, 1) <> "B" Then   ' manual set
+        Cells(2, 103).Value = 10       ' max FWHM1 limit
+        Cells(3, 103).Value = 0.01       ' min FWHM1 limit
+        Cells(4, 103).Value = 10       ' max FWHM2 limit
+        Cells(5, 103).Value = 0.01       ' min FWHM2 limit
+        Cells(6, 103).Value = 0.999       ' max shape limit
+        Cells(7, 103).Value = 0.001       ' min shape limit
+        Cells(10, 101).Value = 5          ' average points for poly BG
+        Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (100)
+
+    ElseIf Cells(15 + sftfit2, 2).Value = 1 Then   ' grating #1
         Cells(2, 103).Value = 2       ' max FWHM1 limit
         Cells(3, 103).Value = 0.1       ' min FWHM1 limit
         Cells(4, 103).Value = 2       ' max FWHM2 limit
