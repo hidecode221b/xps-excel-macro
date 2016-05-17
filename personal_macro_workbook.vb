@@ -2147,8 +2147,12 @@ CheckElemAgain:
         A = Range(Cells(1, 1), Cells(1, 1).Offset(iRow, 5))  '
         If mid$(Cells(1, 4).Value, 1, 1) = "R" Then
             asf = "RSF"  ' Relative Sensitivity factors
+        ElseIf mid$(Cells(1, 4).Value, 1, 1) = "A" Then
+            asf = "ASF"  ' Absolute Sensitivity factors: no PI cross-section normalization
+        ElseIf mid$(Cells(1, 4).Value, 1, 1) = "P" Then
+            asf = "PSF"  ' Photo-ionization Sensitivity factors : ignore database, use WebCross data only
         Else
-            asf = "ASF"  ' Absolute Sensitivity factors
+            asf = "ASF"
         End If
         
         If graphexist = 0 Then
@@ -2348,9 +2352,16 @@ SkipElem:
     Range(Cells(1, 1), Cells(1, 1).Offset(numXPSFactors, 6)) = b
     
     For i = 1 To numXPSFactors
-        If A(i, 7) = "NaN" Then A(i, 7) = 0
         A(i, 2) = A(i, 1) + A(i, 2)
-        A(i, 7) = A(i, 7) * b(i, 3) / b(i, 5)
+        If A(i, 7) = "NaN" Or A(i, 7) = vbNullString Then
+            A(i, 7) = 0
+        ElseIf StrComp(asf, "PSF", 1) = 0 Then
+            A(i, 7) = b(i, 3)       ' if no RSF available, use cross section as a RSF.
+        Else
+            A(i, 7) = A(i, 7) * b(i, 3) / b(i, 5)
+        End If
+        
+        'Debug.Print A(i, 7), b(i, 3), b(i, 5)
         A(i, 10) = b(i, 6)
     Next
     
