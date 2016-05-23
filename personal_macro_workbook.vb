@@ -139,6 +139,7 @@ DeadInTheWater2:
     Call Initial
     
     Application.ScreenUpdating = False
+    Application.EnableEvents = False
     Application.Calculation = xlCalculationAutomatic    ' revised for Office 2010
     
     graphexist = 0
@@ -2798,6 +2799,7 @@ Sub GetOut()
 
     Cells(1, 1).Select
     Application.ScreenUpdating = True
+    Application.EnableEvents = True
     
     If StrComp("Fit", mid$(ActiveSheet.Name, 1, 3)) = 0 And IsNumeric(TimeCheck) = False Then 'Cells(9 + sftfit2, 1).Value = "Solve LSM" Then
         If IsNumeric(Cells(9 + sftfit2, 2)) Then
