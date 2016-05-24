@@ -4,11 +4,13 @@ Option Explicit
     Dim iniTime As Date, finTime As Date, startTime As Date, endTime As Date, checkTime As Date, checkDate As Date, TimeC1 As Date, TimeC2 As Date
     Dim Fname As Variant, en As Variant, C As Variant, A As Variant, b As Variant, D As Variant, tmp As Variant, highpe() As Variant
     Dim OpenFileName As Variant, Target As Variant, Record As Variant, U As Variant, ratio() As Variant, bediff() As Variant
+    
     Dim j As Integer, k As Integer, q As Integer, p As Integer, iRow As Integer, iCol As Integer, imax As Integer, startR As Integer, endR As Integer
     Dim numMajorUnit As Integer, ns As Integer, modex As Integer, g As Integer, Gnum As Integer, cae As Integer, NumSheets As Integer, ncomp As Integer
     Dim scanNum As Integer, scanNumR As Integer, numXPSFactors As Integer, numAESFactors As Integer, numChemFactors As Integer, fileNum As Integer
     Dim para As Integer, oriXPSFactors As Integer, numscancheck As Integer, graphexist As Integer, idebug As Integer, spacer As Integer
     Dim sftfit As Integer, sftfit2 As Integer
+    
     Dim sh As String, wb As String, ver As String, verchk As String, wbc As String, wbp As String, NoCheck As String, strhighpe As String
     Dim strSheetDataName As String, strSheetGraphName As String, strSheetCheckName As String, strSheetFitName As String, strSheetAnaName As String
     Dim strSheetXPSFactors As String, strSheetAESFactors As String, strSheetPICFactors As String, strSheetChemFactors As String, Results As String
@@ -16,16 +18,19 @@ Option Explicit
     Dim strSheetAvgName As String, strList As String, strCasa As String, strAES As String, strErr As String, strSheetCheckName2 As String
     Dim ElemX As String, strErrX As String, TimeCheck As String, asf As String
     Dim str1 As String, str2 As String, str3 As String, str4 As String, strAna, direc As String, testMacro As String
+    
     Dim sheetData As Worksheet, sheetGraph As Worksheet, sheetCheck As Worksheet, sheetFit As Worksheet, sheetAvg As Worksheet, sheetCheck2 As Worksheet
     Dim sheetXPSFactors As Worksheet, sheetAESFactors As Worksheet, sheetPICFactors As Worksheet, sheetChemFactors As Worksheet, sheetAna As Worksheet
     Dim dataData As Range, dataKeData As Range, dataIntData As Range, dataBGraph As Range, dataKGraph, dataKeGraph As Range, dataBeGraph As Range
     Dim dataIntGraph As Range, dataCheck As Range, dataKeCheck As Range, dataIntCheck As Range, dataToFit As Range, dataFit As Range, rng As Range
     Dim mySeries As Series, pts As Points, pt As Point, myChartOBJ As ChartObject
+    
     Dim pe As Single, wf As Single, char As Single, off As Single, multi As Single, nomfac As Single, windowSize As Single, startEk As Single
     Dim endEk As Single, startEb As Single, endEb As Single, stepEk As Single, peX As Single, dblMax As Single, dblMin As Single, dblMax1 As Single
     Dim dblMin1 As Single, chkMax As Single, chkMin As Single, gamma As Single, lambda As Single, dblMax2 As Single, dblMin2 As Single
     Dim chkMax2 As Single, chkMin2 As Single, windowRatio As Single, maxXPSFactor As Single, maxAESFactor As Single
     Dim a0 As Single, a1 As Single, a2 As Single, a3 As Single, qe As Single, trans As Single, fitLimit As Single, mfp As Single
+    
     Dim i As Long, numData As Long, numDataN As Long, iniRow As Long, endRow As Long, totalDataPoints As Long
     Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long
     
@@ -1838,11 +1843,9 @@ Sub PlotCLAM2()
             If (i - 1) < 1 Then startR = 1
             endR = i + wf
             If (i + wf) > numData Then endR = numData
-            b(1, 1) = 0
-            b(1, 2) = 0
-            b(1, 3) = 0
-            b(1, 4) = 0
-            b(1, 5) = 0
+            For j = 1 To 5
+                b(1, j) = 0
+            Next
             
             For j = startR To endR
                 b(1, 1) = b(1, 1) + C(j, 1) * C(j, 1)
@@ -1973,7 +1976,11 @@ SkipGraph2:
             .AxisTitle.Font.Size = 12
             .AxisTitle.Font.Bold = False
             .HasMajorGridlines = True
-            .MajorUnit = numMajorUnit
+            If numMajorUnit <> 0 Then
+                .MajorUnit = numMajorUnit
+            Else
+                .MajorUnit = Abs(startEb - endEb) / 10
+            End If
             .MajorGridlines.Border.LineStyle = xlDot
         End With
         With myChartOBJ.Chart.Axes(xlValue)
@@ -2905,9 +2912,11 @@ Sub FitInitial()
     Call descriptFit
     
     en = dataBGraph
-    For i = 1 To numData
-        en(i, 1) = Round(en(i, 1), 3)   ' This makes round en off to third decimal places.
-    Next
+    If sheetGraph.Cells(7, 2).Value > 0.001 Then
+        For i = 1 To numData
+            en(i, 1) = Round(en(i, 1), 3)   ' This makes round en off to third decimal places.
+        Next
+    End If
     
     Range(Cells(21 + sftfit, 1), Cells((numData + 20 + sftfit), 2)).Value = en
     Set dataBGraph = Range(Cells(21 + sftfit, 1), Cells((numData + 20 + sftfit), 2))
@@ -3429,20 +3438,16 @@ Sub FitRange()
     End If
     
     If IsEmpty(Cells(2, 103).Value) Then
-        If Cells(15 + sftfit2, 2).Value > 1 Then
-            Cells(2, 103).Value = 10       ' max FWHM1 limit
-            Cells(3, 103).Value = 0.5       ' min FWHM1 limit
-            Cells(4, 103).Value = 10       ' max FWHM2 limit
-            Cells(5, 103).Value = 0.5       ' min FWHM2 limit
+        If mid$(Cells(25 + sftfit2, 1).Value, 1, 1) = "M" Then   ' manual set
+            Cells(2, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value)       ' max FWHM1 limit
+            Cells(3, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / 100      ' min FWHM1 limit
+            Cells(4, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value)        ' max FWHM2 limit
+            Cells(5, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / 100      ' min FWHM2 limit
             Cells(6, 103).Value = 0.999       ' max shape limit
             Cells(7, 103).Value = 0.001       ' min shape limit
-            If str1 = "Pe" Then             ' additional BE step
-                Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (4)
-                Cells(2, 103).Value = 5       ' max FWHM1 limit
-            Else
-                Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (20)
-            End If
-        Else      ' grating #1 or 0
+            Cells(10, 101).Value = 5          ' average points for poly BG
+            Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (100)
+        ElseIf Cells(15 + sftfit2, 2).Value = 1 Then   ' grating #1
             Cells(2, 103).Value = 2       ' max FWHM1 limit
             Cells(3, 103).Value = 0.1       ' min FWHM1 limit
             Cells(4, 103).Value = 2       ' max FWHM2 limit
@@ -3452,9 +3457,21 @@ Sub FitRange()
             Cells(10, 101).Value = 20          ' average points for poly BG
             If str1 = "Pe" Then             ' additional BE step
                 Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (20)
-                Cells(2, 103).Value = 1       ' max FWHM1 limit
             Else
                 Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (100)
+            End If
+        Else        ' grating #2, 3, G = 0 for AlKa XPS
+            Cells(2, 103).Value = 10       ' max FWHM1 limit
+            Cells(3, 103).Value = 0.5       ' min FWHM1 limit
+            Cells(4, 103).Value = 10       ' max FWHM2 limit
+            Cells(5, 103).Value = 0.5       ' min FWHM2 limit
+            Cells(6, 103).Value = 0.999       ' max shape limit
+            Cells(7, 103).Value = 0.001       ' min shape limit
+            Cells(10, 101).Value = 10          ' average points for poly BG
+            If str1 = "Pe" Then             ' additional BE step
+                Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (4)
+            Else
+                Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (10)
             End If
         End If
     ElseIf Cells(8, 101).Value > 0 Then      ' fit done
@@ -4441,10 +4458,6 @@ Sub GetOutFit()
         Cells(5, 2).Font.Bold = "False"
         Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
         Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
-    Else      ' Solver mode; ShirleyBG2 for iteration mode.
-        Cells(5, 2).Value = fileNum
-        Cells(5, 1).Value = "Iteration"
-        Cells(5, 2).Font.Bold = "False"
     End If
     
     For i = 1 To j
@@ -5883,13 +5896,27 @@ Sub descriptFit()
     Dim tfb As Single
     
     Cells(19, 101).Value = ver
-    Cells(1, 1).Value = "Shirley"
-    Cells(1, 2).Value = "BG"
-    Cells(1, 3).Value = vbNullString
-    Cells(2, 1).Value = "Tolerance"
-    Cells(3, 1).Value = "Initial A"
-    Cells(4, 1).Value = "Final A"
-    Cells(5, 1).Value = "Iteration"
+        If str1 = "Po" Then
+        Cells(1, 1).Value = "Polynominal"
+        Cells(1, 2).Value = "BG"
+        Cells(1, 3).Value = vbNullString
+        Cells(2, 1).Value = "a0"
+        Cells(3, 1).Value = "a1"
+        Cells(4, 1).Value = "a2"
+        Cells(5, 1).Value = "a3"
+        Range(Cells(2, 2), Cells(5, 2)) = 0
+        Range(Cells(3, 2), Cells(5, 2)).Font.Bold = "True"
+    Else
+        Cells(1, 1).Value = "Shirley"
+        Cells(1, 2).Value = "BG"
+        Cells(1, 3).Value = vbNullString
+        Cells(2, 1).Value = "Tolerance"
+        Cells(3, 1).Value = "Initial A"
+        Cells(4, 1).Value = "Final A"
+        Cells(5, 1).Value = "Iteration"
+        Cells(2, 2).Value = 0.000001
+        Cells(3, 2).Value = 0.001
+    End If
     Cells(6 + sftfit2, 1).Value = "Solve BGS"
     Cells(7 + sftfit2, 1).Value = "Peak fit"
     Cells(8 + sftfit2, 1).Value = "# peaks"
@@ -5915,8 +5942,7 @@ Sub descriptFit()
         Cells(20 + sftfit, 1).Value = "BE / eV"
         Cells(20 + sftfit, 2).Value = "In"
     End If
-    Cells(2, 2).Value = 0.000001
-    Cells(3, 2).Value = 0.001
+
     Cells(15 + sftfit2, 2).Value = Gnum     ' Grating number, 0 means VersaProbe II
     If Cells(15 + sftfit2, 2).Value = 0 Then    ' VersaProbe II AlKa
         Cells(14 + sftfit2, 2).Value = 23.5
@@ -5995,15 +6021,14 @@ Sub descriptFit()
     End If
     
     If mid$(Cells(25 + sftfit2, 1).Value, 1, 1) = "M" Then   ' manual set
-        Cells(2, 103).Value = 10       ' max FWHM1 limit
-        Cells(3, 103).Value = 0.01       ' min FWHM1 limit
-        Cells(4, 103).Value = 10       ' max FWHM2 limit
-        Cells(5, 103).Value = 0.01       ' min FWHM2 limit
+        Cells(2, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value)       ' max FWHM1 limit
+        Cells(3, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / 100      ' min FWHM1 limit
+        Cells(4, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value)        ' max FWHM2 limit
+        Cells(5, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / 100      ' min FWHM2 limit
         Cells(6, 103).Value = 0.999       ' max shape limit
         Cells(7, 103).Value = 0.001       ' min shape limit
         Cells(10, 101).Value = 5          ' average points for poly BG
         Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (100)
-
     ElseIf Cells(15 + sftfit2, 2).Value = 1 Then   ' grating #1
         Cells(2, 103).Value = 2       ' max FWHM1 limit
         Cells(3, 103).Value = 0.1       ' min FWHM1 limit
@@ -6014,7 +6039,6 @@ Sub descriptFit()
         Cells(10, 101).Value = 20          ' average points for poly BG
         If str1 = "Pe" Then             ' additional BE step
             Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (20)
-            'Cells(2, 103).Value = 1       ' max FWHM1 limit
         Else
             Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (100)
         End If
@@ -7042,12 +7066,15 @@ Sub scalecheck()
             numMajorUnit = 2 * windowSize
         ElseIf Abs(startEb - endEb) > 100 Then
             numMajorUnit = 50 * windowSize
-        ElseIf Abs(startEb - endEb) <= 20 Then
+        ElseIf Abs(startEb - endEb) <= 200 And Abs(startEb - endEb) > 1 Then
             numMajorUnit = 1 * windowSize
+        ElseIf Abs(startEb - endEb) <= 1 Then
+            numMajorUnit = 0
         End If
     
         If str1 = "Pe" Or str3 = "De" Or str1 = "Po" Then
-            If startEb < 0 Then
+            If numMajorUnit = 0 Then
+            ElseIf startEb < 0 Then
                 startEb = .Ceiling(startEb, (-1 * numMajorUnit))
             Else
                 startEb = .Floor(startEb, numMajorUnit)
@@ -7059,7 +7086,8 @@ Sub scalecheck()
         End If
 
         If str1 = "Pe" Or str3 = "De" Or str1 = "Po" Then
-            If endEb < 0 Then
+            If numMajorUnit = 0 Then
+            ElseIf endEb < 0 Then
                 endEb = .Floor(endEb, (-1 * numMajorUnit))
             Else
                 endEb = .Ceiling(endEb, numMajorUnit)
