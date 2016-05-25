@@ -1,6 +1,5 @@
 Option Explicit
-    
-    Dim FSO As Object, flag As Boolean
+
     Dim iniTime As Date, finTime As Date, startTime As Date, endTime As Date, checkTime As Date, checkDate As Date, TimeC1 As Date, TimeC2 As Date
     Dim Fname As Variant, en As Variant, C As Variant, A As Variant, b As Variant, D As Variant, tmp As Variant, highpe() As Variant
     Dim OpenFileName As Variant, Target As Variant, Record As Variant, U As Variant, ratio() As Variant, bediff() As Variant
@@ -73,6 +72,7 @@ Sub CLAM2()
 End Sub
 
 Sub SheetNameAnalysis()
+    Dim FSO As Object
     If mid$(direc, Len(direc), 1) <> "\" Then direc = direc & "\"
     direc = Replace(direc, "/", "\")
     direc = Replace(direc, "*", "")
@@ -439,6 +439,7 @@ DeadInTheWater2:
             strTest = mid$(strTest, 1, 25)
         End If
         
+        Dim flag as Boolean
         flag = False
         For Each sheetData In Worksheets
             If sheetData.Name = strTest Then flag = True
@@ -501,17 +502,24 @@ Sub GetAutoScale()
     Dim iniRow2 As Single
     Dim endRow1 As Single
     Dim endRow2 As Single
+    Dim strAuto As String
+    
+    strAuto = LCase(Cells(1, 1).Value)
     ' "autop" to run the previous auto command
-    If StrComp(LCase(Cells(1, 1).Value), "autop", 1) = 0 And IsEmpty(Cells(40, para + 11).Value) = False Then Cells(1, 1).Value = Cells(40, para + 11).Value
+    If StrComp(strAuto, "autop", 1) = 0 And IsEmpty(Cells(40, para + 11).Value) = False Then strAuto = Cells(40, para + 11).Value
+
+    'Use IntegrationTrapezoid(rng, dataData) to calibrate the offset and multiple factors
+    ' k to be number of points to be integrated from both ends
     k = 0
+    
     For i = 0 To ncomp
         Set rng = Range(Cells(11, (3 + (i * 3))), Cells(11, (3 + (i * 3))).End(xlDown))
         numDataT = Application.CountA(rng)
-        If Len(Cells(1, 1).Value) > 4 Then
-            If StrComp(mid$(Cells(1, 1).Value, 5, 1), "(", 1) = 0 And StrComp(mid$(Cells(1, 1).Value, Len(Cells(1, 1)), 1), ")", 1) = 0 Then
-                If IsNumeric(mid$(Cells(1, 1).Value, 6, InStr(6, Cells(1, 1), ",", 1) - 6)) And IsNumeric(mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ",", 1) + 1, Len(Cells(1, 1)) - InStr(6, Cells(1, 1), ",", 1) - 1)) Then
-                    p = Application.Floor(mid$(Cells(1, 1).Value, 6, InStr(6, Cells(1, 1), ",", 1) - 6), 1)
-                    q = Application.Ceiling(mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ",", 1) + 1, Len(Cells(1, 1)) - InStr(6, Cells(1, 1), ",", 1) - 1), 1)
+        If Len(strAuto) > 4 Then
+            If StrComp(mid$(strAuto, 5, 1), "(", 1) = 0 And StrComp(mid$(strAuto, Len(strAuto), 1), ")", 1) = 0 Then
+                If IsNumeric(mid$(strAuto, 6, InStr(6, strAuto, ",", 1) - 6)) And IsNumeric(mid$(strAuto, InStr(6, strAuto, ",", 1) + 1, Len(strAuto) - InStr(6, strAuto, ",", 1) - 1)) Then
+                    p = Application.Floor(mid$(strAuto, 6, InStr(6, strAuto, ",", 1) - 6), 1)
+                    q = Application.Ceiling(mid$(strAuto, InStr(6, strAuto, ",", 1) + 1, Len(strAuto) - InStr(6, strAuto, ",", 1) - 1), 1)
                     
                     If p >= 1 And q > p Then
                     Else
@@ -533,34 +541,55 @@ Sub GetAutoScale()
                     Cells(9, 3 * i + 2).Value = Application.WorksheetFunction.Average(dataData)
                     Cells(9, 3 * i + 3).Value = 1 / Abs(Application.WorksheetFunction.Average(rng) - Cells(9, 3 * i + 2).Value)
                 End If
-            ElseIf StrComp(mid$(Cells(1, 1).Value, 5, 1), "[", 1) = 0 And StrComp(mid$(Cells(1, 1).Value, Len(Cells(1, 1)), 1), "]", 1) = 0 Then
-                If IsNumeric(mid$(Cells(1, 1).Value, 6, InStr(6, Cells(1, 1), ":", 1) - 6)) And IsNumeric(mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ",", 1) + 1, Len(Cells(1, 1)) - InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) - 1)) Then
-                    stepEk = Abs(Cells(7, 3 * i + 2).Value)
-                    If mid$(Cells(1, 1).Value, 6, InStr(6, Cells(1, 1), ":", 1) - 6) < 0 Then
-                        iniRow1 = Application.Floor(mid$(Cells(1, 1).Value, 6, InStr(6, Cells(1, 1), ":", 1) - 6), -1 * stepEk)
+            ElseIf StrComp(mid$(strAuto, 5, 1), "[", 1) = 0 And StrComp(mid$(strAuto, Len(strAuto), 1), "]", 1) = 0 And InStr(6, strAuto, ":", 1) > 0 And InStr(6, strAuto, ",", 1) > 0 Then
+                stepEk = Abs(Cells(7, 3 * i + 2).Value)
+
+                If IsNumeric(mid$(strAuto, 6, InStr(6, strAuto, ":", 1) - 6)) Then
+                    If mid$(strAuto, 6, InStr(6, strAuto, ":", 1) - 6) < 0 Then
+                        iniRow1 = Application.Floor(mid$(strAuto, 6, InStr(6, strAuto, ":", 1) - 6), -1 * stepEk)
                     Else
-                        iniRow1 = Application.Floor(mid$(Cells(1, 1).Value, 6, InStr(6, Cells(1, 1), ":", 1) - 6), stepEk)
+                        iniRow1 = Application.Floor(mid$(strAuto, 6, InStr(6, strAuto, ":", 1) - 6), stepEk)
                     End If
-                    If mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ",", 1) + 1, Len(Cells(1, 1)) - InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) - 1) < 0 Then
-                        iniRow2 = Application.Floor(mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ",", 1) + 1, Len(Cells(1, 1)) - InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) - 1), -1 * stepEk)
+                Else
+                    iniRow1 = 0
+                End If
+                If IsNumeric(mid$(strAuto, InStr(6, strAuto, ",", 1) + 1, Len(strAuto) - InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) - 1)) Then
+                    If mid$(strAuto, InStr(6, strAuto, ",", 1) + 1, Len(strAuto) - InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) - 1) < 0 Then
+                        iniRow2 = Application.Floor(mid$(strAuto, InStr(6, strAuto, ",", 1) + 1, Len(strAuto) - InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) - 1), -1 * stepEk)
                     Else
-                        iniRow2 = Application.Floor(mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ",", 1) + 1, Len(Cells(1, 1)) - InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) - 1), stepEk)
+                        iniRow2 = Application.Floor(mid$(strAuto, InStr(6, strAuto, ",", 1) + 1, Len(strAuto) - InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) - 1), stepEk)
                     End If
-                    If mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ":", 1) + 1, InStr(InStr(6, Cells(1, 1), ":", 1) + 1, Cells(1, 1), ",", 1) - InStr(6, Cells(1, 1), ":", 1) - 1) < 0 Then
-                        endRow1 = Application.Ceiling(mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ":", 1) + 1, InStr(InStr(6, Cells(1, 1), ":", 1) + 1, Cells(1, 1), ",", 1) - InStr(6, Cells(1, 1), ":", 1) - 1), -1 * stepEk)
+                Else
+                    iniRow2 = 0
+                End If
+                If IsNumeric(mid$(strAuto, InStr(6, strAuto, ":", 1) + 1, InStr(InStr(6, strAuto, ":", 1) + 1, strAuto, ",", 1) - InStr(6, strAuto, ":", 1) - 1)) Then
+                    If mid$(strAuto, InStr(6, strAuto, ":", 1) + 1, InStr(InStr(6, strAuto, ":", 1) + 1, strAuto, ",", 1) - InStr(6, strAuto, ":", 1) - 1) < 0 Then
+                        endRow1 = Application.Ceiling(mid$(strAuto, InStr(6, strAuto, ":", 1) + 1, InStr(InStr(6, strAuto, ":", 1) + 1, strAuto, ",", 1) - InStr(6, strAuto, ":", 1) - 1), -1 * stepEk)
                     Else
-                        endRow1 = Application.Ceiling(mid$(Cells(1, 1).Value, InStr(6, Cells(1, 1), ":", 1) + 1, InStr(InStr(6, Cells(1, 1), ":", 1) + 1, Cells(1, 1), ",", 1) - InStr(6, Cells(1, 1), ":", 1) - 1), stepEk)
+                        endRow1 = Application.Ceiling(mid$(strAuto, InStr(6, strAuto, ":", 1) + 1, InStr(InStr(6, strAuto, ":", 1) + 1, strAuto, ",", 1) - InStr(6, strAuto, ":", 1) - 1), stepEk)
                     End If
-                    If mid$(Cells(1, 1).Value, InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) + 1, Len(Cells(1, 1)) - InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) - 1) < 0 Then
-                        endRow2 = Application.Ceiling(mid$(Cells(1, 1).Value, InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) + 1, Len(Cells(1, 1)) - InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) - 1), -1 * stepEk)
+                Else
+                    endRow1 = 0
+                End If
+                If IsNumeric(mid$(strAuto, InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) + 1, Len(strAuto) - InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) - 1)) Then
+                    If mid$(strAuto, InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) + 1, Len(strAuto) - InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) - 1) < 0 Then
+                        endRow2 = Application.Ceiling(mid$(strAuto, InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) + 1, Len(strAuto) - InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) - 1), -1 * stepEk)
                     Else
-                        endRow2 = Application.Ceiling(mid$(Cells(1, 1).Value, InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) + 1, Len(Cells(1, 1)) - InStr(InStr(6, Cells(1, 1), ",", 1) + 1, Cells(1, 1), ":", 1) - 1), stepEk)
+                        endRow2 = Application.Ceiling(mid$(strAuto, InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) + 1, Len(strAuto) - InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) - 1), stepEk)
                     End If
-                    If StrComp(LCase(Cells(10, 3 * i + 1).Value), "pe", 1) = 0 Then
+                Else
+                    endRow2 = 0
+                End If
+                
+                If StrComp(LCase(Cells(10, 3 * i + 1).Value), "pe", 1) = 0 Then
+                    If iniRow1 = endRow1 Then
+                        Cells(9, 3 * i + 2).Value = 0
+                    Else
                         For j = 0 To numDataT - 1
                             If iniRow1 <= Cells(12 + numDataT + 8 + j, 3 * i + 2).Value Then
                                 p = j + 1
                                 Exit For
+                            
                             End If
                         Next
                         
@@ -570,12 +599,16 @@ Sub GetAutoScale()
                                 Exit For
                             End If
                         Next
-                        
+
                         If p >= 1 And q > p Then
                             Set rng = Range(Cells(11 + p - 1, (3 + (i * 3))), Cells(11 + q - 1, (3 + (i * 3))))
                             Cells(9, 3 * i + 2).Value = Application.WorksheetFunction.Average(rng)
                         End If
-                        
+                    End If
+                    
+                    If iniRow2 = endRow2 Then
+                        Cells(9, 3 * i + 3).Value = 1
+                    Else
                         For j = 0 To numDataT - 1
                             If iniRow2 >= Cells(11 + (numDataT * 2) + 8 - j, 3 * i + 2).Value Then
                                 q = j + 1
@@ -589,16 +622,21 @@ Sub GetAutoScale()
                                 Exit For
                             End If
                         Next
-                        
+                    
                         If p >= 1 And q > p Then
                             Set dataData = Range(Cells(10 + numDataT - q + 1, (3 + (i * 3))), Cells(10 + numDataT - p + 1, (3 + (i * 3))))
                             Cells(9, 3 * i + 3).Value = 1 / Abs(Application.WorksheetFunction.Average(dataData) - Cells(9, 3 * i + 2).Value)
                         End If
+                    End If
+                Else
+                    If iniRow1 = endRow1 Then
+                        Cells(9, 3 * i + 2).Value = 0
                     Else
                         For j = 0 To numDataT - 1
                             If iniRow1 <= Cells(11 + (numDataT * 2) + 8 - j, 3 * i + 2).Value Then
                                 p = j + 1
                                 Exit For
+                            
                             End If
                         Next
                         
@@ -613,7 +651,11 @@ Sub GetAutoScale()
                             Set rng = Range(Cells(10 + numDataT - q + 1, (3 + (i * 3))), Cells(10 + numDataT - p + 1, (3 + (i * 3))))
                             Cells(9, 3 * i + 2).Value = Application.WorksheetFunction.Average(rng)
                         End If
-                        
+                    End If
+                    
+                    If iniRow2 = endRow2 Then
+                        Cells(9, 3 * i + 3).Value = 1
+                    Else
                         For j = 0 To numDataT - 1
                             If iniRow2 >= Cells(12 + numDataT + 8 + j, 3 * i + 2).Value Then
                                 q = j + 1
@@ -634,8 +676,8 @@ Sub GetAutoScale()
                         End If
                     End If
                 End If
-            ElseIf IsNumeric(mid$(Cells(1, 1).Value, 5, Len(Cells(1, 1)) - 4)) = True Then
-                k = mid$(Cells(1, 1).Value, 5, Len(Cells(1, 1)) - 4)
+            ElseIf IsNumeric(mid$(strAuto, 5, Len(strAuto) - 4)) = True Then    ' point calibration in auto10 to calibrate at 10 points from start and end
+                k = mid$(strAuto, 5, Len(strAuto) - 4)
                 If k >= 0 And k < numDataT / 2 Then
                 Else
                     k = 0
@@ -651,9 +693,8 @@ Sub GetAutoScale()
                     Cells(9, 3 * i + 2).Value = Cells(10 + k, (3 + (i * 3))).Value
                     Cells(9, 3 * i + 3).Value = 1 / (Cells(11 + numDataT - k, (3 + (i * 3))).Value - Cells(10 + k, (3 + (i * 3))).Value)
                 End If
-            Else
+            Else    ' point calibration in "auto" at start and end points
                 k = 0
-                
                 If StrComp(LCase(Cells(10, 3 * i + 1).Value), "pe", 1) = 0 Then 'XAS mode
                     Cells(9, 3 * i + 2).Value = Cells(11 + k, (3 + (i * 3))).Value
                     Cells(9, 3 * i + 3).Value = 1 / (Cells(10 + numDataT - k, (3 + (i * 3))).Value - Cells(11 + k, (3 + (i * 3))).Value)
@@ -674,8 +715,9 @@ Sub GetAutoScale()
         End If
     Next
     
-    Cells(40, para + 11).Value = Cells(1, 1).Value
+    Cells(40, para + 11).Value = strAuto
     Cells(1, 1).Value = "Grating"
+    
     If ncomp > 0 Then
         strErr = "skip"
     Else
@@ -3538,6 +3580,7 @@ Sub FitRange()
                 Exit Sub
             End If
             
+            Dim flag as Boolean
             flag = False
             
             For Each sheetFit In Worksheets
