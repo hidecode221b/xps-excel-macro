@@ -33,8 +33,8 @@ Option Explicit
     
 Sub CLAM2()
     ver = "8.04p"                             ' Version of this code.
-    direc = "E:\DATA\hideki\XPS\"            ' a  directory location of database (this is for PC with SSD storage.)
-    'direc = "D:\DATA\hideki\XPS\"            ' this is for PC with HDD storage.
+    'direc = "E:\DATA\hideki\XPS\"            ' a  directory location of database (this is for PC with SSD storage.)
+    direc = "D:\DATA\hideki\XPS\"            ' this is for PC with HDD storage.
     'direc = "C:\Users\Public\Data\"         ' this is for BOOTCAMP on MacBookAir.
     
     windowSize = 1.7          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
