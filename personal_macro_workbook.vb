@@ -1,8 +1,8 @@
 Option Explicit
 
     Dim iniTime As Date, finTime As Date, startTime As Date, endTime As Date, checkTime As Date, checkDate As Date, TimeC1 As Date, TimeC2 As Date
-    Dim Fname As Variant, en As Variant, C As Variant, A As Variant, b As Variant, D As Variant, tmp As Variant, highpe() As Variant
-    Dim OpenFileName As Variant, Target As Variant, Record As Variant, U As Variant, ratio() As Variant, bediff() As Variant
+    Dim OpenFileName As Variant, U As Variant, en As Variant, C As Variant, A As Variant, b As Variant, D As Variant, tmp As Variant
+    Dim highpe() As Variant, ratio() As Variant, bediff() As Variant
     
     Dim j As Integer, k As Integer, q As Integer, p As Integer, iRow As Integer, iCol As Integer, imax As Integer, startR As Integer, endR As Integer
     Dim numMajorUnit As Integer, ns As Integer, modex As Integer, g As Integer, Gnum As Integer, cae As Integer, NumSheets As Integer, ncomp As Integer
@@ -21,8 +21,7 @@ Option Explicit
     Dim sheetData As Worksheet, sheetGraph As Worksheet, sheetCheck As Worksheet, sheetFit As Worksheet, sheetAvg As Worksheet, sheetCheck2 As Worksheet
     Dim sheetXPSFactors As Worksheet, sheetAESFactors As Worksheet, sheetPICFactors As Worksheet, sheetChemFactors As Worksheet, sheetAna As Worksheet
     Dim dataData As Range, dataKeData As Range, dataIntData As Range, dataBGraph As Range, dataKGraph, dataKeGraph As Range, dataBeGraph As Range
-    Dim dataIntGraph As Range, dataCheck As Range, dataKeCheck As Range, dataIntCheck As Range, dataToFit As Range, dataFit As Range, rng As Range
-    Dim mySeries As Series, pts As Points, pt As Point, myChartOBJ As ChartObject
+    Dim dataIntGraph As Range, dataCheck As Range, dataKeCheck As Range, dataIntCheck As Range, dataFit As Range, rng As Range
     
     Dim pe As Single, wf As Single, char As Single, off As Single, multi As Single, nomfac As Single, windowSize As Single, startEk As Single
     Dim endEk As Single, startEb As Single, endEb As Single, stepEk As Single, peX As Single, dblMax As Single, dblMin As Single, dblMax1 As Single
@@ -31,12 +30,11 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, a3 As Single, qe As Single, trans As Single, fitLimit As Single, mfp As Single
     
     Dim i As Long, numData As Long, numDataN As Long, iniRow As Long, endRow As Long, totalDataPoints As Long
-    Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long
     
 Sub CLAM2()
-    ver = "8.03p"                             ' Version of this code.
-    'direc = "E:\DATA\hideki\XPS\"            ' a  directory location of database (this is for PC with SSD storage.)
-    direc = "D:\DATA\hideki\XPS\"            ' this is for PC with HDD storage.
+    ver = "8.04p"                             ' Version of this code.
+    direc = "E:\DATA\hideki\XPS\"            ' a  directory location of database (this is for PC with SSD storage.)
+    'direc = "D:\DATA\hideki\XPS\"            ' this is for PC with HDD storage.
     'direc = "C:\Users\Public\Data\"         ' this is for BOOTCAMP on MacBookAir.
     
     windowSize = 1.7          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
@@ -439,7 +437,7 @@ DeadInTheWater2:
             strTest = mid$(strTest, 1, 25)
         End If
         
-        Dim flag as Boolean
+        Dim flag As Boolean
         flag = False
         For Each sheetData In Worksheets
             If sheetData.Name = strTest Then flag = True
@@ -1158,6 +1156,7 @@ SkipFitRatioAnalysis:
 End Sub
 
 Sub FitAnalysis()
+    Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long
     strSheetAnaName = "Ana_" + strSheetDataName
     strSheetFitName = "Fit_" + strSheetDataName
     strSheetGraphName = "Graph_" + strSheetDataName
@@ -1853,6 +1852,9 @@ Sub SheetCheckGenerator()
 End Sub
 
 Sub PlotCLAM2()
+    Dim myChartOBJ As ChartObject
+    Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long
+    
     If ExistSheet(strSheetGraphName) Then
         Application.DisplayAlerts = False
         Worksheets(strSheetGraphName).Delete
@@ -2093,6 +2095,7 @@ End Sub
 
 Sub ElemXPS()
     Dim xpsoffset As Integer
+    Dim Fname As Variant, Record As Variant
     xpsoffset = 0
 CheckElemAgain:
     finTime = Timer
@@ -2135,11 +2138,11 @@ CheckElemAgain:
         Workbooks.Open Fname
         Workbooks("UD.xlsx").Activate
         If Err.Number > 0 Then
-            MsgBox "Error in " & Target, vbOKOnly, "Error code: " & Err.Number
+            MsgBox "Error in " & Fname, vbOKOnly, "Error code: " & Err.Number
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         ElseIf StrComp(ActiveWorkbook.Name, "UD.xlsx", 1) <> 0 Then
-            MsgBox "Error in " & Target
+            MsgBox "Error in " & Fname
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         End If
@@ -2272,7 +2275,7 @@ End Sub
 
 Sub ElemAES()
     Dim aesoffset As Integer
-    
+    Dim Fname As Variant, Record As Variant
     If numXPSFactors = 0 Then GoTo SkipXPSnumZero
     
     Worksheets.Add().Name = strSheetPICFactors
@@ -2419,11 +2422,11 @@ SkipXPSnumZero:
         Workbooks.Open Fname
         Workbooks("UD.xlsx").Activate
         If Err.Number > 0 Then
-            MsgBox "Error in " & Target, vbOKOnly, "Error code: " & Err.Number
+            MsgBox "Error in " & Fname, vbOKOnly, "Error code: " & Err.Number
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         ElseIf StrComp(ActiveWorkbook.Name, "UD.xlsx", 1) <> 0 Then
-            MsgBox "Error in " & Target
+            MsgBox "Error in " & Fname
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         End If
@@ -2509,6 +2512,7 @@ SkipXPSnumZero:
 End Sub
 
 Sub PlotElem()
+    Dim pts As Points, pt As Point
     sheetGraph.Activate
     
     If strAna = "FitComp" Then
@@ -2920,6 +2924,7 @@ Error1:
 End Sub
 
 Sub FitInitial()
+    Dim mySeries As Series, myChartOBJ As ChartObject
     If StrComp(strAna, "ana", 1) = 0 Or StrComp(str1, "Pe", 1) = 0 Or StrComp(str1, "Po", 1) = 0 Then
         Worksheets(strSheetGraphName).Activate
         numData = Cells(41, para + 12).Value '((Cells(6, 2).Value - Cells(5, 2).Value) / Cells(7, 2).Value) + 1
@@ -3449,6 +3454,7 @@ Sub FitInitialGuess()
 End Sub
 
 Sub FitRange()
+    Dim myChartOBJ As ChartObject
     Set rng = [A:A]
     
     strSheetGraphName = "Graph_" + strSheetDataName
@@ -3580,7 +3586,7 @@ Sub FitRange()
                 Exit Sub
             End If
             
-            Dim flag as Boolean
+            Dim flag As Boolean
             flag = False
             
             For Each sheetFit In Worksheets
@@ -4557,6 +4563,7 @@ Function ExistSheet(sheetName) As Boolean
 End Function
 
 Sub ScanCheck()
+    Dim myChartOBJ As ChartObject
     j = 3   ' 0 for CPS, 1 for Ie, 2 for Ip, 3 for CPS/Ip
     If ExistSheet(strSheetCheckName) Then
         Application.DisplayAlerts = False
@@ -4764,6 +4771,7 @@ SkipSelection3:
 End Sub
 
 Sub EngBL()
+    Dim SourceRangeColor1 As Long
     If ExistSheet(strSheetGraphName) Then
         Application.DisplayAlerts = False
         Worksheets(strSheetGraphName).Delete
@@ -5214,6 +5222,8 @@ Sub offsetmultiple()
 End Sub
 
 Sub EachComp()
+    Dim Target As Variant
+    Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long
     cae = 0
     For Each Target In OpenFileName
             
@@ -6706,6 +6716,7 @@ Sub ProfileAnalyzer()
 End Sub
 
 Sub FitEquations()
+    Dim pts As Points, pt As Point
     If Cells(15 + sftfit2, 2).Value = 1 Then
         Cells(15, 101).Value = 0.01
     ElseIf Cells(15 + sftfit2, 2).Value = 2 Then
@@ -7248,6 +7259,7 @@ Sub SolverSetup()
 End Sub
 
 Sub GetNormalize()
+    Dim SourceRangeColor1 As Long
     strSheetAnaName = "Norm_" + strSheetDataName
     strSheetGraphName = "Graph_" + strSheetDataName
     
@@ -7666,6 +7678,8 @@ End Sub
 Sub debugAll()      ' multiple file analysis in sequence
     Dim be4all() As Variant, am4all() As Variant, fw4all() As Variant, wbX As String, shgX As Worksheet, shfX As Worksheet, strSheetDataNameX As String, numpeakX As Integer
     Dim debugMode As String, seriesnum As Integer
+    Dim Target As Variant
+    Dim SourceRangeColor1 As Long
     
     If mid$(testMacro, 1, 5) = "debug" Then
         modex = -1
@@ -8017,6 +8031,8 @@ Sub SolverInstall2()
     ' initialize Solver
     Application.Run "Solver.xlam!Solver.Solver2.Auto_open"
 End Sub
+
+
 
 
 
