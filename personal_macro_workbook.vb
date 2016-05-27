@@ -5802,7 +5802,7 @@ Sub descriptGraph()
         str2 = "Ae"
         str3 = "De"
         
-    ElseIf strTest = "ME/eV" Or mid$(strTest, 2, 4) = "E/eV" Then
+    ElseIf strTest = "ME/eV" Then
         Cells(2, 2).Value = pe
         Cells(2, 1).Value = "Shifts"
         Cells(5, 1).Value = "Start"
