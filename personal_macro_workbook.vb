@@ -19,7 +19,7 @@ Option Explicit
     Dim pe As Single, wf As Single, char As Single, off As Single, multi As Single, windowSize As Single, windowRatio As Single
     Dim startEk As Single, endEk As Single, startEb As Single, endEb As Single, stepEk As Single, dblMax As Single, dblMin As Single
     Dim chkMax As Single, chkMin As Single, gamma As Single, lambda As Single, maxXPSFactor As Single, maxAESFactor As Single
-    Dim a0 As Single, a1 As Single, a2 As Single, qe As Single, trans As Single, fitLimit As Single, mfp As Single, peX As Single
+    Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
     
@@ -42,12 +42,7 @@ Sub CLAM2()
     
     mfp = 0.6               ' Inelastic mean free path formula: E^(mfp), and mfp can be from 0.5 to 0.9.
     
-    qe = 0.063162           ' Averaged quantum efficiency of gold evaluated in Ip and photodiode measurements (beam size 1mm^2 to be assumed)
-                            ' qe = 0.063162 for PE:39.5 eV; qe = 0.041824 for PE:60.0 eV  (units: # of electron per photon)
-                            ' qe = 0.018186 for PE:80.0 eV; qe = 0.020104 for PE:120.0 eV (20130514)
-    trans = 0.65            ' Gold mesh transmission to evaluate flux based on Ip: 65%
-    
-    para = 300              ' position of parameters in the graph sheet with higher version of 6.56.
+    para = 100              ' position of parameters in the graph sheet with higher version of 6.56.
                             ' the limit of compared spectra depends on (para/3).
     spacer = 4              ' spacer between data tables for each parameter in FitRatioAnalysis, but it should be more than 3
     sftfit = 10
