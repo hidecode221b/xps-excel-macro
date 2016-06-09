@@ -3,16 +3,14 @@ Option Explicit
     Dim iniTime As Date, finTime As Date, startTime As Date, endTime As Date, TimeC1 As Date, TimeC2 As Date
     Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, highpe() As Variant, ratio() As Variant, bediff() As Variant, strl() As Variant
     
-    Dim j As Integer, k As Integer, q As Integer, p As Integer, n As Integer, iRow As Integer, iCol As Integer, ns As Integer
-    Dim startR As Integer, endR As Integer, g As Integer, Gnum As Integer, cae As Integer, ncomp As Integer
-    Dim numMajorUnit As Integer, modex As Integer, para As Integer, numscancheck As Integer, graphexist As Integer, numData As Integer
-    Dim scanNum As Integer, scanNumR As Integer, numXPSFactors As Integer, numAESFactors As Integer, numChemFactors As Integer, fileNum As Integer
+    Dim j As Integer, k As Integer, q As Integer, p As Integer, n As Integer, iRow As Integer, iCol As Integer, ns As Integer, fileNum As Integer
+    Dim startR As Integer, endR As Integer, g As Integer, cae As Integer, ncomp As Integer, numXPSFactors As Integer, numAESFactors As Integer
+    Dim numMajorUnit As Integer, modex As Integer, para As Integer, graphexist As Integer, numData As Integer, numChemFactors As Integer
     Dim idebug As Integer, spacer As Integer, sftfit As Integer, sftfit2 As Integer, cmp As Integer, ncmp As Integer, npa As Integer
     
-    Dim wb As String, ver As String, NoCheck As String, TimeCheck As String, strAna As String, direc As String
+    Dim wb As String, ver As String, TimeCheck As String, strAna As String, direc As String, ElemD As String, Elem As String, Results As String
     Dim strSheetDataName As String, strSheetGraphName As String, strSheetCheckName As String, strSheetFitName As String, strSheetAnaName As String
-    Dim strSheetXPSFactors As String, strSheetAESFactors As String, strSheetPICFactors As String, strSheetChemFactors As String, Results As String
-    Dim strTest As String, strLabel As String, strCpa As String, ElemD As String, Elem As String, strscanNum As String, strscanNumR As String
+    Dim strTest As String, strLabel As String, strCpa As String
     Dim strList As String, strCasa As String, strAES As String, strErr As String, strErrX As String, ElemX As String, testMacro As String
     
     Dim sheetData As Worksheet, sheetGraph As Worksheet, sheetCheck As Worksheet, sheetFit As Worksheet, sheetAna As Worksheet
@@ -32,7 +30,6 @@ Sub CLAM2()
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
     windowRatio = 4 / 3     ' window width / height, "2/1" for eyes or "4/3" for ppt
-    NoCheck = "OFF"         ' "OFF" for normal, "ON" for no checking function to reduce CPU load. "Obb" for fluence analysis.
     ElemD = "C,O"           ' Default elements to be shown up in the element analysis.
     TimeCheck = "No"        ' "yes" to display the progress time, "No" only iteration results in fitting, numeric value to suppress any display.
     
@@ -155,7 +152,7 @@ DeadInTheWater2:
         
         If IsEmpty(Cells(1, 2).Value) = False Then
             If IsNumeric(Cells(1, 2).Value) = True Then
-                Gnum = Cells(1, 2).Value
+                
             Else
                 Exit Sub
             End If
@@ -233,8 +230,6 @@ DeadInTheWater2:
         multi = Cells(9, 3).Value
         
         strAna = Cells(10, 3).Value
-        strscanNum = Cells(8, 2).Value
-        strscanNumR = Cells(8, 2).Value
         
         If Cells(40, para + 9).Value = "Ver." Then
         Else
@@ -295,8 +290,7 @@ DeadInTheWater2:
         Next
         strCpa = Cells(1, (4 + (3 * k))).Value
         cmp = k
-        
-        Call Gcheck
+        g = 0
         If StrComp(strAna, "ana", 1) = 0 And StrComp(TimeCheck, "yes", 1) = 0 Then TimeCheck = vbNullString
     ElseIf InStr(1, sh, "Check_") > 0 Then
         strSheetDataName = mid$(sh, 7, (Len(sh) - 6))
@@ -631,17 +625,10 @@ Sub PlotCLAM2()
             C3(n, 1) = (C2(n, 1) / C4(n, 1))
         Next
     Else
-        If numscancheck <= 0 Then
-            For n = 1 To numData
-                If IsNumeric(C2(n, 1)) = False Then Exit For
-                C3(n, 1) = C2(n, 1) * 0.000000000001   ' if no scanrangecheck, dataIntData from the original data sheet, Ip normalized by pico-amps
-            Next
-        Else
-            For n = 1 To numData
-                If IsNumeric(C2(n, 1)) = False Then Exit For
-                C3(n, 1) = C2(n, 1) * 1                ' if scanrangecheck done, dataIntData from the check sheet (Avg. CPS/Ip; Sub ScanCheck), Ip is already normalized by pic-amps
-            Next
-        End If
+        For n = 1 To numData
+            If IsNumeric(C2(n, 1)) = False Then Exit For
+            C3(n, 1) = C2(n, 1) * 1
+        Next
     End If
 
     Range(Cells(11, 3), Cells((numData + 10), 3)) = C3
@@ -880,7 +867,7 @@ CheckElemAgain:
         iRow = ActiveSheet.UsedRange.Rows.Count
         If iRow = 0 Then iRow = 1
         
-        C2 = Range(Cells(2, 1), Cells(2, 1).Offset(iRow - 2, 3)) '
+        C2 = Range(Cells(1, 1), Cells(1, 1).Offset(iRow - 1, 3)) '
         
         If mid$(Cells(1, 4).Value, 1, 1) = "R" Then
             asf = "RSF"  ' Relative Sensitivity factors
@@ -904,9 +891,9 @@ CheckElemAgain:
         If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
     End If
     
-    imax = iRow - 1   'UBound(C2, 1)    'imax : number of elements in database
+    imax = iRow  'UBound(C2, 1)    'imax : number of elements in database
     
-    If imax < 1 Then
+    If imax < 2 Then
         numXPSFactors = 0
         strErrX = "skip"
         Exit Sub
@@ -1027,10 +1014,10 @@ CheckElemAgain:
         fileNum = FreeFile(0)
         Open Fname For Input As #fileNum
         iRow = 1
-        Line Input #fileNum, Record
         q = 0
         
         Do Until EOF(fileNum)
+			Line Input #fileNum, Record
             C1 = Split(Record, vbTab)
 
             If strl(1) = "Pe" Then         ' XAS mode
@@ -1072,11 +1059,10 @@ CheckElemAgain:
             End If
             
             iRow = iRow + 1
-            Line Input #fileNum, Record
         Loop
         
         Close #fileNum
-
+		
 SkipElem:
        
         If q = 0 Or StrComp(asf, "ASF", 1) = 0 Then
@@ -1167,7 +1153,7 @@ SkipXPSnumZero:
         Workbooks("UD.xlsx").Sheets("AES").Activate
         iRow = ActiveSheet.UsedRange.Rows.Count
         If iRow = 0 Then iRow = 1
-        C2 = Range(Cells(2, 1), Cells(2, 1).Offset(iRow - 2, 3 + aesoffset))
+        C2 = Range(Cells(1, 1), Cells(1, 1).Offset(iRow - 1, 3 + aesoffset))
         
         If graphexist = 0 Then
             Workbooks("UD.xlsx").Close False
@@ -1181,9 +1167,9 @@ SkipXPSnumZero:
         If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
     End If
     
-    imax = iRow - 1 'UBound(C2, 1)   'ActiveSheet.UsedRange.Rows.Count
+    imax = iRow 'UBound(C2, 1)   'ActiveSheet.UsedRange.Rows.Count
     
-    If imax < 1 Then
+    If imax < 2 Then
         numAESFactors = 0
         strErrX = "skip"
         Exit Sub
@@ -1197,7 +1183,8 @@ SkipXPSnumZero:
     For n = 0 To UBound(C3)
         Elem = C3(n)
         j = 1 + k
-        For q = 1 To (imax - 1)
+        For q = 1 To (imax)
+            Debug.Print C1(q, 1)
             If C1(q, 1) = Elem Then
                 C2(j, 1) = C1(q, 1)       ' Element
                 C2(j, 2) = C1(q, 2)       ' Transition
@@ -2283,7 +2270,7 @@ Sub Convert2Txt()
 End Sub
 
 Sub FitRatioAnalysis()
-    Dim C1 As Variant, C2 As Variant, C3 As Variant
+    Dim C1 As Variant, C2 As Variant, C3 As Variant, peakNum As Integer, fitNum As Integer, bookNum As Integer
     
     strSheetAnaName = "Ana_" + strSheetDataName
     strSheetFitName = "Rto_" + strSheetDataName
@@ -2317,23 +2304,23 @@ Sub FitRatioAnalysis()
         sheetAna.Activate
         
         spacer = sheetAna.Cells(2, para + 1).Value
-        g = sheetAna.Cells(3, para + 1).Value         ' # of Fit peaks
-        fileNum = sheetAna.Cells(4, para + 1).Value   ' # of Fit files
+        peakNum = sheetAna.Cells(3, para + 1).Value         ' # of Fit peaks
+        fitNum = sheetAna.Cells(4, para + 1).Value   ' # of Fit files
         sheetAna.Cells(5, para + 1).Value = UBound(OpenFileName)  ' # of Ana files
         sheetAna.Cells(5, para).Value = "# ana files"
-        scanNum = UBound(OpenFileName)
+        bookNum = UBound(OpenFileName)
 
         sheetAna.Cells(1, 1) = vbNullString
         C3 = sheetAna.Range(Cells(1, 1), Cells(para * 3 - 1, para * 3 - 1)) ' No check in matching among the peak names.
         sheetFit.Activate
         sheetFit.Range(Cells(1, 1), Cells(para * 3 - 1, para * 3 - 1)) = C3
-        C2 = sheetFit.Range(Cells(4, para / 2), Cells(3 + fileNum, para - 1))    ' store the BGs
-        For q = 1 To fileNum
-            C2(q, 1) = C3(3 + q, g + 6) & C3(3 + q, g + 7) & C3(3 + q, g + 8)
+        C2 = sheetFit.Range(Cells(4, para / 2), Cells(3 + fitNum, para - 1))    ' store the BGs
+        For q = 1 To fitNum
+            C2(q, 1) = C3(3 + q, peakNum + 6) & C3(3 + q, peakNum + 7) & C3(3 + q, peakNum + 8)
         Next
-        sheetFit.Range(Cells(1, 5 + g), Cells((spacer + fileNum) * 5 + 3, 10 + g * 2)).ClearContents
-        sheetFit.Cells(1, 4 + g).Value = ActiveWorkbook.Name
-        sheetFit.Cells(2, 4 + g).Value = sheetAna.Name
+        sheetFit.Range(Cells(1, 5 + peakNum), Cells((spacer + fitNum) * 5 + 3, 10 + peakNum * 2)).ClearContents
+        sheetFit.Cells(1, 4 + peakNum).Value = ActiveWorkbook.Name
+        sheetFit.Cells(2, 4 + peakNum).Value = sheetAna.Name
         sheetFit.Cells(1, 1).Value = "Multiple-element ratio analysis"
         C3 = sheetFit.Range(Cells(1, 1), Cells(para * 3 - 1, para * 3 - 1))
         
@@ -2351,39 +2338,39 @@ Sub FitRatioAnalysis()
         C2 = sBG
         C3(1, 4) = "File"
         C3(2, 4) = "Sheet"
-        C3(3, g + 6) = "Background"      ' G is # of peaks in the main sheet. Peaks over this # do not appear.
-        C3(2, g + 8 + scanNum) = "Difference"   ' scanNum represents number of BGs
+        C3(3, peakNum + 6) = "Background"      ' G is # of peaks in the main sheet. Peaks over this # do not appear.
+        C3(2, peakNum + 8 + bookNum) = "Difference"   ' bookNum represents number of BGs
 
-        C3(3 + (spacer + fileNum - 1), g + 6) = "Total peak area"
-        C3(2 + (spacer + fileNum - 1), g + 9) = "T.I.Area ratio"
+        C3(3 + (spacer + fitNum - 1), peakNum + 6) = "Total peak area"
+        C3(2 + (spacer + fitNum - 1), peakNum + 9) = "T.I.Area ratio"
     
-        C3(3 + (spacer + fileNum - 1) * 2, g + 6) = "Summation"             ' you can choose
-        C3(2 + (spacer + fileNum - 1) * 2, g + 9) = "S.I.Area ratio"            ' normalized by summation
-        C3(3 + (spacer + fileNum - 1) * 2, 2 * g + 9) = "Total ratio"
+        C3(3 + (spacer + fitNum - 1) * 2, peakNum + 6) = "Summation"             ' you can choose
+        C3(2 + (spacer + fitNum - 1) * 2, peakNum + 9) = "S.I.Area ratio"            ' normalized by summation
+        C3(3 + (spacer + fitNum - 1) * 2, 2 * peakNum + 9) = "Total ratio"
         
-        C3(3 + (spacer + fileNum - 1) * 3, g + 6) = "Summation"               ' you can choose
-        C3(2 + (spacer + fileNum - 1) * 3, g + 9) = "N.I.Area ratio"            ' normalized by summation
-        C3(3 + (spacer + fileNum - 1) * 3, 2 * g + 9) = "Total ratio"
+        C3(3 + (spacer + fitNum - 1) * 3, peakNum + 6) = "Summation"               ' you can choose
+        C3(2 + (spacer + fitNum - 1) * 3, peakNum + 9) = "N.I.Area ratio"            ' normalized by summation
+        C3(3 + (spacer + fitNum - 1) * 3, 2 * peakNum + 9) = "Total ratio"
         
-        C3(3 + (spacer + fileNum - 1) * 4, g + 6) = "Average"
+        C3(3 + (spacer + fitNum - 1) * 4, peakNum + 6) = "Average"
         
         For n = 0 To 4      ' n represents # of parameters to be summarized
-            Range(Cells(3 - n + (spacer + fileNum) * n, 5), Cells(3 - n + (spacer + fileNum) * n, 4 + g)).Interior.ColorIndex = 38
-            Cells(3 + (spacer + fileNum - 1) * n, 1).Interior.ColorIndex = 3
-            Range(Cells(3 + (spacer + fileNum - 1) * n, 2), Cells(3 + (spacer + fileNum - 1) * n, 3)).Interior.ColorIndex = 4
-            Cells(3 + (spacer + fileNum - 1) * n, 4).Interior.ColorIndex = 5
+            Range(Cells(3 - n + (spacer + fitNum) * n, 5), Cells(3 - n + (spacer + fitNum) * n, 4 + peakNum)).Interior.ColorIndex = 38
+            Cells(3 + (spacer + fitNum - 1) * n, 1).Interior.ColorIndex = 3
+            Range(Cells(3 + (spacer + fitNum - 1) * n, 2), Cells(3 + (spacer + fitNum - 1) * n, 3)).Interior.ColorIndex = 4
+            Cells(3 + (spacer + fitNum - 1) * n, 4).Interior.ColorIndex = 5
             If n = 0 Then
-                Range(Cells(3 + (spacer + fileNum - 1) * n, g + 6), Cells(3 + (spacer + fileNum - 1) * n, g + 6 + scanNum)).Interior.ColorIndex = 6
+                Range(Cells(3 + (spacer + fitNum - 1) * n, peakNum + 6), Cells(3 + (spacer + fitNum - 1) * n, peakNum + 6 + bookNum)).Interior.ColorIndex = 6
             Else
-                Range(Cells(3 + (spacer + fileNum - 1) * n, g + 6), Cells(3 + (spacer + fileNum - 1) * n, g + 7)).Interior.ColorIndex = 6
+                Range(Cells(3 + (spacer + fitNum - 1) * n, peakNum + 6), Cells(3 + (spacer + fitNum - 1) * n, peakNum + 7)).Interior.ColorIndex = 6
             End If
-            Cells(3 + (spacer + fileNum - 1) * n, 4).Font.ColorIndex = 2
-            For k = 0 To fileNum - 1
-                C3(4 + k + (spacer + fileNum - 1) * n, 4) = g
+            Cells(3 + (spacer + fitNum - 1) * n, 4).Font.ColorIndex = 2
+            For k = 0 To fitNum - 1
+                C3(4 + k + (spacer + fitNum - 1) * n, 4) = peakNum
             Next
-            For k = 0 To g - 1
-                C3(3 + (spacer + fileNum - 1) * 2, g + 9 + k) = C3(3 + (spacer + fileNum - 1) * 2, 5 + k)
-                C3(3 + (spacer + fileNum - 1) * 3, g + 9 + k) = C3(3 + (spacer + fileNum - 1) * 3, 5 + k)
+            For k = 0 To peakNum - 1
+                C3(3 + (spacer + fitNum - 1) * 2, peakNum + 9 + k) = C3(3 + (spacer + fitNum - 1) * 2, 5 + k)
+                C3(3 + (spacer + fitNum - 1) * 3, peakNum + 9 + k) = C3(3 + (spacer + fitNum - 1) * 3, 5 + k)
             Next
         Next
         
@@ -2393,97 +2380,97 @@ Sub FitRatioAnalysis()
             Cells(1 + n, 4).Font.ColorIndex = 2
         Next
 
-        Range(Cells(2 + (spacer + fileNum - 1) * 0, g + 8 + scanNum), Cells(2 + (spacer + fileNum - 1) * 0, g + 9 + scanNum)).Interior.ColorIndex = 8  ' Difference
+        Range(Cells(2 + (spacer + fitNum - 1) * 0, peakNum + 8 + bookNum), Cells(2 + (spacer + fitNum - 1) * 0, peakNum + 9 + bookNum)).Interior.ColorIndex = 8  ' Difference
         For n = 1 To 4
-            Range(Cells(2 + (spacer + fileNum - 1) * n, g + 9), Cells(2 + (spacer + fileNum - 1) * n, g + 10)).Interior.ColorIndex = 8   ' Area ratio
+            Range(Cells(2 + (spacer + fitNum - 1) * n, peakNum + 9), Cells(2 + (spacer + fitNum - 1) * n, peakNum + 10)).Interior.ColorIndex = 8   ' Area ratio
             
         Next
         
-        Cells(3 + (spacer + fileNum - 1) * 2, 2 * g + 9).Interior.ColorIndex = 26   ' Total ratio in S. Area ratio
-        Cells(3 + (spacer + fileNum - 1) * 3, 2 * g + 9).Interior.ColorIndex = 26   ' Total ratio in N. Area ratio
+        Cells(3 + (spacer + fitNum - 1) * 2, 2 * peakNum + 9).Interior.ColorIndex = 26   ' Total ratio in S. Area ratio
+        Cells(3 + (spacer + fitNum - 1) * 3, 2 * peakNum + 9).Interior.ColorIndex = 26   ' Total ratio in N. Area ratio
         
-        Range(Cells(3 + (spacer + fileNum - 1) * 2, g + 9), Cells(3 + (spacer + fileNum - 1) * 2, 2 * g + 8)).Interior.ColorIndex = 38  ' Peak names in S. Area ratio
-        Range(Cells(3 + (spacer + fileNum - 1) * 3, g + 9), Cells(3 + (spacer + fileNum - 1) * 3, 2 * g + 8)).Interior.ColorIndex = 38  ' Peak names in N. Area ratio
+        Range(Cells(3 + (spacer + fitNum - 1) * 2, peakNum + 9), Cells(3 + (spacer + fitNum - 1) * 2, 2 * peakNum + 8)).Interior.ColorIndex = 38  ' Peak names in S. Area ratio
+        Range(Cells(3 + (spacer + fitNum - 1) * 3, peakNum + 9), Cells(3 + (spacer + fitNum - 1) * 3, 2 * peakNum + 8)).Interior.ColorIndex = 38  ' Peak names in N. Area ratio
 
         sheetFit.Range(Cells(1, 1), Cells(para - 1, para - 1)) = C3
-        sheetFit.Range(Cells(4, g + 6), Cells(3 + fileNum, 2 * g + 6)) = C2 ' back BG (A)
+        sheetFit.Range(Cells(4, peakNum + 6), Cells(3 + fitNum, 2 * peakNum + 6)) = C2 ' back BG (A)
         
-        For n = 0 To fileNum - 1
-            Cells(4 + n + 1 * (spacer + fileNum - 1), g + 6).FormulaR1C1 = "=Sum(RC5:RC" & (g + 4) & ")"                     ' Total P.Area
-            Cells(4 + n + 2 * (spacer + fileNum - 1), g + 6).FormulaR1C1 = "=Sum(RC5:RC" & (g + 4) & ")"                     ' Total S.Area
-            Cells(4 + n + 3 * (spacer + fileNum - 1), g + 6).FormulaR1C1 = "=Sum(RC5:RC" & (g + 4) & ")"                     ' Total N.Area
-            Cells(4 + n + 4 * (spacer + fileNum - 1), g + 6).FormulaR1C1 = "=Average(RC5:RC" & (g + 4) & ")"                 ' Avg FHHM
-            For p = 0 To g - 2
-                Cells(4 + n, g + 8 + scanNum + p).FormulaR1C1 = "=(RC" & (6 + p) & " - RC" & (5 + p) & ")"                             ' Difference
-                Cells(4 + n + 1 * (spacer + fileNum - 1), g + 9 + p).FormulaR1C1 = "=(RC" & (5 + p) & " / RC" & (6 + p) & ")"   ' P.Area ratio
+        For n = 0 To fitNum - 1
+            Cells(4 + n + 1 * (spacer + fitNum - 1), peakNum + 6).FormulaR1C1 = "=Sum(RC5:RC" & (peakNum + 4) & ")"                     ' Total P.Area
+            Cells(4 + n + 2 * (spacer + fitNum - 1), peakNum + 6).FormulaR1C1 = "=Sum(RC5:RC" & (peakNum + 4) & ")"                     ' Total S.Area
+            Cells(4 + n + 3 * (spacer + fitNum - 1), peakNum + 6).FormulaR1C1 = "=Sum(RC5:RC" & (peakNum + 4) & ")"                     ' Total N.Area
+            Cells(4 + n + 4 * (spacer + fitNum - 1), peakNum + 6).FormulaR1C1 = "=Average(RC5:RC" & (peakNum + 4) & ")"                 ' Avg FHHM
+            For p = 0 To peakNum - 2
+                Cells(4 + n, peakNum + 8 + bookNum + p).FormulaR1C1 = "=(RC" & (6 + p) & " - RC" & (5 + p) & ")"                             ' Difference
+                Cells(4 + n + 1 * (spacer + fitNum - 1), peakNum + 9 + p).FormulaR1C1 = "=(RC" & (5 + p) & " / RC" & (6 + p) & ")"   ' P.Area ratio
             Next
             
-            For p = 0 To g - 1
-                Cells(4 + n + 2 * (spacer + fileNum - 1), g + 9 + p).FormulaR1C1 = "=(100 * RC" & (5 + p) & "/RC" & (g + 6) & ")"  ' S.Area ratio
+            For p = 0 To peakNum - 1
+                Cells(4 + n + 2 * (spacer + fitNum - 1), peakNum + 9 + p).FormulaR1C1 = "=(100 * RC" & (5 + p) & "/RC" & (peakNum + 6) & ")"  ' S.Area ratio
             Next
-            Cells(4 + n + 2 * (spacer + fileNum - 1), 2 * g + 9).FormulaR1C1 = "=Sum(RC[" & (-g) & "]:RC[-1])"               ' Total S.Area ratio
+            Cells(4 + n + 2 * (spacer + fitNum - 1), 2 * peakNum + 9).FormulaR1C1 = "=Sum(RC[" & (-peakNum) & "]:RC[-1])"               ' Total S.Area ratio
             
-            For p = 0 To g - 1
-                Cells(4 + n + 3 * (spacer + fileNum - 1), g + 9 + p).FormulaR1C1 = "=(100 * RC" & (5 + p) & "/RC" & (g + 6) & ")"  ' N.Area ratio
+            For p = 0 To peakNum - 1
+                Cells(4 + n + 3 * (spacer + fitNum - 1), peakNum + 9 + p).FormulaR1C1 = "=(100 * RC" & (5 + p) & "/RC" & (peakNum + 6) & ")"  ' N.Area ratio
             Next
-            Cells(4 + n + 3 * (spacer + fileNum - 1), 2 * g + 9).FormulaR1C1 = "=Sum(RC[" & (-g) & "]:RC[-1])"               ' Total N.Area ratio
+            Cells(4 + n + 3 * (spacer + fitNum - 1), 2 * peakNum + 9).FormulaR1C1 = "=Sum(RC[" & (-peakNum) & "]:RC[-1])"               ' Total N.Area ratio
         Next
         
         For n = 0 To 4
             If n > 0 Then
-                For k = 0 To g - 1
-                    Cells(3 + (spacer + fileNum - 1) * n, k + 5).FormulaR1C1 = "=R3C" & (k + 5) & ""
+                For k = 0 To peakNum - 1
+                    Cells(3 + (spacer + fitNum - 1) * n, k + 5).FormulaR1C1 = "=R3C" & (k + 5) & ""
                 Next
             End If
             
-            Set dataBGraph = Range(Cells(4 + (spacer + fileNum - 1) * n, 5), Cells(4 + (spacer + fileNum - 1) * n, 5).Offset(fileNum - 1, g - 1))
+            Set dataBGraph = Range(Cells(4 + (spacer + fitNum - 1) * n, 5), Cells(4 + (spacer + fitNum - 1) * n, 5).Offset(fitNum - 1, peakNum - 1))
             
             Charts.Add
             ActiveChart.ChartType = xlLineMarkers
             ActiveChart.SetSourceData Source:=dataBGraph, PlotBy:=xlColumns
             ActiveChart.Location Where:=xlLocationAsObject, Name:=strSheetFitName
 
-            For k = 1 To g
+            For k = 1 To peakNum
                 ActiveChart.SeriesCollection(k).Name = "='" & ActiveSheet.Name & "'!R3C" & (4 + k) & ""  ' Cells(3, 4 + k).Value
                 ActiveChart.SeriesCollection(k).AxisGroup = 1
             Next
             
-            If Cells(4 + (spacer + fileNum - 1) * n, 4).Value > 1 And n = 0 Then    ' difference
-                For k = 1 To g - 1
-                    Set dataKGraph = Range(Cells(4 + (spacer + fileNum - 1) * n, 2 * g + 7 + k - 1), Cells(4 + (spacer + fileNum - 1) * n + fileNum - 1, 2 * g + 7 + k - 1))
+            If Cells(4 + (spacer + fitNum - 1) * n, 4).Value > 1 And n = 0 Then    ' difference
+                For k = 1 To peakNum - 1
+                    Set dataKGraph = Range(Cells(4 + (spacer + fitNum - 1) * n, 2 * peakNum + 7 + k - 1), Cells(4 + (spacer + fitNum - 1) * n + fitNum - 1, 2 * peakNum + 7 + k - 1))
                     ActiveChart.SeriesCollection.NewSeries
                     With ActiveChart.SeriesCollection(ActiveChart.SeriesCollection.Count)
                         
                         .ChartType = xlColumnClustered
                         .Values = dataKGraph
-                        Cells((3 + (spacer + fileNum - 1) * n), g + 7 + k + scanNum).FormulaR1C1 = "=R3C" & (5 + k) & " & ""-"" & R3C" & (4 + k) & ""
-                        Cells((3 + (spacer + fileNum - 1) * n), g + 7 + k + scanNum).Interior.ColorIndex = 38
-                        .Name = "='" & ActiveSheet.Name & "'!R3C" & (g + 7 + k + scanNum) & ""                'Cells(3, 5 + k).Value + "-" + Cells(3, 4 + k).Value
+                        Cells((3 + (spacer + fitNum - 1) * n), peakNum + 7 + k + bookNum).FormulaR1C1 = "=R3C" & (5 + k) & " & ""-"" & R3C" & (4 + k) & ""
+                        Cells((3 + (spacer + fitNum - 1) * n), peakNum + 7 + k + bookNum).Interior.ColorIndex = 38
+                        .Name = "='" & ActiveSheet.Name & "'!R3C" & (peakNum + 7 + k + bookNum) & ""                'Cells(3, 5 + k).Value + "-" + Cells(3, 4 + k).Value
                         .AxisGroup = 2
                     End With
                 Next
-            ElseIf Cells(4 + (spacer + fileNum - 1) * n, 4).Value > 1 And n = 1 Then
-                For k = 1 To g - 1
-                    Set dataKGraph = Range(Cells(4 + (spacer + fileNum - 1) * n, g + 9 + k - 1), Cells(4 + (spacer + fileNum - 1) * n + fileNum - 1, g + 9 + k - 1))
+            ElseIf Cells(4 + (spacer + fitNum - 1) * n, 4).Value > 1 And n = 1 Then
+                For k = 1 To peakNum - 1
+                    Set dataKGraph = Range(Cells(4 + (spacer + fitNum - 1) * n, peakNum + 9 + k - 1), Cells(4 + (spacer + fitNum - 1) * n + fitNum - 1, peakNum + 9 + k - 1))
                     ActiveChart.SeriesCollection.NewSeries
                     With ActiveChart.SeriesCollection(ActiveChart.SeriesCollection.Count)
                         
                         .ChartType = xlColumnClustered
                         .Values = dataKGraph
-                        Cells((3 + (spacer + fileNum - 1) * n), g + 8 + k).FormulaR1C1 = "=R3C" & (4 + k) & " & ""/"" & R3C" & (5 + k) & ""
-                        Cells((3 + (spacer + fileNum - 1) * n), g + 8 + k).Interior.ColorIndex = 38
-                        .Name = "='" & ActiveSheet.Name & "'!R" & (3 + (spacer + fileNum - 1) * n) & "C" & (g + 8 + k) & ""               'Cells(3, 4 + k).Value + "/" + Cells(3, 5 + k).Value
+                        Cells((3 + (spacer + fitNum - 1) * n), peakNum + 8 + k).FormulaR1C1 = "=R3C" & (4 + k) & " & ""/"" & R3C" & (5 + k) & ""
+                        Cells((3 + (spacer + fitNum - 1) * n), peakNum + 8 + k).Interior.ColorIndex = 38
+                        .Name = "='" & ActiveSheet.Name & "'!R" & (3 + (spacer + fitNum - 1) * n) & "C" & (peakNum + 8 + k) & ""               'Cells(3, 4 + k).Value + "/" + Cells(3, 5 + k).Value
                         .AxisGroup = 2
                     End With
                 Next
-            ElseIf Cells(4 + (spacer + fileNum - 1) * n, 4).Value > 0 And n >= 2 And n <= 3 Then
-                For k = 1 To g
-                    Set dataKGraph = Range(Cells(4 + (spacer + fileNum - 1) * n, g + 9 + k - 1), Cells(4 + (spacer + fileNum - 1) * n + fileNum - 1, g + 9 + k - 1))
+            ElseIf Cells(4 + (spacer + fitNum - 1) * n, 4).Value > 0 And n >= 2 And n <= 3 Then
+                For k = 1 To peakNum
+                    Set dataKGraph = Range(Cells(4 + (spacer + fitNum - 1) * n, peakNum + 9 + k - 1), Cells(4 + (spacer + fitNum - 1) * n + fitNum - 1, peakNum + 9 + k - 1))
                     ActiveChart.SeriesCollection.NewSeries
                     With ActiveChart.SeriesCollection(ActiveChart.SeriesCollection.Count)
                         .ChartType = xlAreaStacked100
-                        Cells((3 + (spacer + fileNum - 1) * n), g + 8 + k).FormulaR1C1 = "= ""Rto_"" & R3C" & (4 + k) & ""
-                        .Name = "='" & ActiveSheet.Name & "'!R" & (3 + (spacer + fileNum - 1) * n) & "C" & (g + 8 + k) & ""     'Cells(3, 4 + k).Value
+                        Cells((3 + (spacer + fitNum - 1) * n), peakNum + 8 + k).FormulaR1C1 = "= ""Rto_"" & R3C" & (4 + k) & ""
+                        .Name = "='" & ActiveSheet.Name & "'!R" & (3 + (spacer + fitNum - 1) * n) & "C" & (peakNum + 8 + k) & ""     'Cells(3, 4 + k).Value
 
                         .Values = dataKGraph
                         .AxisGroup = 2
@@ -2515,7 +2502,7 @@ Sub FitRatioAnalysis()
                 .AxisTitle.Font.Bold = False
             End With
             
-            If n < 3 And g > 1 Then
+            If n < 3 And peakNum > 1 Then
                 With ActiveChart.Axes(xlValue, xlSecondary)
                     .HasTitle = True
                     If n = 0 Then
@@ -2566,11 +2553,11 @@ SkipFitRatioAnalysis:
 End Sub
 
 Sub FitAnalysis()
-    Dim C1 As Variant, C2 As Variant, C3 As Variant
+    Dim C1 As Variant, C2 As Variant, C3 As Variant, peakNum As Integer, fitNum As Integer, bookNum As Integer
     Dim imax As Integer
     
-    g = Cells(8 + sftfit2, 2).Value
-    C1 = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Range(Cells(1, 5), Cells(12 + sftfit2, 4 + g))
+    peakNum = Cells(8 + sftfit2, 2).Value
+    C1 = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Range(Cells(1, 5), Cells(12 + sftfit2, 4 + peakNum))
     C2 = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Range(Cells(1, 1), Cells(1, 3))
             
     strSheetAnaName = "Ana_" + strSheetDataName
@@ -2611,77 +2598,78 @@ Sub FitAnalysis()
         Cells(3, para).Value = "# peaks"
         Cells(4, para).Value = "# fit files"
         Cells(2, para + 1).Value = spacer
-        Cells(3, para + 1).Value = g
-        fileNum = UBound(OpenFileName)
-        Cells(4, para + 1).Value = fileNum + 1
+        Cells(3, para + 1).Value = peakNum
+        fitNum = UBound(OpenFileName)
+        Cells(4, para + 1).Value = fitNum + 1
         
-        C3 = sheetAna.Range(Cells(1, 1), Cells((4 + spacer * 4) + 5 * fileNum, 9 + 2 * g)) ' No check in matching among the peak names.
+        C3 = sheetAna.Range(Cells(1, 1), Cells((4 + spacer * 4) + 5 * fitNum, 9 + 2 * peakNum)) ' No check in matching among the peak names.
 
-        C3(3, g + 6) = "Background"      ' G is # of peaks in the main sheet. Peaks over this # do not appear.
-        C3(2, g + 9) = "Difference"
+        C3(3, peakNum + 6) = "Background"      ' G is # of peaks in the main sheet. Peaks over this # do not appear.
+        C3(2, peakNum + 9) = "Difference"
         C3(2, 1) = "BE"
-        C3(2 + (spacer + fileNum), 1) = "T.I.Area"
-        C3(3 + (spacer + fileNum), g + 6) = "Total peak area"
+        C3(2 + (spacer + fitNum), 1) = "T.I.Area"
+        C3(3 + (spacer + fitNum), peakNum + 6) = "Total peak area"
         numData = sheetFit.Cells(5, 101).Value
-        C3(2 + (spacer + fileNum), g + 9) = "T.I.Area ratio"
+        C3(2 + (spacer + fitNum), peakNum + 9) = "T.I.Area ratio"
         
-        C3(2 + (spacer + fileNum) * 2, 1) = "S.I.Area"
-        C3(3 + (spacer + fileNum) * 2, g + 6) = "Summation"               ' you can choose
-        C3(2 + (spacer + fileNum) * 2, g + 9) = "S.I.Area ratio"            ' normalized by summation
-        C3(3 + (spacer + fileNum) * 2, 2 * g + 9) = "Total ratio"
+        C3(2 + (spacer + fitNum) * 2, 1) = "S.I.Area"
+        C3(3 + (spacer + fitNum) * 2, peakNum + 6) = "Summation"               ' you can choose
+        C3(2 + (spacer + fitNum) * 2, peakNum + 9) = "S.I.Area ratio"            ' normalized by summation
+        C3(3 + (spacer + fitNum) * 2, 2 * peakNum + 9) = "Total ratio"
         
-        C3(2 + (spacer + fileNum) * 3, 1) = "N.I.Area"
-        C3(3 + (spacer + fileNum) * 3, g + 6) = "Summation"               ' you can choose
-        C3(2 + (spacer + fileNum) * 3, g + 9) = "N.I.Area ratio"            ' normalized by summation
-        C3(3 + (spacer + fileNum) * 3, 2 * g + 9) = "Total ratio"
+        C3(2 + (spacer + fitNum) * 3, 1) = "N.I.Area"
+        C3(3 + (spacer + fitNum) * 3, peakNum + 6) = "Summation"               ' you can choose
+        C3(2 + (spacer + fitNum) * 3, peakNum + 9) = "N.I.Area ratio"            ' normalized by summation
+        C3(3 + (spacer + fitNum) * 3, 2 * peakNum + 9) = "Total ratio"
         
-        C3(2 + (spacer + fileNum) * 4, 1) = "FWHM"
-        C3(3 + (spacer + fileNum) * 4, g + 6) = "Average"
+        C3(2 + (spacer + fitNum) * 4, 1) = "FWHM"
+        C3(3 + (spacer + fitNum) * 4, peakNum + 6) = "Average"
         
-        For iCol = 0 To g - 1
+        For iCol = 0 To peakNum - 1
             C3(3, iCol + 5) = C1(1, iCol + 1)                                 ' Peak #1
             C3(4, iCol + 5) = C1(2, iCol + 1)                                 ' BE
-            C3(3 + (spacer + fileNum), iCol + 5) = C1(1, iCol + 1)         ' Peak #2
-            C3(3 + (spacer + fileNum) * 2, iCol + 5) = C1(1, iCol + 1)     ' Peak #3
-            C3(3 + (spacer + fileNum) * 3, iCol + 5) = C1(1, iCol + 1)     ' Peak #4
-            C3(3 + (spacer + fileNum) * 2, iCol + 9 + g) = C1(1, iCol + 1) ' Peak #3 for ratio
-            C3(3 + (spacer + fileNum) * 3, iCol + 9 + g) = C1(1, iCol + 1) ' Peak #4 for ratio
+            C3(3 + (spacer + fitNum), iCol + 5) = C1(1, iCol + 1)         ' Peak #2
+            C3(3 + (spacer + fitNum) * 2, iCol + 5) = C1(1, iCol + 1)     ' Peak #3
+            C3(3 + (spacer + fitNum) * 3, iCol + 5) = C1(1, iCol + 1)     ' Peak #4
+            C3(3 + (spacer + fitNum) * 2, iCol + 9 + peakNum) = C1(1, iCol + 1) ' Peak #3 for ratio
+            C3(3 + (spacer + fitNum) * 3, iCol + 9 + peakNum) = C1(1, iCol + 1) ' Peak #4 for ratio
             
             If C1(10 + sftfit2, iCol + 1) > 0 Then
-                C3(4 + (spacer + fileNum), iCol + 5) = C1(10 + sftfit2, iCol + 1)      ' P.Area
-                C3(4 + (spacer + fileNum) * 2, iCol + 5) = C1(11 + sftfit2, iCol + 1)  ' S.Area
-                C3(4 + (spacer + fileNum) * 3, iCol + 5) = C1(12 + sftfit2, iCol + 1)  ' N.Area
+                C3(4 + (spacer + fitNum), iCol + 5) = C1(10 + sftfit2, iCol + 1)      ' P.Area
+                C3(4 + (spacer + fitNum) * 2, iCol + 5) = C1(11 + sftfit2, iCol + 1)  ' S.Area
+                C3(4 + (spacer + fitNum) * 3, iCol + 5) = C1(12 + sftfit2, iCol + 1)  ' N.Area
             Else
-                C3(4 + (spacer + fileNum), iCol + 5) = 0      ' P.Area
-                C3(4 + (spacer + fileNum) * 2, iCol + 5) = 0  ' S.Area
-                C3(4 + (spacer + fileNum) * 3, iCol + 5) = 0  ' N.Area
+                C3(4 + (spacer + fitNum), iCol + 5) = 0      ' P.Area
+                C3(4 + (spacer + fitNum) * 2, iCol + 5) = 0  ' S.Area
+                C3(4 + (spacer + fitNum) * 3, iCol + 5) = 0  ' N.Area
             End If
 
-            C3(3 + (spacer + fileNum) * 4, iCol + 5) = C1(1, iCol + 1)     ' Peak #5
-            C3(4 + (spacer + fileNum) * 4, iCol + 5) = C1(4, iCol + 1)     ' FWHM
+            C3(3 + (spacer + fitNum) * 4, iCol + 5) = C1(1, iCol + 1)     ' Peak #5
+            C3(4 + (spacer + fitNum) * 4, iCol + 5) = C1(4, iCol + 1)     ' FWHM
         Next
 
         For n = 0 To 4      ' n represents # of parameters to be summarized
-            C3(3 + (spacer + fileNum) * n, 1) = "File"
-            C3(3 + (spacer + fileNum) * n, 2) = "Sheet"
-            C3(3 + (spacer + fileNum) * n, 4) = "# peaks"
-            C3(4 + (spacer + fileNum) * n, 4) = sheetFit.Cells(8 + sftfit2, 2).Value
-            C3(4 + (spacer + fileNum) * n, 1) = wb                  ' File name
-            C3(4 + (spacer + fileNum) * n, 2) = strSheetFitName    ' Sheet name
-            Range(Cells(3 + (spacer + fileNum) * n, 5), Cells(3 + (spacer + fileNum) * n, 4 + g)).Interior.ColorIndex = 38
-            Cells(3 + (spacer + fileNum) * n, 1).Interior.ColorIndex = 3
-            Range(Cells(3 + (spacer + fileNum) * n, 2), Cells(3 + (spacer + fileNum) * n, 3)).Interior.ColorIndex = 4
-            Cells(3 + (spacer + fileNum) * n, 4).Interior.ColorIndex = 33
-            Range(Cells(3 + (spacer + fileNum) * n, g + 6), Cells(3 + (spacer + fileNum) * n, g + 7)).Interior.ColorIndex = 6
-            Range(Cells(2 + (spacer + fileNum) * n, g + 9), Cells(2 + (spacer + fileNum) * n, g + 10)).Interior.ColorIndex = 8
+            C3(3 + (spacer + fitNum) * n, 1) = "File"
+            C3(3 + (spacer + fitNum) * n, 2) = "Sheet"
+            C3(3 + (spacer + fitNum) * n, 4) = "# peaks"
+            C3(4 + (spacer + fitNum) * n, 4) = sheetFit.Cells(8 + sftfit2, 2).Value
+            C3(4 + (spacer + fitNum) * n, 1) = wb                  ' File name
+            C3(4 + (spacer + fitNum) * n, 2) = strSheetFitName    ' Sheet name
+            Range(Cells(3 + (spacer + fitNum) * n, 5), Cells(3 + (spacer + fitNum) * n, 4 + peakNum)).Interior.ColorIndex = 38
+            Cells(3 + (spacer + fitNum) * n, 1).Interior.ColorIndex = 3
+            Range(Cells(3 + (spacer + fitNum) * n, 2), Cells(3 + (spacer + fitNum) * n, 3)).Interior.ColorIndex = 4
+            Cells(3 + (spacer + fitNum) * n, 4).Interior.ColorIndex = 33
+            Range(Cells(3 + (spacer + fitNum) * n, peakNum + 6), Cells(3 + (spacer + fitNum) * n, peakNum + 7)).Interior.ColorIndex = 6
+            Range(Cells(2 + (spacer + fitNum) * n, peakNum + 9), Cells(2 + (spacer + fitNum) * n, peakNum + 10)).Interior.ColorIndex = 8
         Next
 
-        Cells(3 + (spacer + fileNum) * 2, 2 * g + 9).Interior.ColorIndex = 26
-        Cells(3 + (spacer + fileNum) * 3, 2 * g + 9).Interior.ColorIndex = 26
-        Range(Cells(3 + (spacer + fileNum) * 2, g + 9), Cells(3 + (spacer + fileNum) * 2, 2 * g + 8)).Interior.ColorIndex = 38
-        Range(Cells(3 + (spacer + fileNum) * 3, g + 9), Cells(3 + (spacer + fileNum) * 3, 2 * g + 8)).Interior.ColorIndex = 38
+        Cells(3 + (spacer + fitNum) * 2, 2 * peakNum + 9).Interior.ColorIndex = 26
+        Cells(3 + (spacer + fitNum) * 3, 2 * peakNum + 9).Interior.ColorIndex = 26
+        Range(Cells(3 + (spacer + fitNum) * 2, peakNum + 9), Cells(3 + (spacer + fitNum) * 2, 2 * peakNum + 8)).Interior.ColorIndex = 38
+        Range(Cells(3 + (spacer + fitNum) * 3, peakNum + 9), Cells(3 + (spacer + fitNum) * 3, 2 * peakNum + 8)).Interior.ColorIndex = 38
+        
         For n = 0 To 2
-            C3(4, g + 6 + n) = C2(1, 1 + n)                                   ' BG
+            C3(4, peakNum + 6 + n) = C2(1, 1 + n)                                   ' BG
         Next
 
         Results = "0," & strl(1) & "," & strl(2) & "," & strl(3) & ",,,"
@@ -2692,46 +2680,46 @@ Sub FitAnalysis()
         
         C3 = fcmp
         sheetAna.Activate
-        sheetAna.Range(Cells(1, 1), Cells((4 + spacer * 4) + 5 * fileNum, 9 + 2 * g)) = C3
+        sheetAna.Range(Cells(1, 1), Cells((4 + spacer * 4) + 5 * fitNum, 9 + 2 * peakNum)) = C3
         
-        For n = 0 To fileNum - cae
-            Cells(4 + n + spacer + fileNum, g + 6).FormulaR1C1 = "=Sum(RC5:RC" & (g + 4) & ")"                      ' Total P.Area
-            Cells(4 + n + 2 * (spacer + fileNum), g + 6).FormulaR1C1 = "=Sum(RC5:RC" & (g + 4) & ")"                     ' Total S.Area
-            Cells(4 + n + 3 * (spacer + fileNum), g + 6).FormulaR1C1 = "=Sum(RC5:RC" & (g + 4) & ")"                     ' Total N.Area
-            Cells(4 + n + 4 * (spacer + fileNum), g + 6).FormulaR1C1 = "=Average(RC5:RC" & (g + 4) & ")"                 ' Avg FHHM
-            For p = 0 To g - 2
-                Cells(4 + n, g + 9 + p).FormulaR1C1 = "=(RC" & (6 + p) & " - RC" & (5 + p) & ")"                            ' Difference
-                Cells(4 + n + spacer + fileNum, g + 9 + p).FormulaR1C1 = "=(RC" & (5 + p) & " / RC" & (6 + p) & ")"    ' P.Area ratio
+        For n = 0 To fitNum - cae
+            Cells(4 + n + spacer + fitNum, peakNum + 6).FormulaR1C1 = "=Sum(RC5:RC" & (peakNum + 4) & ")"                      ' Total P.Area
+            Cells(4 + n + 2 * (spacer + fitNum), peakNum + 6).FormulaR1C1 = "=Sum(RC5:RC" & (peakNum + 4) & ")"                     ' Total S.Area
+            Cells(4 + n + 3 * (spacer + fitNum), peakNum + 6).FormulaR1C1 = "=Sum(RC5:RC" & (peakNum + 4) & ")"                     ' Total N.Area
+            Cells(4 + n + 4 * (spacer + fitNum), peakNum + 6).FormulaR1C1 = "=Average(RC5:RC" & (peakNum + 4) & ")"                 ' Avg FHHM
+            For p = 0 To peakNum - 2
+                Cells(4 + n, peakNum + 9 + p).FormulaR1C1 = "=(RC" & (6 + p) & " - RC" & (5 + p) & ")"                            ' Difference
+                Cells(4 + n + spacer + fitNum, peakNum + 9 + p).FormulaR1C1 = "=(RC" & (5 + p) & " / RC" & (6 + p) & ")"    ' P.Area ratio
             Next
             
-            For p = 0 To g - 1
-                Cells(4 + n + 2 * (spacer + fileNum), g + 9 + p).FormulaR1C1 = "=(100 * RC" & (5 + p) & "/RC" & (g + 6) & ")"  ' S.Area ratio
+            For p = 0 To peakNum - 1
+                Cells(4 + n + 2 * (spacer + fitNum), peakNum + 9 + p).FormulaR1C1 = "=(100 * RC" & (5 + p) & "/RC" & (peakNum + 6) & ")"  ' S.Area ratio
             Next
             
-            Cells(4 + n + 2 * (spacer + fileNum), 2 * g + 9).FormulaR1C1 = "=Sum(RC[" & (-g) & "]:RC[-1])"               ' Total S.Area ratio
+            Cells(4 + n + 2 * (spacer + fitNum), 2 * peakNum + 9).FormulaR1C1 = "=Sum(RC[" & (-peakNum) & "]:RC[-1])"               ' Total S.Area ratio
             
-            For p = 0 To g - 1
-                Cells(4 + n + 3 * (spacer + fileNum), g + 9 + p).FormulaR1C1 = "=(100 * RC" & (5 + p) & "/RC" & (g + 6) & ")"  ' N.Area ratio
+            For p = 0 To peakNum - 1
+                Cells(4 + n + 3 * (spacer + fitNum), peakNum + 9 + p).FormulaR1C1 = "=(100 * RC" & (5 + p) & "/RC" & (peakNum + 6) & ")"  ' N.Area ratio
             Next
             
-            Cells(4 + n + 3 * (spacer + fileNum), 2 * g + 9).FormulaR1C1 = "=Sum(RC[" & (-g) & "]:RC[-1])"               ' Total N.Area ratio
+            Cells(4 + n + 3 * (spacer + fitNum), 2 * peakNum + 9).FormulaR1C1 = "=Sum(RC[" & (-peakNum) & "]:RC[-1])"               ' Total N.Area ratio
         Next
         
         For n = 0 To 4
             If n > 0 Then
-                For k = 0 To g - 1
-                    Cells(3 + (spacer + fileNum) * n, k + 5).FormulaR1C1 = "=R3C" & (k + 5) & ""
+                For k = 0 To peakNum - 1
+                    Cells(3 + (spacer + fitNum) * n, k + 5).FormulaR1C1 = "=R3C" & (k + 5) & ""
                 Next
             End If
             
-            Set dataBGraph = Range(Cells(4 + (spacer + fileNum) * n, 5), Cells(4 + (spacer + fileNum) * n, 5).Offset(fileNum, Cells(4 + (spacer + fileNum) * n, 4) - 1))
+            Set dataBGraph = Range(Cells(4 + (spacer + fitNum) * n, 5), Cells(4 + (spacer + fitNum) * n, 5).Offset(fitNum, Cells(4 + (spacer + fitNum) * n, 4) - 1))
             
             Charts.Add
             ActiveChart.ChartType = xlLineMarkers
             ActiveChart.SetSourceData Source:=dataBGraph, PlotBy:=xlColumns
             ActiveChart.Location Where:=xlLocationAsObject, Name:=strSheetAnaName
             
-            For k = 1 To g
+            For k = 1 To peakNum
                 If IsEmpty(Cells(3, 4 + k).Value) = True Then
                 Else
                     ActiveChart.SeriesCollection(k).Name = "='" & ActiveSheet.Name & "'!R3C" & (4 + k) & ""  ' Cells(3, 4 + k).Value
@@ -2739,35 +2727,35 @@ Sub FitAnalysis()
                 End If
             Next
             
-            If Cells(4 + (spacer + fileNum) * n, 4).Value > 1 And n < 2 Then
-                For k = 1 To g - 1
-                    Set dataKGraph = Range(Cells(4 + (spacer + fileNum) * n, g + 9 + k - 1), Cells(4 + (spacer + fileNum) * n + fileNum, g + 9 + k - 1))
+            If Cells(4 + (spacer + fitNum) * n, 4).Value > 1 And n < 2 Then
+                For k = 1 To peakNum - 1
+                    Set dataKGraph = Range(Cells(4 + (spacer + fitNum) * n, peakNum + 9 + k - 1), Cells(4 + (spacer + fitNum) * n + fitNum, peakNum + 9 + k - 1))
                     ActiveChart.SeriesCollection.NewSeries
                     With ActiveChart.SeriesCollection(ActiveChart.SeriesCollection.Count)
                         
                         .ChartType = xlColumnClustered
                         .Values = dataKGraph
                         If n = 0 Then
-                            Cells(3, g + 8 + k).FormulaR1C1 = "=R3C" & (5 + k) & " & ""-"" & R3C" & (4 + k) & ""
-                            Cells(3, g + 8 + k).Interior.ColorIndex = 38
-                            .Name = "='" & ActiveSheet.Name & "'!R3C" & (g + 8 + k) & ""             'Cells(3, 5 + k).Value + "-" + Cells(3, 4 + k).Value
+                            Cells(3, peakNum + 8 + k).FormulaR1C1 = "=R3C" & (5 + k) & " & ""-"" & R3C" & (4 + k) & ""
+                            Cells(3, peakNum + 8 + k).Interior.ColorIndex = 38
+                            .Name = "='" & ActiveSheet.Name & "'!R3C" & (peakNum + 8 + k) & ""             'Cells(3, 5 + k).Value + "-" + Cells(3, 4 + k).Value
                         ElseIf n = 1 Then
-                            Cells((3 + (spacer + fileNum) * n), g + 8 + k).FormulaR1C1 = "=R3C" & (4 + k) & " & ""/"" & R3C" & (5 + k) & ""
-                            Cells((3 + (spacer + fileNum) * n), g + 8 + k).Interior.ColorIndex = 38
-                            .Name = "='" & ActiveSheet.Name & "'!R" & (3 + (spacer + fileNum) * n) & "C" & (g + 8 + k) & ""            'Cells(3, 4 + k).Value + "/" + Cells(3, 5 + k).Value
+                            Cells((3 + (spacer + fitNum) * n), peakNum + 8 + k).FormulaR1C1 = "=R3C" & (4 + k) & " & ""/"" & R3C" & (5 + k) & ""
+                            Cells((3 + (spacer + fitNum) * n), peakNum + 8 + k).Interior.ColorIndex = 38
+                            .Name = "='" & ActiveSheet.Name & "'!R" & (3 + (spacer + fitNum) * n) & "C" & (peakNum + 8 + k) & ""            'Cells(3, 4 + k).Value + "/" + Cells(3, 5 + k).Value
                         End If
                         
                         .AxisGroup = 2
                     End With
                 Next
-            ElseIf Cells(4 + (spacer + fileNum) * n, 4).Value > 0 And n >= 2 And n <= 3 Then
-                For k = 1 To g
-                    Set dataKGraph = Range(Cells(4 + (spacer + fileNum) * n, g + 9 + k - 1), Cells(4 + (spacer + fileNum) * n + fileNum, g + 9 + k - 1))
+            ElseIf Cells(4 + (spacer + fitNum) * n, 4).Value > 0 And n >= 2 And n <= 3 Then
+                For k = 1 To peakNum
+                    Set dataKGraph = Range(Cells(4 + (spacer + fitNum) * n, peakNum + 9 + k - 1), Cells(4 + (spacer + fitNum) * n + fitNum, peakNum + 9 + k - 1))
                     ActiveChart.SeriesCollection.NewSeries
                     With ActiveChart.SeriesCollection(ActiveChart.SeriesCollection.Count)
                         .ChartType = xlAreaStacked100
-                        Cells((3 + (spacer + fileNum) * n), g + 8 + k).FormulaR1C1 = "= ""Rto_"" & R3C" & (4 + k) & ""
-                        .Name = "='" & ActiveSheet.Name & "'!R" & (3 + (spacer + fileNum) * n) & "C" & (g + 8 + k) & ""   'Cells(3, 4 + k).Value
+                        Cells((3 + (spacer + fitNum) * n), peakNum + 8 + k).FormulaR1C1 = "= ""Rto_"" & R3C" & (4 + k) & ""
+                        .Name = "='" & ActiveSheet.Name & "'!R" & (3 + (spacer + fitNum) * n) & "C" & (peakNum + 8 + k) & ""   'Cells(3, 4 + k).Value
                         .Values = dataKGraph
                         .AxisGroup = 2
                     End With
@@ -2798,7 +2786,7 @@ Sub FitAnalysis()
                 .AxisTitle.Font.Bold = False
             End With
             
-            If n < 3 And g > 1 Then
+            If n < 3 And peakNum > 1 Then
                 With ActiveChart.Axes(xlValue, xlSecondary)
                     .HasTitle = True
                     If n = 0 Then
@@ -2873,9 +2861,10 @@ Sub FitAnalysis()
             Else
                 sheetGraph.Range(Cells(40, para + 9), Cells((50 + Cells(43, para + 12).Value + Cells(42, para + 12).Value), para + 30)).Copy Destination:=sheetAna.Cells(40, para + 9)
             End If
+            
             sheetAna.Cells(41, para + 10).Value = dblMin * multi
             sheetAna.Cells(42, para + 10).Value = dblMax * multi
-            sheetAna.Cells(45, para + 10).Value = fileNum
+            sheetAna.Cells(45, para + 10).Value = fitNum
         End If
         
         sheetAna.Activate
@@ -3008,8 +2997,6 @@ Sub FitAnalysis()
                 .ChartArea.Border.LineStyle = 0
             End With
         End With
-
-        Range(Cells(10, 1), Cells(10, 2)).Interior.Color = SourceRangeColor1
         
         Range(Cells(10, 2), Cells(10, 2)).Interior.Color = SourceRangeColor1
         Range(Cells(9 + (imax), 2), Cells(9 + (imax), 2)).Interior.Color = SourceRangeColor1
@@ -3045,7 +3032,7 @@ Sub SheetCheckGenerator()
     Dim dataCheck As Range, dataIntCheck As Range
     ' Check scan grating data
     
-    If ExistSheet(strSheetCheckName) Or NoCheck = "ON" Then Exit Sub
+    If ExistSheet(strSheetCheckName) Then Exit Sub
     
     Worksheets.Add().Name = strSheetCheckName
     Set sheetCheck = Worksheets(strSheetCheckName)
@@ -3122,7 +3109,6 @@ Sub FitInitial()
     If StrComp(strAna, "ana", 1) = 0 Or StrComp(strl(1), "Pe", 1) = 0 Or StrComp(strl(1), "Po", 1) = 0 Then
         Worksheets(strSheetGraphName).Activate
         numData = Cells(41, para + 12).Value '((Cells(6, 2).Value - Cells(5, 2).Value) / Cells(7, 2).Value) + 1
-        Gnum = Cells(45, para + 12).Value
         Set dataBGraph = Range(Cells(20 + numData, 2), Cells(20 + numData, 2).Offset(numData - 1, 1))
         Set dataKeGraph = Range(Cells(20, 1), Cells(20 + numData, 1).Offset(numData - 1, 0))
         'Set dataIntGraph = dataKeGraph.Offset(, 2)
@@ -4890,7 +4876,6 @@ Sub EngBL()
         endEb = Cells(numData + 1, 1).Value
         stepEk = Cells(3, 1).Value - Cells(2, 1).Value
         g = 0
-        strscanNum = 1
         maxXPSFactor = 1
     Else
         startEb = Cells(12, 1).Value
@@ -4898,23 +4883,12 @@ Sub EngBL()
         stepEk = Abs(Cells(13, 1).Value - Cells(12, 1).Value)
         numData = ((endEb - startEb) / stepEk) + 1
         g = mid$(Cells(5, 2).Value, 1, 4)
-        strscanNum = Cells(10, 2).Value
         
         C1 = Range(Cells(12, 1), Cells(12, 1).Offset(numData - 1, 0))    ' PE
         C2 = Range(Cells(12, 2), Cells(12, 2).Offset(numData - 1, 0))    ' Ip
         C3 = Range(Cells(12, 3), Cells(12, 3).Offset(numData - 1, 0))    ' Ie
         C4 = C2
         maxXPSFactor = 1000000000000#
-    End If
-    
-    If IsNumeric(strscanNum) = False Then
-        MsgBox "Only first scanned data will be plotted."
-        scanNum = 1
-    ElseIf IsNumeric(strscanNum) = True Then
-        scanNum = strscanNum
-        If scanNum > 1 Then
-            MsgBox "Only first scanned data will be plotted."
-        End If
     End If
     
     Worksheets.Add().Name = strSheetGraphName
@@ -5077,7 +5051,7 @@ Sub EngBL()
 End Sub
 
 Sub HigherOrderCheck()
-    Dim strhighpe As String, C1 As Variant
+    Dim strhighpe As String, C1 As Variant, strcheck As String
     strhighpe = Cells(2, 3).Value
     
     If Len(strhighpe) < 4 Then Exit Sub
@@ -5085,10 +5059,10 @@ Sub HigherOrderCheck()
     If mid$(strhighpe, 1, 1) = ";" And mid$(strhighpe, Len(strhighpe) - 2, 3) = " eV" Then
         n = 1
         j = 0
-        strscanNum = mid$(strhighpe, 2, Len(strhighpe) - 4)
-        Debug.Print "check", strscanNum
-        For iRow = 1 To Len(strscanNum)
-            strLabel = mid$(strscanNum, iRow, 1)
+        strcheck = mid$(strhighpe, 2, Len(strhighpe) - 4)
+        Debug.Print "check", strcheck
+        For iRow = 1 To Len(strcheck)
+            strLabel = mid$(strcheck, iRow, 1)
             Debug.Print strLabel
             If IsNumeric(strLabel) = False Then
                 If strLabel = ";" Or strLabel = "." Then
@@ -5098,8 +5072,8 @@ Sub HigherOrderCheck()
             End If
         Next
 
-        If InStr(1, strscanNum, ";", 1) > 0 Then
-            C1 = Split(strscanNum, ";")
+        If InStr(1, strcheck, ";", 1) > 0 Then
+            C1 = Split(strcheck, ";")
             If UBound(C1) > 8 Then Exit Sub  ' limit of higher order or ghost is 8
             For n = LBound(C1) To UBound(C1)
                 If CSng(C1(n)) > 0 Then
@@ -5110,9 +5084,9 @@ Sub HigherOrderCheck()
                 End If
             Next
         Else
-            If CSng(strscanNum) > 0 Then
+            If CSng(strcheck) > 0 Then
                 ReDim Preserve highpe(j + 1)
-                highpe(j + 1) = CSng(strscanNum)
+                highpe(j + 1) = CSng(strcheck)
                 Debug.Print highpe(j + 1), 2
                 j = j + 1
             End If
@@ -5175,7 +5149,7 @@ Sub KeBL()
     startEk = Cells(2, 1).Value
     endEk = Cells(numData + 1, 1).Value
     stepEk = Cells(3, 1).Value - Cells(2, 1).Value
-    scanNum = 1
+
     Set dataData = Range(Cells(2, 1), Cells(numData + 1, 2))
     Set dataKeData = Range(Cells(2, 1), Cells(numData + 1, 1))
     Set dataIntData = dataKeData.Offset(, 1)
@@ -5800,12 +5774,8 @@ Sub descriptGraph()
     Cells(10, 1).Value = "Ke"
     Cells(10, 2).Value = "Be"
     Cells(10, 3).Value = "In"
-    
-    If g = 0 Then
-        Cells(1, 2).Value = Gnum
-    Else
-        Cells(1, 2).Value = g
-    End If
+    g = 0
+    Cells(1, 2).Value = g
     
     Cells(2, 2).Value = pe
     Cells(3, 2).Value = wf
@@ -5813,16 +5783,11 @@ Sub descriptGraph()
     Cells(5, 2).Value = startEk
     Cells(6, 2).Value = endEk
     Cells(7, 2).Value = stepEk
-    If numscancheck <= 0 Then
-        Cells(8, 2).Value = scanNum
-        Cells(8, 3).Value = "times"
-        [B5:C8].Interior.Color = RGB(144, 202, 249)
-    ElseIf numscancheck > 0 Then
-        Cells(8, 2).Value = strscanNumR
-        Cells(8, 3).Value = vbNullString
-        [B5:C7].Interior.Color = RGB(144, 202, 249)
-        [B8:C8].Interior.Color = RGB(255, 204, 128)
-    End If
+
+    Cells(8, 2).Value = 1
+    Cells(8, 3).Value = "times"
+    [B5:C8].Interior.Color = RGB(144, 202, 249)
+    
     Cells(9, 1).Value = "Offset/multp"
     Cells(9, 2).Value = off
     Cells(9, 3).Value = multi
@@ -5999,33 +5964,6 @@ Sub descriptGraph()
     End If
 End Sub
 
-Sub Gcheck()
-    If IsNumeric(Cells(1, 2).Value) = False Then
-        strAna = "ana"
-    ElseIf Cells(1, 2).Value = 600 Then
-        Gnum = 1
-        g = 600
-    ElseIf Cells(1, 2).Value = 1200 Then
-        Gnum = 2
-        g = 1200
-    ElseIf Cells(1, 2).Value = 2400 Then
-        Gnum = 3
-        g = 2400
-    ElseIf IsNumeric(Cells(1, 2).Value) = True Then
-        Gnum = 0
-        g = Cells(1, 2).Value
-    Else
-        Gnum = 0
-        g = 0
-    End If
-    
-    If mid$(Cells(1, 1).Value, 1, 4) = "Casa" Then
-        strCasa = "CasaXPS"
-    ElseIf mid$(Cells(1, 1).Value, 1, 2) = "VG" Then
-        strCasa = "VG Avt"
-    End If
-End Sub
-
 Sub descriptHidden1()
     Cells(1, 1).Value = "Grating"
     Cells(1, 3).Value = "lines/mm"
@@ -6046,23 +5984,11 @@ Sub descriptHidden1()
     Cells(43, para + 11).Value = "numXPSFactors"
     Cells(44, para + 11).Value = "numAESFactors"
     Cells(45, para + 11).Value = "Gnum"
-    
     Cells(41, para + 12).Value = numData
     
     ncomp = 0
     Cells(45, para + 10).Value = ncomp
-    
-    If g = 600 Then
-        Gnum = 1
-    ElseIf g = 1200 Then
-        Gnum = 2
-    ElseIf g = 2400 Then
-        Gnum = 3
-    Else
-        Gnum = 0
-    End If
-    
-    Cells(45, para + 12).Value = Gnum
+    Cells(45, para + 12).Value = 0
     Cells(46, para + 11).Value = strCasa
     Cells(47, para + 11).Value = strAES
     Cells(50, para + 11).Value = "Elem"
@@ -6156,7 +6082,7 @@ Sub descriptFit()
     End If
     
     
-    Cells(15 + sftfit2, 2).Value = Gnum     ' Grating number, 0 means VersaProbe II
+    Cells(15 + sftfit2, 2).Value = 0     ' Grating number, 0 means VersaProbe II
     If Cells(15 + sftfit2, 2).Value = 0 Then    ' VersaProbe II AlKa
         Cells(14 + sftfit2, 2).Value = 23.5     ' CAE must be setup by user
     Else
@@ -7791,8 +7717,7 @@ Sub Initial()
     strAES = ""
     strErr = ""
     strErrX = ""
-    strscanNum = ""
-    strscanNumR = ""
+
     pe = 0
     off = 0
     multi = 1
@@ -8586,6 +8511,8 @@ Sub SolverInstall2()
     ' initialize Solver
     Application.Run "Solver.xlam!Solver.Solver2.Auto_open"
 End Sub
+
+
 
 
 
