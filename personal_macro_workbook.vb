@@ -23,7 +23,7 @@ Option Explicit
     
 Sub CLAM2()
     
-    ver = "8.05p"                             ' Version of this code.
+    ver = "8.06p"                             ' Version of this code.
     'direc = "E:\DATA\hideki\XPS\"            ' a  directory location of database (this is for PC with SSD storage.)
     direc = "D:\DATA\hideki\XPS\"            ' this is for PC with HDD storage.
     'direc = "C:\Users\Public\Data\"         ' this is for BOOTCAMP on MacBookAir.
@@ -638,16 +638,18 @@ Sub PlotCLAM2()
     
     If strTest = "ME/eV" Then Call SheetCheckGenerator      ' Check Sheet for "ME/eV"
 
-    If startEk > 0 Then
-        startEk = Application.Floor(startEk, numMajorUnit)
-    Else
-        startEk = Application.Ceiling(startEk, (-1 * numMajorUnit))
-    End If
-
-    If endEk > 0 Then
-        endEk = Application.Ceiling(endEk, numMajorUnit)
-    Else
-        endEk = Application.Floor(endEk, (-1 * numMajorUnit))
+    If numMajorUnit > 0 Then
+        If startEk > 0 Then
+            startEk = Application.Floor(startEk, numMajorUnit)
+        Else
+            startEk = Application.Ceiling(startEk, (-1 * numMajorUnit))
+        End If
+    
+        If endEk > 0 Then
+            endEk = Application.Ceiling(endEk, numMajorUnit)
+        Else
+            endEk = Application.Floor(endEk, (-1 * numMajorUnit))
+        End If
     End If
     
     Charts.Add
@@ -723,7 +725,9 @@ SkipGraph2:
             If numMajorUnit <> 0 Then
                 .MajorUnit = numMajorUnit
             Else
-                .MajorUnit = Abs(startEb - endEb) / 10
+                .MinimumScaleIsAuto = True
+                .MaximumScaleIsAuto = True
+                '.MajorUnit = Abs(startEb - endEb) / 10
             End If
             .MajorGridlines.Border.LineStyle = xlDot
         End With
@@ -1017,7 +1021,7 @@ CheckElemAgain:
         q = 0
         
         Do Until EOF(fileNum)
-			Line Input #fileNum, Record
+            Line Input #fileNum, Record
             C1 = Split(Record, vbTab)
 
             If strl(1) = "Pe" Then         ' XAS mode
@@ -1062,7 +1066,7 @@ CheckElemAgain:
         Loop
         
         Close #fileNum
-		
+        
 SkipElem:
        
         If q = 0 Or StrComp(asf, "ASF", 1) = 0 Then
@@ -3111,7 +3115,7 @@ Sub FitInitial()
         numData = Cells(41, para + 12).Value '((Cells(6, 2).Value - Cells(5, 2).Value) / Cells(7, 2).Value) + 1
         Set dataBGraph = Range(Cells(20 + numData, 2), Cells(20 + numData, 2).Offset(numData - 1, 1))
         Set dataKeGraph = Range(Cells(20, 1), Cells(20 + numData, 1).Offset(numData - 1, 0))
-        'Set dataIntGraph = dataKeGraph.Offset(, 2)
+
         Call scalecheck
         If StrComp(strl(1), "Pe", 1) = 0 Or StrComp(strl(1), "Po", 1) = 0 Then
             Cells(10, 3).Value = "Ab"
@@ -3679,48 +3683,6 @@ Sub FitRange()
         Cells(9, 103).Value = "Sum"
     End If
     
-    If IsEmpty(Cells(2, 103).Value) Then
-        If mid$(Cells(25 + sftfit2, 1).Value, 1, 1) = "M" Then   ' manual set
-            Cells(2, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value)       ' max FWHM1 limit
-            Cells(3, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / 100      ' min FWHM1 limit
-            Cells(4, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value)        ' max FWHM2 limit
-            Cells(5, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / 100      ' min FWHM2 limit
-            Cells(6, 103).Value = 0.999       ' max shape limit
-            Cells(7, 103).Value = 0.001       ' min shape limit
-            Cells(10, 101).Value = 3          ' average points for poly BG
-            Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (100)
-        ElseIf Cells(15 + sftfit2, 2).Value = 1 Then   ' grating #1
-            Cells(2, 103).Value = 2       ' max FWHM1 limit
-            Cells(3, 103).Value = 0.1       ' min FWHM1 limit
-            Cells(4, 103).Value = 2       ' max FWHM2 limit
-            Cells(5, 103).Value = 0.1       ' min FWHM2 limit
-            Cells(6, 103).Value = 0.999       ' max shape limit
-            Cells(7, 103).Value = 0.001       ' min shape limit
-            Cells(10, 101).Value = 20          ' average points for poly BG
-            If strl(1) = "Pe" Then             ' additional BE step
-                Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (20)
-                'Cells(2, 103).Value = 1       ' max FWHM1 limit
-            Else
-                Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (100)
-            End If
-        Else        ' grating #2, 3, G = 0 for AlKa XPS
-            Cells(2, 103).Value = 10       ' max FWHM1 limit
-            Cells(3, 103).Value = 0.5       ' min FWHM1 limit
-            Cells(4, 103).Value = 10       ' max FWHM2 limit
-            Cells(5, 103).Value = 0.5       ' min FWHM2 limit
-            Cells(6, 103).Value = 0.999       ' max shape limit
-            Cells(7, 103).Value = 0.001       ' min shape limit
-            Cells(10, 101).Value = 10          ' average points for poly BG
-            If strl(1) = "Pe" Then             ' additional BE step
-                Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (4)
-                'Cells(2, 103).Value = 1       ' max FWHM1 limit
-            Else
-                Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (10)
-            End If
-        End If
-    ElseIf Cells(8, 101).Value > 0 Then      ' fit done
-    End If
-    
     pe = Cells(12, 101).Value
     wf = Cells(13, 101).Value
     char = Cells(14, 101).Value
@@ -3979,7 +3941,7 @@ Sub FitCurve()
     Application.Calculation = xlCalculationManual
     
     Dim ls As Single, ratio1 As Single, imax As Integer, rng As Range
-    
+    Debug.Print strTest
     If StrComp(mid$(strTest, 1, 6), "Do fit", 1) = 0 Then
         
     Else
@@ -4558,32 +4520,35 @@ ExitIter:
     End If
     
     Call GetOutFit
-    
 End Sub
 
 Sub FitEF()
     Dim rng As Range, dataFit As Range
     
-    If startR > 21 + sftfit Then
+    If startR >= 21 + sftfit Then
         If IsEmpty(Cells(startR - 1, 3)) = False Then
-            Range(Cells(21 + sftfit, 3), Cells(startR - 1, 4)).ClearContents
-            Cells(8, 101).Value = 0
+            Range(Cells(21 + sftfit, 3), Cells(startR - 1, 5)).ClearContents
+            Cells(8, 101).Value = -1
         ElseIf IsEmpty(Cells(startR, 3)) = True Then
-            Cells(8, 101).Value = 0
+            Cells(8, 101).Value = -1
         End If
     End If
     
-    If endR < numData + 20 + sftfit Then
+    If endR <= numData + 20 + sftfit Then
         If IsEmpty(Cells(endR + 1, 3)) = False Then
-            Range(Cells(endR + 1, 3), Cells(numData + 20 + sftfit, 4)).ClearContents
-            Cells(8, 101).Value = 0
+            Range(Cells(endR + 1, 3), Cells(numData + 20 + sftfit, 5)).ClearContents
+            Cells(8, 101).Value = -1
         ElseIf IsEmpty(Cells(endR, 3)) = True Then
-            Cells(8, 101).Value = 0
+            Cells(8, 101).Value = -1
         End If
     End If
     
-    If Cells(8, 101).Value > 0 Then GoTo SkipInitialEF2
-
+    If Cells(8, 101).Value > 0 Then
+        GoTo SkipInitialEF2
+    ElseIf Cells(8, 101).Value < 0 Then
+        fcmp = Range(Cells(2, 5), Cells(8, 5))
+    End If
+    
     Range(Cells(1, 3), Cells(15 + sftfit2, 55)).ClearContents
     Range(Cells(20 + sftfit, 3), Cells((2 * numData + 22 + sftfit), 55)).ClearContents
     Range(Cells(1, 3), Cells(15 + sftfit2, 55)).Interior.ColorIndex = xlNone
@@ -6170,7 +6135,12 @@ Sub descriptFit()
         Cells(5, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / 100      ' min FWHM2 limit
         Cells(6, 103).Value = 0.999       ' max shape limit
         Cells(7, 103).Value = 0.001       ' min shape limit
-        Cells(10, 101).Value = 5          ' average points for poly BG
+'        Cells(10, 101).Value = 5          ' average points for poly BG
+        If numData > 50 Then
+            Cells(10, 101).Value = 10          ' average points for poly BG
+        Else
+            Cells(10, 101).Value = Application.Ceiling(numData / 10, 1)
+        End If
         Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (100)
 
     ElseIf Cells(15 + sftfit2, 2).Value = 1 Then   ' grating #1
@@ -6194,7 +6164,13 @@ Sub descriptFit()
         Cells(5, 103).Value = 0.5       ' min FWHM2 limit
         Cells(6, 103).Value = 0.999       ' max shape limit
         Cells(7, 103).Value = 0.001       ' min shape limit
-        Cells(10, 101).Value = 10          ' average points for poly BG
+'        Cells(10, 101).Value = 10          ' average points for poly BG
+        If numData > 50 Then
+            Cells(10, 101).Value = 10          ' average points for poly BG
+        Else
+            Cells(10, 101).Value = Application.Ceiling(numData / 10, 1)
+        End If
+        
         If strl(1) = "Pe" Then             ' additional BE step
             Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (4)
         Else
@@ -7135,20 +7111,26 @@ Sub descriptEFfit1()
     Cells(7 + sftfit2, 1).Value = "EF range"
     Cells(8 + sftfit2, 1).Value = "BE min"
     Cells(9 + sftfit2, 1).Value = "BE max"
-    Cells(8 + sftfit2, 2).Value = -0.5
-    Cells(9 + sftfit2, 2).Value = 0.5
+    
+    If Cells(8, 101).Value = 0 Then
+        Cells(8 + sftfit2, 2).Value = -0.5
+        Cells(9 + sftfit2, 2).Value = 0.5
+        Cells(4, 5).Value = 300
+        Cells(4, 5).Font.Bold = "True"
+        Cells(2, 5).Value = 0
+        Cells(6, 5).Value = 1
+        Cells(8, 5).Value = 1
+    ElseIf Cells(8, 101).Value = -1 Then
+        Range(Cells(2, 5), Cells(8, 5)) = fcmp
+    End If
+    
     Cells(2, 2).Value = dblMax
     Cells(3, 2).Value = 1
     Cells(4, 2).Value = dblMin
     Cells(5, 2).Value = 0
-    Cells(2, 5).Value = 0
-    Cells(4, 5).Value = 300
-    Cells(6, 2).Value = 0
-    Cells(7, 2).Value = 0
+'    Cells(6, 2).Value = 0
+'    Cells(7, 2).Value = 0
     Cells(8, 2).Value = 0
-    Cells(6, 5).Value = 1
-    Cells(8, 5).Value = 1
-
     Cells(20 + sftfit, 3).Value = "FitEF (FD)"
     Cells(20 + sftfit, 4).Value = "Least fits (FD)"
     Cells(20 + sftfit, 5).Value = "Residual (FD)"
@@ -7654,9 +7636,9 @@ Sub scalecheck()
             Else
                 startEb = .Floor(startEb, numMajorUnit)
             End If
-        ElseIf startEb > 0 Then
+        ElseIf startEb > 0 And numMajorUnit <> 0 Then
             startEb = .Ceiling(startEb, numMajorUnit)
-        Else
+        ElseIf numMajorUnit <> 0 Then
             startEb = .Floor(startEb, (-1 * numMajorUnit))
         End If
 
@@ -7668,9 +7650,9 @@ Sub scalecheck()
             Else
                 endEb = .Ceiling(endEb, numMajorUnit)
             End If
-        ElseIf endEb > 0 Then
+        ElseIf endEb > 0 And numMajorUnit <> 0 Then
             endEb = .Floor(endEb, numMajorUnit)
-        Else
+        ElseIf numMajorUnit <> 0 Then
             endEb = .Ceiling(endEb, (-1 * numMajorUnit))
         End If
         
@@ -8511,6 +8493,8 @@ Sub SolverInstall2()
     ' initialize Solver
     Application.Run "Solver.xlam!Solver.Solver2.Auto_open"
 End Sub
+
+
 
 
 
