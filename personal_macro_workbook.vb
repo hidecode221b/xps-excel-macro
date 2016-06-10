@@ -8,7 +8,7 @@ Option Explicit
     Dim numMajorUnit As Integer, modex As Integer, para As Integer, graphexist As Integer, numData As Integer, numChemFactors As Integer
     Dim idebug As Integer, spacer As Integer, sftfit As Integer, sftfit2 As Integer, cmp As Integer, ncmp As Integer, npa As Integer
     
-    Dim wb As String, ver As String, TimeCheck As String, strAna As String, direc As String, ElemD As String, Elem As String, Results As String
+    Dim wb As String, ver As String, TimeCheck As String, strAna As String, direc As String, ElemD As String, Results As String
     Dim strSheetDataName As String, strSheetGraphName As String, strSheetCheckName As String, strSheetFitName As String, strSheetAnaName As String
     Dim strTest As String, strLabel As String, strCpa As String
     Dim strList As String, strCasa As String, strAES As String, strErr As String, strErrX As String, ElemX As String, testMacro As String
@@ -138,7 +138,6 @@ DeadInTheWater2:
     Application.Calculation = xlCalculationAutomatic    ' revised for Office 2010
     
     graphexist = 0
-    
     sh = ActiveSheet.Name
     
     If InStr(1, sh, "Graph_") > 0 Then
@@ -722,7 +721,6 @@ SkipGraph2:
             Else
                 .MinimumScaleIsAuto = True
                 .MaximumScaleIsAuto = True
-                '.MajorUnit = Abs(startEb - endEb) / 10
             End If
             .MajorGridlines.Border.LineStyle = xlDot
         End With
@@ -801,8 +799,8 @@ SkipGraph2:
 End Sub
 
 Sub ElemXPS()
-    Dim xpsoffset As Integer, aesoffset As Integer, imax As Integer, asf As String, oriXPSFactors As Integer
-    Dim Fname As Variant, Record As Variant, C1 As Variant, C2 As Variant, C3 As Variant
+    Dim xpsoffset As Integer, aesoffset As Integer, asf As String, oriXPSFactors As Integer
+    Dim Fname As Variant, Record As Variant, C1 As Variant, C2 As Variant, C3 As Variant, Elem As String
     
     xpsoffset = 0
     
@@ -890,19 +888,17 @@ CheckElemAgain:
         If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
     End If
     
-    imax = iRow  'UBound(C2, 1)    'imax : number of elements in database
-    
-    If imax < 2 Then
+    If iRow < 2 Then
         numXPSFactors = 0
         strErrX = "skip"
         Exit Sub
     End If
     
     C1 = C2
-
-    ReDim C2(1 To imax, 1 To 10)
+    ReDim C2(1 To iRow, 1 To 10)
     k = 0
     C3 = Split(ElemD, ",")
+    
     For n = 0 To UBound(C3)
         Elem = C3(n)
 
@@ -950,7 +946,7 @@ CheckElemAgain:
     For n = 0 To UBound(C3)
         Elem = C3(n)
         j = 1 + k
-        For q = 1 To (imax)
+        For q = 1 To (iRow)
             If C1(q, 1) = Elem Then
                 C2(j, 1) = C1(q, 1)   ' Elem
                 C2(j, 2) = C1(q, 2)   ' orbit
@@ -984,11 +980,9 @@ CheckElemAgain:
     Next
     
     numXPSFactors = k
-    
     If numXPSFactors = 0 Then GoTo SkipXPSnumZero
     
     maxXPSFactor = 0
-    
     ReDim C3(1 To numXPSFactors, 1 To 7)
     
     For n = 1 To numXPSFactors
@@ -1166,23 +1160,21 @@ SkipXPSnumZero:
         If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
     End If
     
-    imax = iRow 'UBound(C2, 1)   'ActiveSheet.UsedRange.Rows.Count
-    
-    If imax < 2 Then
+    If iRow < 2 Then
         numAESFactors = 0
         strErrX = "skip"
         Exit Sub
     End If
     
     C1 = C2
-    ReDim C2(1 To imax, 1 To 10)
+    ReDim C2(1 To iRow, 1 To 10)
     C3 = Split(ElemD, ",")
     k = 0
     
     For n = 0 To UBound(C3)
         Elem = C3(n)
         j = 1 + k
-        For q = 1 To (imax)
+        For q = 1 To (iRow)
             Debug.Print C1(q, 1)
             If C1(q, 1) = Elem Then
                 C2(j, 1) = C1(q, 1)       ' Element
@@ -1474,6 +1466,7 @@ Sub PlotChem()
         Else
             Cells(10, 3).Value = "In"   'strl(3)
         End If
+        
         Call GetOut
         End
     End If
@@ -1491,7 +1484,6 @@ Sub PlotChem()
     
     Set sheetGraph = Worksheets("Graph_" + strSheetDataName)
     sheetGraph.Activate
- 
     numChemFactors = 0
     
     If StrComp(strAna, "chem", 1) = 0 Then
@@ -1500,17 +1492,15 @@ Sub PlotChem()
         Else
             Cells(10, 3).Value = "In"   'strl(3)
         End If
-        
     Else
         Cells(42, para + 12).Value = 0
         Exit Sub
     End If
     
-    
     C3 = Split(ElemD, ",")
-    
     ReDim C2(1 To 101, 1 To 6)
     iRow = 1
+    
     For n = 0 To UBound(C3)
         strTest = C3(n)
         q = 0
@@ -1526,9 +1516,9 @@ Sub PlotChem()
         
         fileNum = FreeFile(0)
         Open Fname For Input As fileNum
-        Line Input #fileNum, Record
 
         Do Until EOF(fileNum)
+            Line Input #fileNum, Record
             C1 = Split(Record, vbTab)
             If q > 0 Then
                 For iCol = 1 To 4
@@ -1537,13 +1527,13 @@ Sub PlotChem()
                 iRow = iRow + 1
             End If
             q = 1
-            Line Input #fileNum, Record
         Loop
         
         Close #fileNum
+        iRow -iRow - 1
     Next
     
-    numChemFactors = iRow - 1
+    numChemFactors = iRow
     
     Cells(42, para + 12).Value = numChemFactors
     numXPSFactors = Cells(43, para + 12).Value
@@ -1660,7 +1650,6 @@ SkipChemLoad:
                 .Font.Size = 8 / Sqr(windowSize)
             End With
         Next
-    
         End With
         
         If ActiveChart.HasLegend = True Then
@@ -2350,7 +2339,6 @@ Sub FitRatioAnalysis()
         C3(3 + (spacer + fitNum - 1) * 3, peakNum + 6) = "Summation"               ' you can choose
         C3(2 + (spacer + fitNum - 1) * 3, peakNum + 9) = "N.I.Area ratio"            ' normalized by summation
         C3(3 + (spacer + fitNum - 1) * 3, 2 * peakNum + 9) = "Total ratio"
-        
         C3(3 + (spacer + fitNum - 1) * 4, peakNum + 6) = "Average"
         
         For n = 0 To 4      ' n represents # of parameters to be summarized
@@ -2375,14 +2363,15 @@ Sub FitRatioAnalysis()
         
         Cells(1, 4).Interior.ColorIndex = 9
         Cells(2, 4).Interior.ColorIndex = 10
+        
         For n = 0 To 1
             Cells(1 + n, 4).Font.ColorIndex = 2
         Next
 
         Range(Cells(2 + (spacer + fitNum - 1) * 0, peakNum + 8 + bookNum), Cells(2 + (spacer + fitNum - 1) * 0, peakNum + 9 + bookNum)).Interior.ColorIndex = 8  ' Difference
+        
         For n = 1 To 4
             Range(Cells(2 + (spacer + fitNum - 1) * n, peakNum + 9), Cells(2 + (spacer + fitNum - 1) * n, peakNum + 10)).Interior.ColorIndex = 8   ' Area ratio
-            
         Next
         
         Cells(3 + (spacer + fitNum - 1) * 2, 2 * peakNum + 9).Interior.ColorIndex = 26   ' Total ratio in S. Area ratio
@@ -2548,7 +2537,6 @@ Sub FitRatioAnalysis()
     
 SkipFitRatioAnalysis:
     Call GetOut
-
 End Sub
 
 Sub FitAnalysis()
@@ -3016,7 +3004,6 @@ Sub FitAnalysis()
         Results = "0," & strl(1) & "," & strl(2) & "," & strl(3) & ",,,"
         Call EachComp       ' Copy BG-substracted data in each Fit sheets.
         sheetAna.Activate
-
     Else
         TimeCheck = MsgBox("Stop a comparison; no file selected.", vbExclamation)
     End If
@@ -8488,6 +8475,8 @@ Sub SolverInstall2()
     ' initialize Solver
     Application.Run "Solver.xlam!Solver.Solver2.Auto_open"
 End Sub
+
+
 
 
 
