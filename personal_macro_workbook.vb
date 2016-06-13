@@ -2304,8 +2304,8 @@ Sub FitRatioAnalysis()
         Next
         
         sheetFit.Range(Cells(1, 5 + peakNum), Cells((spacer + fitNum) * 5 + 3, 10 + peakNum * 2)).ClearContents
-        sheetFit.Cells(1, 4 + peakNum).Value = ActiveWorkbook.Name
-        sheetFit.Cells(2, 4 + peakNum).Value = sheetAna.Name
+        sheetFit.Cells(1, 5).Value = ActiveWorkbook.Name
+        sheetFit.Cells(2, 5).Value = sheetAna.Name
         sheetFit.Cells(1, 1).Value = "Multiple-element ratio analysis"
         C3 = sheetFit.Range(Cells(1, 1), Cells(para * 3 - 1, para * 3 - 1))
         
@@ -2314,11 +2314,15 @@ Sub FitRatioAnalysis()
         cmp = 0     ' position of comp, should be zero
         fcmp = C3
         sBG = C2
+        
         Call EachComp       ' Copy fitting parameters in each Fit sheet
         
-        sheetFit.Activate
         C3 = fcmp
         C2 = sBG
+        
+        sheetFit.Activate
+        peakNum = sheetFit.Cells(3, para + 1).Value    ' # of peaks
+        
         C3(1, 4) = "File"
         C3(2, 4) = "Sheet"
         C3(3, peakNum + 6) = "Background"      ' G is # of peaks in the main sheet. Peaks over this # do not appear.
@@ -5167,8 +5171,11 @@ End Sub
 Sub EachComp()
     Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long
     Dim Target As Variant, C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant
-    Dim imax As Integer, NumSheets As Integer, peakNum As Integer
+    Dim imax As Integer, NumSheets As Integer, peakNum As Integer, fitNum As Integer
     
+    peakNum = sheetFit.Cells(3, para + 1).Value         ' # of Fit peaks
+    fitNum = sheetFit.Cells(4, para + 1).Value   ' # of Fit files
+        
     C3 = fcmp   ' Name of peaks
     C4 = sBG    ' Name of BGs
     C1 = Split(Results, ",")
@@ -5426,30 +5433,30 @@ Sub EachComp()
         ElseIf strAna = "FitRatioAnalysis" Then
             Dim spacera As Integer
             Dim peakNuma As Integer
-            Dim filenuma As Integer
+            Dim fitNuma As Integer
             Dim iCola As Integer
             Dim iRowa As Integer
             
             spacera = Workbooks(Target).Sheets(strCpa).Cells(2, para + 1).Value     ' spacer
             peakNuma = Workbooks(Target).Sheets(strCpa).Cells(3, para + 1).Value    ' # of peaks
-            filenuma = Workbooks(Target).Sheets(strCpa).Cells(4, para + 1).Value    ' # of files
-            C1 = Workbooks(Target).Sheets(strCpa).Range(Cells(1, 1), Cells((4 + spacera * 4) + 5 * filenuma, 9 + 2 * peakNuma)) ' No check in matching among the peak names.
-            C2 = Workbooks(Target).Sheets(strCpa).Range(Cells(4, 6 + peakNuma), Cells(3 + filenuma, 8 + peakNuma))
+            fitNuma = Workbooks(Target).Sheets(strCpa).Cells(4, para + 1).Value    ' # of files
+            C1 = Workbooks(Target).Sheets(strCpa).Range(Cells(1, 1), Cells((4 + spacera * 4) + 5 * fitNuma, 9 + 2 * peakNuma)) ' No check in matching among the peak names.
+            C2 = Workbooks(Target).Sheets(strCpa).Range(Cells(4, 6 + peakNuma), Cells(3 + fitNuma, 8 + peakNuma))
             
             C3(1, peakNum + 5) = Target
             C3(2, peakNum + 5) = strCpa
 
             For iCola = 0 To peakNuma - 1
-                For iRowa = 0 To fileNum   ' include the peak name
+                For iRowa = 0 To fitNum   ' include the peak name
                     C3(3 + iRowa, iCola + peakNum + 5) = C1(3 + iRowa, iCola + 5)                                 ' BE
-                    C3(2 + iRowa + 1 * (spacer + fileNum), iCola + peakNum + 5) = C1(2 + iRowa + 1 * (spacera + filenuma), iCola + 5)      ' P.Area
-                    C3(1 + iRowa + 2 * (spacer + fileNum), iCola + peakNum + 5) = C1(1 + iRowa + 2 * (spacera + filenuma), iCola + 5)  ' S.Area
-                    C3(0 + iRowa + 3 * (spacer + fileNum), iCola + peakNum + 5) = C1(0 + iRowa + 3 * (spacera + filenuma), iCola + 5)    ' N.Area
-                    C3(-1 + iRowa + 4 * (spacer + fileNum), iCola + peakNum + 5) = C1(-1 + iRowa + 4 * (spacera + filenuma), iCola + 5)     ' FWHM
+                    C3(2 + iRowa + 1 * (spacer + fitNum), iCola + peakNum + 5) = C1(2 + iRowa + 1 * (spacera + fitNuma), iCola + 5)      ' P.Area
+                    C3(1 + iRowa + 2 * (spacer + fitNum), iCola + peakNum + 5) = C1(1 + iRowa + 2 * (spacera + fitNuma), iCola + 5)  ' S.Area
+                    C3(0 + iRowa + 3 * (spacer + fitNum), iCola + peakNum + 5) = C1(0 + iRowa + 3 * (spacera + fitNuma), iCola + 5)    ' N.Area
+                    C3(-1 + iRowa + 4 * (spacer + fitNum), iCola + peakNum + 5) = C1(-1 + iRowa + 4 * (spacera + fitNuma), iCola + 5)     ' FWHM
                 Next
             Next
             
-            For p = 0 To fileNum - 1
+            For p = 0 To fitNum - 1
                 C4(p + 1, n + 2) = C2(1 + p, 1) & C2(1 + p, 2) & C2(1 + p, 3)
             Next
             
@@ -5671,6 +5678,10 @@ SkipOpen:
     fcmp = C3       ' peak parameters added
     ncmp = n        ' number of data added over cmp
     sBG = C4        ' peak BGs
+    
+    If strAna = "FitRatioAnalysis" Then
+        sheetFit.Cells(3, para + 1).Value = peakNum   ' # of peaks final
+    End If
 End Sub
 
 Sub descriptGraph()
