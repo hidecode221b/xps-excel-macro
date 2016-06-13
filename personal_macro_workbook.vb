@@ -5179,7 +5179,7 @@ Sub offsetmultiple()
 End Sub
 
 Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, sBG As Variant, cmp As Integer, ncmp As Integer, ncomp)
-    Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long, strCpa As String
+    Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long, strCpa As String, sheetTarget As Worksheet
     Dim Target As Variant, C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant
     Dim imax As Integer, NumSheets As Integer, peakNum As Integer, fitNum As Integer
     
@@ -5373,27 +5373,32 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
                     para = iCol
                 End If
             End If
-            
+        End If
+        
+        strSheetDataName = mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)
+        Set sheetTarget = Workbooks(Target).Worksheets("Graph_" + strSheetDataName)
+        
+        If StrComp(sheetTarget.Cells(40, para + 9).Value, "Ver.", 1) = 0 Then
+            iCol = para
         Else
-            If StrComp(Cells(40, para + 9).Value, "Ver.", 1) = 0 Then
-                iCol = para
-            Else
-                For iCol = 1 To 500
-                    If StrComp(Cells(40, iCol + 9).Value, "Ver.", 1) = 0 Then
-                        Exit For
-                    ElseIf iCol = 500 Then
-                        MsgBox "Graph sheet has no parameters to be compared."
-                        End
-                    End If
-                Next
-            End If
-            
-            If Cells(40, iCol + 10).Value >= 6.56 Then
-                numData = Workbooks(Target).Sheets(strCpa).Cells(41, iCol + 12).Value
-            Else
-                MsgBox "Macro code used in some data comparison is obsolete!"
-                If numData = 0 Then GoTo SkipOpen
-            End If
+            For iCol = 1 To 500
+                If StrComp(sheetTarget.Cells(40, iCol + 9).Value, "Ver.", 1) = 0 Then
+                    Exit For
+                ElseIf iCol = 500 Then
+                    MsgBox "Graph sheet has no parameters to be compared."
+                    End
+                End If
+            Next
+        End If
+        
+        If mid$(sheetTarget.Cells(40, iCol + 10).Value, 1, 4) <= 8.05 And StrComp(mid$(strAna, 1, 3), "Fit", 1) = 0 Then
+            MsgBox "Macro code used in some data comparison is obsolete!"
+            End
+        ElseIf mid$(sheetTarget.Cells(40, iCol + 10).Value, 1, 4) >= 6.56 Then
+            numData = Workbooks(Target).Sheets(strCpa).Cells(41, iCol + 12).Value
+        Else
+            MsgBox "Macro code used in some data comparison is obsolete!"
+            End
         End If
         
         strl(4) = Cells(10, 1).Value       'check whether BE/eV or KE/eV. If BE/eV, only BE graph available
@@ -8056,7 +8061,7 @@ End Sub
 
 Sub debugAll()      ' multiple file analysis in sequence
     Dim be4all() As Variant, am4all() As Variant, fw4all() As Variant, wbX As String, shgX As Worksheet, shfX As Worksheet, strSheetDataNameX As String, numpeakX As Integer
-    Dim Target As Variant, C1 As Variant, C2 As Variant, OpenFileName as Variant
+    Dim Target As Variant, C1 As Variant, C2 As Variant, OpenFileName As Variant
     Dim debugMode As String, seriesnum As Integer
     Dim SourceRangeColor1 As Long
     Dim rng As Range
@@ -8479,6 +8484,8 @@ Sub SolverInstall2()
     ' initialize Solver
     Application.Run "Solver.xlam!Solver.Solver2.Auto_open"
 End Sub
+
+
 
 
 
