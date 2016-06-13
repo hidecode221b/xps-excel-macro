@@ -1,12 +1,12 @@
 Option Explicit
     
     Dim iniTime As Date, finTime As Date, startTime As Date, endTime As Date, TimeC1 As Date, TimeC2 As Date
-    Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, highpe() As Variant, ratio() As Variant, bediff() As Variant, strl() As Variant
+    Dim highpe() As Variant, ratio() As Variant, bediff() As Variant, strl() As Variant
     
     Dim j As Integer, k As Integer, q As Integer, p As Integer, n As Integer, iRow As Integer, iCol As Integer, ns As Integer, fileNum As Integer
     Dim startR As Integer, endR As Integer, g As Integer, cae As Integer, ncomp As Integer, numXPSFactors As Integer, numAESFactors As Integer
     Dim numMajorUnit As Integer, modex As Integer, para As Integer, graphexist As Integer, numData As Integer, numChemFactors As Integer
-    Dim idebug As Integer, spacer As Integer, sftfit As Integer, sftfit2 As Integer, cmp As Integer, ncmp As Integer, npa As Integer
+    Dim idebug As Integer, spacer As Integer, sftfit As Integer, sftfit2 As Integer, cmp As Integer
     
     Dim wb As String, ver As String, TimeCheck As String, strAna As String, direc As String, ElemD As String, Results As String
     Dim strSheetDataName As String, strSheetGraphName As String, strSheetCheckName As String, strSheetFitName As String, strSheetAnaName As String
@@ -1667,6 +1667,7 @@ SkipChemLoad:
 End Sub
 
 Sub GetCompare()
+    Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, ncmp As Integer
     If StrComp(TimeCheck, "yes", 1) = 0 Then TimeCheck = vbNullString
     Worksheets(strSheetGraphName).Activate
     
@@ -1717,7 +1718,7 @@ Sub GetCompare()
         End If
         
         Application.Calculation = xlCalculationManual
-        Call EachComp
+        Call EachComp(OpenFileName, strAna, fcmp, sBG, cmp, ncmp, ncomp)
         Application.Calculation = xlCalculationAutomatic
         
         Workbooks(wb).Sheets(strSheetGraphName).Activate
@@ -2257,6 +2258,7 @@ End Sub
 
 Sub FitRatioAnalysis()
     Dim C1 As Variant, C2 As Variant, C3 As Variant, peakNum As Integer, fitNum As Integer, bookNum As Integer
+    Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, ncmp As Integer, ncomp As Integer
     
     strSheetAnaName = "Ana_" + strSheetDataName
     strSheetFitName = "Rto_" + strSheetDataName
@@ -2315,7 +2317,7 @@ Sub FitRatioAnalysis()
         fcmp = C3
         sBG = C2
         
-        Call EachComp       ' Copy fitting parameters in each Fit sheet
+        Call EachComp(OpenFileName, strAna, fcmp, sBG, cmp, ncmp, ncomp)       ' Copy fitting parameters in each Fit sheet
         
         C3 = fcmp
         C2 = sBG
@@ -2538,6 +2540,7 @@ End Sub
 
 Sub FitAnalysis()
     Dim C1 As Variant, C2 As Variant, C3 As Variant, peakNum As Integer, fitNum As Integer, bookNum As Integer, imax As Integer
+    Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, ncmp As Integer, ncomp As Integer
     
     peakNum = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Cells(8 + sftfit2, 2).Value
     C1 = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Range(Cells(1, 5), Cells(12 + sftfit2, 4 + peakNum))
@@ -2658,7 +2661,7 @@ Sub FitAnalysis()
         cmp = 0     ' position of compared data to be added should be 0
         fcmp = C3   ' peak parameters from the base file, next to be added form the selected files
         
-        Call EachComp       ' Copy fitting parameters in each Fit sheet
+        Call EachComp(OpenFileName, strAna, fcmp, sBG, cmp, ncmp, ncomp)       ' Copy fitting parameters in each Fit sheet
         
         C3 = fcmp
         sheetAna.Activate
@@ -2994,7 +2997,7 @@ Sub FitAnalysis()
         Call PlotChem
         Results = "0," & strl(1) & "," & strl(2) & "," & strl(3) & ",,,"
         
-        Call EachComp       ' Copy BG-substracted data in each Fit sheets.
+        Call EachComp(OpenFileName, strAna, fcmp, sBG, cmp, ncmp, ncomp)       ' Copy BG-substracted data in each Fit sheets.
         
         sheetAna.Activate
     Else
@@ -4014,7 +4017,7 @@ Sub FitCurve()
 
     Call FitEquations
     
-    j = npa
+    j = Cells(8 + sftfit2, 2).Value 'npa
     ActiveSheet.Calculate
     
 AsymIteration:
@@ -5168,13 +5171,15 @@ Sub offsetmultiple()
     End If
 End Sub
 
-Sub EachComp()
+Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, sBG As Variant, cmp As Integer, ncmp As Integer, ncomp)
     Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long
     Dim Target As Variant, C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant
     Dim imax As Integer, NumSheets As Integer, peakNum As Integer, fitNum As Integer
     
-    peakNum = sheetFit.Cells(3, para + 1).Value         ' # of Fit peaks
-    fitNum = sheetFit.Cells(4, para + 1).Value   ' # of Fit files
+    If strAna = "FitRatioAnalysis" Then
+        peakNum = sheetFit.Cells(3, para + 1).Value         ' # of Fit peaks
+        fitNum = sheetFit.Cells(4, para + 1).Value   ' # of Fit files
+    End If
         
     C3 = fcmp   ' Name of peaks
     C4 = sBG    ' Name of BGs
@@ -7255,7 +7260,7 @@ End Sub
 Sub FitEquations()
     Dim rng As Range
     Set rng = Range(Cells(startR, 1), Cells(endR, 1))
-    Dim imax As Integer
+    Dim imax As Integer, npa As Integer
     
     If Cells(15 + sftfit2, 2).Value = 1 Then    ' normalized factors for each grating by gold reference measurement
         Cells(15, 101).Value = 0.01
@@ -8043,7 +8048,7 @@ End Sub
 
 Sub debugAll()      ' multiple file analysis in sequence
     Dim be4all() As Variant, am4all() As Variant, fw4all() As Variant, wbX As String, shgX As Worksheet, shfX As Worksheet, strSheetDataNameX As String, numpeakX As Integer
-    Dim Target As Variant, C1 As Variant, C2 As Variant
+    Dim Target As Variant, C1 As Variant, C2 As Variant, OpenFileName as Variant
     Dim debugMode As String, seriesnum As Integer
     Dim SourceRangeColor1 As Long
     Dim rng As Range
