@@ -10,7 +10,7 @@ Option Explicit
     
     Dim wb As String, ver As String, TimeCheck As String, strAna As String, direc As String, ElemD As String, Results As String
     Dim strSheetDataName As String, strSheetGraphName As String, strSheetCheckName As String, strSheetFitName As String, strSheetAnaName As String
-    Dim strTest As String, strLabel As String, strCpa As String
+    Dim strTest As String, strLabel As String
     Dim strList As String, strCasa As String, strAES As String, strErr As String, strErrX As String, ElemX As String, testMacro As String
     
     Dim sheetData As Worksheet, sheetGraph As Worksheet, sheetCheck As Worksheet, sheetFit As Worksheet, sheetAna As Worksheet
@@ -283,8 +283,12 @@ DeadInTheWater2:
             If StrComp(Cells(1, (4 + (3 * k))).Value, "comp", 1) = 0 Then Exit For
         Next
         
-        strCpa = Cells(1, (4 + (3 * k))).Value
-        cmp = k     ' position of comp if cmp < ncomp
+        If k = CInt(para / 3) Then
+            cmp = -1
+        Else
+            cmp = k     ' position of comp if cmp < ncomp
+        End If          ' "cmp" should not be used because it preserves the starting point of comp function!
+        
         g = 0
         If StrComp(strAna, "ana", 1) = 0 And StrComp(TimeCheck, "yes", 1) = 0 Then TimeCheck = vbNullString
     ElseIf InStr(1, sh, "Check_") > 0 Then
@@ -337,8 +341,12 @@ DeadInTheWater2:
         For k = 0 To CInt(para / 3)
             If StrComp(Cells(1, (4 + (3 * k))).Value, "comp", 1) = 0 Then Exit For
         Next
-        strCpa = Cells(1, (4 + (3 * k))).Value
-        cmp = k
+        
+        If k = CInt(para / 3) Then
+            cmp = -1
+        Else
+            cmp = k     ' position of comp if cmp < ncomp
+        End If          ' "cmp" should not be used because it preserves the starting point of comp function!
     ElseIf InStr(1, sh, "Fit_") > 0 Then
         If InStr(1, sh, "Fit_BE") > 0 Then
             strSheetDataName = Cells(1, 101).Value
@@ -514,7 +522,7 @@ Sub TargetDataAnalysis()
             TimeCheck = MsgBox("Data were exported in the text files.", vbExclamation)
         End If
         
-        If StrComp(strCpa, "comp", 1) = 0 Then
+        If cmp >= 0 Then
             Call GetCompare
         ElseIf StrComp(strAna, "ana", 1) = 0 Then
             Call FitCurve
@@ -2204,7 +2212,7 @@ Sub Convert2Txt()
     Dim numDataT As Integer
     Dim numDataF As Integer
     Dim ElemT As String
-    Dim rng As Range
+    Dim rng As Range, strCpa As Integer
     
     Set rng = [1:1]
     iCol = Application.CountA(rng)
@@ -3626,7 +3634,7 @@ Sub FitInitialGuess()
     Cells(9, 101).Value = j
 End Sub
 
-Sub FitRange()
+Sub FitRange(ByRef strCpa As String)
     Dim C1 As Variant, C2 As Variant
     Dim rng As Range
     Dim numDataN As Integer
@@ -3918,10 +3926,9 @@ End Sub
 Sub FitCurve()
     Application.Calculation = xlCalculationManual
     
-    Dim ls As Single, ratio1 As Single, imax As Integer, rng As Range
-    Debug.Print strTest
+    Dim ls As Single, ratio1 As Single, imax As Integer, rng As Range, strCpa As String
+    
     If StrComp(mid$(strTest, 1, 6), "Do fit", 1) = 0 Then
-        
     Else
         Call FitInitial
         Exit Sub
@@ -3933,7 +3940,7 @@ Sub FitCurve()
         Exit Sub
     End If
 
-    Call FitRange
+    Call FitRange(strCpa)
     If strErrX = "skip" Then Exit Sub
 
     Call SolverSetup
@@ -5172,7 +5179,7 @@ Sub offsetmultiple()
 End Sub
 
 Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, sBG As Variant, cmp As Integer, ncmp As Integer, ncomp)
-    Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long
+    Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long, strCpa As String
     Dim Target As Variant, C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant
     Dim imax As Integer, NumSheets As Integer, peakNum As Integer, fitNum As Integer
     
@@ -7670,7 +7677,6 @@ Sub Initial()
     TimeC1 = TimeC2
     finTime = startTime
     
-    strCpa = ""
     strLabel = ""
     strAna = ""
     strCasa = ""
