@@ -11,7 +11,7 @@ Option Explicit
     Dim wb As String, ver As String, TimeCheck As String, strAna As String, direc As String, ElemD As String, Results As String
     Dim strSheetDataName As String, strSheetGraphName As String, strSheetCheckName As String, strSheetFitName As String, strSheetAnaName As String
     Dim strTest As String, strLabel As String
-    Dim strList As String, strCasa As String, strAES As String, strErr As String, strErrX As String, ElemX As String, testMacro As String
+    Dim strCasa As String, strAES As String, strErr As String, strErrX As String, ElemX As String, testMacro As String
     
     Dim sheetData As Worksheet, sheetGraph As Worksheet, sheetCheck As Worksheet, sheetFit As Worksheet, sheetAna As Worksheet
     Dim dataData As Range, dataKeData As Range, dataIntData As Range, dataBGraph As Range, dataKGraph, dataKeGraph As Range, dataBeGraph As Range
@@ -253,7 +253,7 @@ DeadInTheWater2:
         If StrComp(LCase(Cells(1, 1).Value), "exp", 1) = 0 Then
             strSheetAnaName = "Exp_" + strSheetDataName
             strSheetGraphName = "Graph_" + strSheetDataName
-            Call ExportCmp
+            Call ExportCmp("")
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         ElseIf StrComp(LCase(Cells(1, 1).Value), "norm", 1) = 0 Then
             Call GetNormalize
@@ -283,7 +283,7 @@ DeadInTheWater2:
             If StrComp(Cells(1, (4 + (3 * k))).Value, "comp", 1) = 0 Then Exit For
         Next
         
-        If k = CInt(para / 3) Then
+        If k >= CInt(para / 3) Then
             cmp = -1
         Else
             cmp = k     ' position of comp if cmp < ncomp
@@ -334,7 +334,7 @@ DeadInTheWater2:
             strSheetAnaName = "Exc_" + strSheetDataName
             strSheetGraphName = "Cmp_" + strSheetDataName
             ncomp = Range(Cells(10, 1), Cells(10, 1).End(xlToRight)).Columns.Count / 3
-            Call ExportCmp
+            Call ExportCmp("")
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         End If
         
@@ -342,7 +342,7 @@ DeadInTheWater2:
             If StrComp(Cells(1, (4 + (3 * k))).Value, "comp", 1) = 0 Then Exit For
         Next
         
-        If k = CInt(para / 3) Then
+        If k >= CInt(para / 3) Then
             cmp = -1
         Else
             cmp = k     ' position of comp if cmp < ncomp
@@ -518,7 +518,7 @@ Sub TargetDataAnalysis()
         Loop
         
         If InStr(Cells(1, 3).Value, "E/eV") > 0 Then
-            Call Convert2Txt
+            Call Convert2Txt("")
             TimeCheck = MsgBox("Data were exported in the text files.", vbExclamation)
         End If
         
@@ -2072,11 +2072,11 @@ Sub GetAutoScale()
     End If
 End Sub
 
-Sub ExportCmp()
+Sub ExportCmp(ByRef strXas As String)
     Dim rng As Range
     Dim numDataT As Integer
     
-    If LCase(Cells(1, 1).Value) = "exp" Or strList = "Is" Then
+    If LCase(Cells(1, 1).Value) = "exp" Or strXas = "Is" Then
         If ExistSheet(strSheetAnaName) Then
             Application.DisplayAlerts = False
             Worksheets(strSheetAnaName).Delete
@@ -2090,7 +2090,7 @@ Sub ExportCmp()
         wb = ActiveWorkbook.Name
         sheetGraph.Activate
         
-        If strList = "Is" Then
+        If strXas = "Is" Then
             Cells(1, 1).Value = "Grating"
             ncomp = 0
         Else
@@ -2118,7 +2118,7 @@ Sub ExportCmp()
     Application.CutCopyMode = False
     Cells(1, 1).Select
     
-    If strList = "Is" Then
+    If strXas = "Is" Then
     Else
         strErr = "skip"
     End If
@@ -2208,7 +2208,7 @@ Sub ExportChk()
     strErr = "skip"
 End Sub
 
-Sub Convert2Txt()
+Sub Convert2Txt(ByRef strXas As String)
     Dim numDataT As Integer
     Dim numDataF As Integer
     Dim ElemT As String
@@ -2224,9 +2224,9 @@ Sub Convert2Txt()
     ' http://www.homeandlearn.org/write_to_a_text_file.html
     For q = 0 To (iCol / 2) - 1
         If iCol <= 3 Then
-            If strList = "Ip" Then
+            If strXas = "Ip" Then
                 strLabel = strSheetAnaName
-            ElseIf strList = "Is" Then
+            ElseIf strXas = "Is" Then
                 strLabel = strSheetDataName
             Else
                 strLabel = strSheetDataName
@@ -2258,7 +2258,7 @@ Sub Convert2Txt()
     If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
 
     Application.CutCopyMode = False
-    If strList = "Is" Or strList = "Ip" Then
+    If strXas = "Is" Or strXas = "Ip" Then
     Else
         strErr = "skip"
     End If
@@ -7690,6 +7690,8 @@ Sub Initial()
     startR = 0
     endR = 0
     g = 0
+    cmp = -1
+    
     ReDim Preserve highpe(0)
     ReDim strl(3)
     
