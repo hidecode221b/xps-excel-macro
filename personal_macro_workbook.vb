@@ -50,8 +50,7 @@ Sub CLAM2()
 End Sub
 
 Sub SheetNameAnalysis()
-    Dim FSO As Object, dt As Integer, C1 As Variant, rng As Range
-    Dim sh As String
+    Dim FSO As Object, dt As Integer, C1 As Variant, rng As Range, sh As String, flag As Boolean
     
     If mid$(direc, Len(direc), 1) <> "\" Then direc = direc & "\"
     direc = Replace(direc, "/", "\")
@@ -437,7 +436,6 @@ DeadInTheWater2:
             strTest = mid$(strTest, 1, 25)
         End If
         
-        Dim flag As Boolean
         flag = False
         For Each sheetData In Worksheets
             If sheetData.Name = strTest Then flag = True
@@ -547,7 +545,7 @@ Sub TargetDataAnalysis()
 End Sub
 
 Sub PlotCLAM2()
-    Dim C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant, imax As Integer
+    Dim C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant, imax As Integer, SourceRangeColor1 As Long, SourceRangeColor2 As Long
     
     imax = numData + 10
     If ExistSheet(strSheetGraphName) Then
@@ -670,7 +668,6 @@ Sub PlotCLAM2()
         .AxisTitle.Text = strl(0)
     End With
     
-    Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long
     SourceRangeColor1 = ActiveChart.SeriesCollection(1).Border.Color
     
     With ActiveSheet.ChartObjects(1)
@@ -6239,7 +6236,6 @@ Sub descriptInitialFit()
     End With
     
 SkipBarPlot:
-    
 End Sub
 
 Sub ShirleyBG()
@@ -7228,9 +7224,9 @@ Sub ProfileAnalyzer()
 End Sub
 
 Sub FitEquations()
-    Dim rng As Range
+    Dim rng As Range, imax As Integer, npa As Integer, pts As Points, pt As Point
+    
     Set rng = Range(Cells(startR, 1), Cells(endR, 1))
-    Dim imax As Integer, npa As Integer
     
     If Cells(15 + sftfit2, 2).Value = 1 Then    ' normalized factors for each grating by gold reference measurement
         Cells(15, 101).Value = 0.01
@@ -7397,8 +7393,6 @@ Sub FitEquations()
         End With
     Next
     
-    Dim pts As Points, pt As Point
-    
     ActiveChart.SeriesCollection.NewSeries
     With ActiveChart.SeriesCollection(4 + j)
         .ChartType = xlXYScatter
@@ -7548,7 +7542,7 @@ Sub numMajorUnitsCheck()
 End Sub
 
 Sub scalecheck()
-    Dim dataIntGraph As Range
+    Dim dataIntGraph As Range, chkRef As Object
     
     Set dataIntGraph = dataKeGraph.Offset(, 2)
     
@@ -7666,8 +7660,6 @@ Sub Initial()
         End
     End If
     
-    Dim chkRef As Object
-    
     With Application.AddIns
     For n = 1 To .Count
         If LCase(.Item(n).Name) = "solver.xlam" Then
@@ -7688,10 +7680,7 @@ Sub Initial()
 End Sub
 
 Sub GetNormalize()
-    Dim C1 As Variant, C2 As Variant, C3 As Variant
-    Dim SourceRangeColor1 As Single
-    Dim rng As Range
-    Dim imax As Integer
+    Dim C1 As Variant, C2 As Variant, C3 As Variant, SourceRangeColor1 As Single, rng As Range, imax As Integer
     
     strSheetAnaName = "Norm_" + strSheetDataName
     strSheetGraphName = "Graph_" + strSheetDataName
@@ -7855,10 +7844,8 @@ Sub GetNormalize()
 End Sub
 
 Sub CombineLegend() ' no k is used because from GetCompare Sub
-    Dim spr As String
-    Dim strSheetSampleName As String, strSheetTargetName As String, strSeriesName As String
-    Dim sheetSample As Worksheet, sheetTarget As Worksheet
-    Dim icur As Integer, kcur As Integer
+    Dim spr As String, strSheetSampleName As String, strSheetTargetName As String, strSeriesName As String
+    Dim sheetSample As Worksheet, sheetTarget As Worksheet, icur As Integer, kcur As Integer
     
     If mid$(Results, 1, 1) = "n" Then
         Debug.Print "n", mid$(Results, 2, Len(Results) - InStr(1, Results, "k")), mid$(Results, InStr(1, Results, "k") + 1, Len(Results) - InStr(1, Results, "k"))
@@ -8015,10 +8002,7 @@ End Sub
 
 Sub debugAll()      ' multiple file analysis in sequence
     Dim be4all() As Variant, am4all() As Variant, fw4all() As Variant, wbX As String, shgX As Worksheet, shfX As Worksheet, strSheetDataNameX As String, numpeakX As Integer
-    Dim Target As Variant, C1 As Variant, C2 As Variant, OpenFileName As Variant
-    Dim debugMode As String, seriesnum As Integer
-    Dim SourceRangeColor1 As Long
-    Dim rng As Range
+    Dim Target As Variant, C1 As Variant, C2 As Variant, OpenFileName As Variant, debugMode As String, seriesnum As Integer, SourceRangeColor1 As Long, rng As Range
     
     If mid$(testMacro, 1, 5) = "debug" Then
         modex = -1
@@ -8348,7 +8332,7 @@ WorkBookNotOpen:
 End Function
 
 Function ExistSheet(sheetName) As Boolean
-    Dim r, cnt As Integer
+    Dim r As Integer, cnt As Integer
     
     cnt = Sheets.Count
     ExistSheet = False
@@ -8426,19 +8410,5 @@ Sub SolverInstall2()
     
     Application.Run "Solver.xlam!Solver.Solver2.Auto_open"    ' initialize Solver
 End Sub
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
