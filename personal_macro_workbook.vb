@@ -1,6 +1,5 @@
 Option Explicit
     
-    Dim iniTime As Date, finTime As Date, startTime As Date, endTime As Date, TimeC1 As Date, TimeC2 As Date
     Dim highpe() As Variant, ratio() As Variant, bediff() As Variant, strl() As Variant
     
     Dim j As Integer, k As Integer, q As Integer, p As Integer, n As Integer, iRow As Integer, iCol As Integer, ns As Integer, fileNum As Integer
@@ -8,10 +7,9 @@ Option Explicit
     Dim numMajorUnit As Integer, modex As Integer, para As Integer, graphexist As Integer, numData As Integer, numChemFactors As Integer
     Dim idebug As Integer, spacer As Integer, sftfit As Integer, sftfit2 As Integer, cmp As Integer
     
-    Dim wb As String, ver As String, TimeCheck As String, strAna As String, direc As String, ElemD As String, Results As String
+    Dim wb As String, ver As String, TimeCheck As String, strAna As String, direc As String, ElemD As String, Results As String, testMacro As String
     Dim strSheetDataName As String, strSheetGraphName As String, strSheetCheckName As String, strSheetFitName As String, strSheetAnaName As String
-    Dim strTest As String, strLabel As String
-    Dim strCasa As String, strAES As String, strErr As String, strErrX As String, ElemX As String, testMacro As String
+    Dim strTest As String, strLabel As String, strCasa As String, strAES As String, strErr As String, strErrX As String, ElemX As String
     
     Dim sheetData As Worksheet, sheetGraph As Worksheet, sheetCheck As Worksheet, sheetFit As Worksheet, sheetAna As Worksheet
     Dim dataData As Range, dataKeData As Range, dataIntData As Range, dataBGraph As Range, dataKGraph, dataKeGraph As Range, dataBeGraph As Range
@@ -22,7 +20,6 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    
     ver = "8.06p"                             ' Version of this code.
     'direc = "E:\DATA\hideki\XPS\"            ' a  directory location of database (this is for PC with SSD storage.)
     direc = "D:\DATA\hideki\XPS\"            ' this is for PC with HDD storage.
@@ -31,7 +28,7 @@ Sub CLAM2()
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
     windowRatio = 4 / 3     ' window width / height, "2/1" for eyes or "4/3" for ppt
     ElemD = "C,O"           ' Default elements to be shown up in the element analysis.
-    TimeCheck = "No"        ' "yes" to display the progress time, "No" only iteration results in fitting, numeric value to suppress any display.
+    TimeCheck = "No"        ' "No" only iteration results in fitting, numeric value to suppress any display.
     
     a0 = -0.00044463        ' Undulator parameters for harmonics or
     a1 = 1.0975             ' B vs gap equation
@@ -39,9 +36,7 @@ Sub CLAM2()
     gamma = 1.2             ' An electron energy: GeV
     lambda = 6              ' A magnetic period: cm
     fitLimit = 250          ' Maximum fit range: eV
-    
     mfp = 0.6               ' Inelastic mean free path formula: E^(mfp), and mfp can be from 0.5 to 0.9.
-    
     para = 100              ' position of parameters in the graph sheet with higher version of 6.56.
                             ' the limit of compared spectra depends on (para/3).
     spacer = 4              ' spacer between data tables for each parameter in FitRatioAnalysis, but it should be more than 3
@@ -52,7 +47,6 @@ Sub CLAM2()
     If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
     
     Call TargetDataAnalysis
-    
 End Sub
 
 Sub SheetNameAnalysis()
@@ -813,7 +807,6 @@ Sub ElemXPS()
     xpsoffset = 0
     
 CheckElemAgain:
-    finTime = Timer
 
     If StrComp(testMacro, "debug", 1) = 0 Then
         ElemD = ElemX
@@ -823,22 +816,15 @@ CheckElemAgain:
     
     If ElemD <> "False" Then
         If ElemD = "" Then  ' when you click "OK" without any element in box
-            startTime = Timer
-            Debug.Print "here1"
             Call FitCurve
             strErr = "skip"
-            'Call GetOut
             Exit Sub
         End If
     Else        ' when you click "cancel"
-        startTime = Timer
-        'Call FitCurve
         strErr = "skip"
         Call GetOut
         Exit Sub
     End If
-    
-    startTime = Timer
     
     n = 0
     j = 0
@@ -1763,8 +1749,6 @@ Sub GetOut()
             Worksheets(strSheetGraphName).Activate
         End If
     End If
-    
-    endTime = Timer
 
     Cells(1, 1).Select
     Application.ScreenUpdating = True
@@ -1796,27 +1780,9 @@ Sub GetOut()
                     ElseIf Abs(Cells(18, 101).Value) > 1E+29 Then
                         TimeCheck = MsgBox("Fitting does not work properly, because avaraged In data is more than 1E+29!")
                     End If
-                Else
-
                 End If
             End If
         End If
-    End If
-    
-    If StrComp(TimeCheck, "yes", 1) = 0 Then          ' graph processes.
-        gamma = (finTime - iniTime) - (TimeC2 - TimeC1)
-        lambda = endTime - startTime
-        MsgBox "Progress time: " & Application.Text(gamma, "0.00") & "," & Application.Text(lambda, "0.00") & ".", vbInformation
-    ElseIf StrComp(TimeCheck, "yes1", 1) = 0 Then     ' this is for fitting process.
-        gamma = (endTime - iniTime) - (finTime - startTime)
-        lambda = TimeC2 - TimeC1
-        MsgBox "Progress time: " & Application.Text(gamma, "0.00") & "," & Application.Text(lambda, "0.00") & ".", vbInformation
-    ElseIf StrComp(TimeCheck, "yes2", 1) = 0 Then     ' this is for the other process.
-        gamma = finTime - iniTime
-        MsgBox "Progress time: " & Application.Text(gamma, "0.00") & ".", vbInformation
-    ElseIf StrComp(TimeCheck, "yes3", 1) = 0 Then     ' this is for the other process.
-        gamma = endTime - startTime
-        MsgBox "Progress time: " & Application.Text(gamma, "0.00") & ".", vbInformation
     End If
     
     testMacro = vbNullString
@@ -1828,7 +1794,6 @@ Sub GetOut()
     Else
         On Error GoTo Error1
         ActiveWorkbook.SaveAs Filename:=ActiveWorkbook.Path + "\" + wb, FileFormat:=51
-        
     End If
     
     Application.DisplayAlerts = True
@@ -2573,7 +2538,6 @@ Sub FitAnalysis()
     ChDir ActiveWorkbook.Path
 
     OpenFileName = Application.GetOpenFilename(FileFilter:="Excel Files (*.xlsx), *.xlsx", Title:="Please select a file", MultiSelect:=True)
-    startTime = Timer
     
     If IsArray(OpenFileName) Then
         If UBound(OpenFileName) > para / 3 Then
@@ -3011,8 +2975,6 @@ Sub FitAnalysis()
     Else
         TimeCheck = MsgBox("Stop a comparison; no file selected.", vbExclamation)
     End If
-    
-    endTime = Timer
     
     Call GetOut
 End Sub
@@ -3681,16 +3643,15 @@ Sub FitRange(ByRef strCpa As String)
     End If
     
     If Abs(startEb - endEb) > fitLimit Then
-    
         If StrComp(testMacro, "debug", 1) = 0 Then  ' debug mode skip fitting in the specific range.
             TimeCheck = 0
             Call GetOutFit
             strErrX = "skip"
             Exit Sub
         End If
-        startTime = Timer
+
         ElemD = Application.InputBox(Title:="Specify the fitting range", Prompt:="Input BE energy: 320-350eV", Default:="320-350eV", Type:=2)
-        finTime = Timer
+
         If ElemD = "False" Or Len(ElemD) = 0 Then
             TimeCheck = 0
             Call GetOutFit
@@ -4796,7 +4757,6 @@ Sub EngBL()
     
     wf = 26.5
     k = 0
-    TimeC1 = Timer
     
     If StrComp(testMacro, "debug", 1) = 0 Then
         
@@ -4810,8 +4770,6 @@ Sub EngBL()
             wf = 26.5
         End If
     End If
-
-    TimeC2 = Timer
     
     If StrComp(strTest, "GE/eV", 1) = 0 Then
         C1 = dataKeData                                      ' PE
@@ -7678,10 +7636,6 @@ Sub scalecheck()
 End Sub
 
 Sub Initial()
-    iniTime = Timer
-    TimeC1 = TimeC2
-    finTime = startTime
-    
     strLabel = ""
     strAna = ""
     strCasa = ""
@@ -8407,22 +8361,17 @@ Function ExistSheet(sheetName) As Boolean
 End Function
 
 Function IntegrationTrapezoid(KnownXs As Variant, KnownYs As Variant) As Variant
-    Dim rng As Range
     'Calculates the area under a curve using the trapezoidal rule.
     'KnownXs and KnownYs are the known (x,y) points of the curve.
+    'By Christos Samaras : http://www.myengineeringworld.net
+    Dim n As Integer, rng As Range
     
-    'By Christos Samaras
-    'http://www.myengineeringworld.net
-    Dim n As Integer
-    
-    'Check if the X values are range.
-    If Not TypeName(KnownXs) = "Range" Then
+    If Not TypeName(KnownXs) = "Range" Then    'Check if the X values are range.
         IntegrationTrapezoid = "Xs range is not valid"
         Exit Function
     End If
     
-    'Check if the Y values are range.
-    If Not TypeName(KnownYs) = "Range" Then
+    If Not TypeName(KnownYs) = "Range" Then    'Check if the Y values are range.
         IntegrationTrapezoid = "Ys range is not valid"
         Exit Function
     End If
@@ -8443,12 +8392,9 @@ End Function
 
 Sub SolverInstall1()
     On Error Resume Next
-    Dim wb As Workbook
-    Dim SolverPath As String
+    Dim wb As Workbook, SolverPath As String
     
-    ' Set a Reference to the workbook that will hold Solver
-    Set wb = ActiveWorkbook
-    
+    Set wb = ActiveWorkbook ' Set a Reference to the workbook that will hold Solver
     SolverPath = Application.LibraryPath & "\SOLVER\SOLVER.XLAM"
     
     With AddIns("Solver Add-In")
@@ -8459,17 +8405,14 @@ Sub SolverInstall1()
     'Solver itself has 'focus' at this point.
     'Make sure you point to the correct Workbook for Solver
     wb.VBProject.References.AddFromFile SolverPath
-    
     ' http://www.pcreview.co.uk/threads/vba-code-to-add-a-reference-to-solver.973572/
 End Sub
 
 Sub SolverInstall2()
-    '// Dana DeLouis
-    Dim wb As Workbook
+    Dim wb As Workbook  '// Dana DeLouis
     
     On Error Resume Next
-    ' Set a Reference to the workbook that will hold Solver
-    Set wb = ActiveWorkbook
+    Set wb = ActiveWorkbook ' Set a Reference to the workbook that will hold Solver
     
     With wb.VBProject.References
         .Remove.Item ("SOLVER")
@@ -8481,8 +8424,7 @@ Sub SolverInstall2()
         wb.VBProject.References.AddFromFile .FullName
     End With
     
-    ' initialize Solver
-    Application.Run "Solver.xlam!Solver.Solver2.Auto_open"
+    Application.Run "Solver.xlam!Solver.Solver2.Auto_open"    ' initialize Solver
 End Sub
 
 
