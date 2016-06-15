@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.06p"                             ' Version of this code.
+    ver = "8.07p"                             ' Version of this code.
     'direc = "E:\DATA\hideki\XPS\"            ' a  directory location of database (this is for PC with SSD storage.)
     direc = "D:\DATA\hideki\XPS\"            ' this is for PC with HDD storage.
     'direc = "C:\Users\Public\Data\"         ' this is for BOOTCAMP on MacBookAir.
