@@ -8,10 +8,10 @@ Option Explicit
     Dim idebug As Integer, spacer As Integer, sftfit As Integer, sftfit2 As Integer, cmp As Integer
     
     Dim wb As String, ver As String, TimeCheck As String, strAna As String, direc As String, ElemD As String, Results As String, testMacro As String
-    Dim strSheetDataName As String, strSheetGraphName As String, strSheetCheckName As String, strSheetFitName As String, strSheetAnaName As String
+    Dim strSheetDataName As String, strSheetGraphName As String, strSheetFitName As String, strSheetAnaName As String
     Dim strTest As String, strLabel As String, strCasa As String, strAES As String, strErr As String, strErrX As String, ElemX As String
     
-    Dim sheetData As Worksheet, sheetGraph As Worksheet, sheetCheck As Worksheet, sheetFit As Worksheet, sheetAna As Worksheet
+    Dim sheetData As Worksheet, sheetGraph As Worksheet, sheetFit As Worksheet, sheetAna As Worksheet
     Dim dataData As Range, dataKeData As Range, dataIntData As Range, dataBGraph As Range, dataKGraph, dataKeGraph As Range, dataBeGraph As Range
     
     Dim pe As Single, wf As Single, char As Single, off As Single, multi As Single, windowSize As Single, windowRatio As Single
@@ -282,14 +282,6 @@ DeadInTheWater2:
         
         g = 0
         If StrComp(strAna, "ana", 1) = 0 And StrComp(TimeCheck, "yes", 1) = 0 Then TimeCheck = vbNullString
-    ElseIf InStr(1, sh, "Check_") > 0 Then
-        strSheetDataName = mid$(sh, 7, (Len(sh) - 6))
-        If StrComp(LCase(Cells(1, 1).Value), "exp", 1) = 0 Or StrComp(LCase(Cells(1, 1).Value), "exr", 1) = 0 Then
-            strSheetAnaName = "Eck_" + strSheetDataName
-            strSheetCheckName = "Check_" + strSheetDataName
-            Call ExportChk
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-        End If
     ElseIf InStr(1, sh, "Cmp_") > 0 Then
         strSheetDataName = mid$(sh, 5, (Len(sh) - 4))
 
@@ -451,7 +443,6 @@ DeadInTheWater2:
     End If
     
     strSheetGraphName = "Graph_" + strSheetDataName
-    strSheetCheckName = "Check_" + strSheetDataName
     strSheetFitName = "Fit_" + strSheetDataName
     
     If Not ExistSheet(strSheetDataName) Then
@@ -2048,18 +2039,11 @@ Sub ExportCmp(ByRef strXas As String)
         End If
         
         For q = 0 To ncomp
-            If mid$(Cells(10, 2).Value, 1, 2) = "Ht" Then   'histogram mode
-                Set rng = Range(Cells(11, (2 + (q * 2))), Cells(11, (2 + (q * 2))).End(xlDown))
-                numDataT = Application.CountA(rng)
-                sheetGraph.Range(Cells(10, (1 + (q * 2))), Cells(10 + numDataT, (2 + (q * 2)))).Copy
-                sheetAna.Cells(1, 1 + (q * 2)).PasteSpecial Paste:=xlValues
-                sheetAna.Cells(1, (1 + (q * 2))).Value = "HE/eV"
-            Else
-                Set rng = Range(Cells(11, (2 + (q * 3))), Cells(11, (2 + (q * 3))).End(xlDown))
-                numDataT = Application.CountA(rng)
-                sheetGraph.Range(Cells(11 + numDataT + 8, (2 + (q * 3))), Cells(11 + (numDataT * 2) + 8, (3 + (q * 3)))).Copy
-                sheetAna.Cells(1, 1 + (q * 2)).PasteSpecial Paste:=xlValues
-            End If
+            Set rng = Range(Cells(11, (2 + (q * 3))), Cells(11, (2 + (q * 3))).End(xlDown))
+            numDataT = Application.CountA(rng)
+            sheetGraph.Range(Cells(11 + numDataT + 8, (2 + (q * 3))), Cells(11 + (numDataT * 2) + 8, (3 + (q * 3)))).Copy
+            sheetAna.Cells(1, 1 + (q * 2)).PasteSpecial Paste:=xlValues
+            sheetAna.Cells(1, 1 + (q * 2)).Value = "BE/eV"
         Next
         
         If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
@@ -2074,89 +2058,8 @@ Sub ExportCmp(ByRef strXas As String)
     End If
 End Sub
 
-Sub ExportChk()
-    Dim rng As Range
-    
-    If ExistSheet(strSheetAnaName) Then
-        Application.DisplayAlerts = False
-        Worksheets(strSheetAnaName).Delete
-        Application.DisplayAlerts = True
-    End If
-        
-    Worksheets.Add().Name = strSheetAnaName
-    Set sheetAna = Worksheets(strSheetAnaName)
-    Set sheetCheck = Worksheets(strSheetCheckName)
-
-    wb = ActiveWorkbook.Name
-    sheetCheck.Activate
-    
-    If LCase(Cells(1, 1).Value) = "exp" And InStr(1, sh, "Check_") > 0 Then
-        Cells(1, 1).Value = "Goto Eck_sheet"
-        Set rng = Range(Cells(1, 1), Cells(1, 1).End(xlDown))
-        iRow = Application.CountA(rng)
-        Set rng = [1:1]
-        iCol = Application.CountA(rng)
-
-        For q = 0 To iCol - 3            ' 0 for CPS, 1 for Ip, 2 for Ie, 3 for CPS/Ip
-            sheetCheck.Range(Cells(1 + (8 + iRow) * 3, q + 2), Cells(iRow - 1 + (8 + iRow) * 3, q + 2)).Copy
-            sheetAna.Cells(1, 2 + (q * 2)).PasteSpecial Paste:=xlValues
-            sheetCheck.Range(Cells(2, 1), Cells(iRow - 1, 1)).Copy
-            sheetAna.Cells(2, 1 + (q * 2)).PasteSpecial Paste:=xlValues
-            sheetAna.Cells(1, 1 + (q * 2)).Value = "KE/eV"
-            sheetAna.Cells(1, 2 + (q * 2)).Value = mid$(sh, 7, Len(sh) - 6) & "_" & mid$(sheetAna.Cells(1, 2 + (q * 2)).Value, Len(sheetAna.Cells(1, 2 + (q * 2)).Value), 1)
-        Next
-        
-        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-    ElseIf LCase(Cells(1, 1).Value) = "exp" And InStr(1, sh, "Photo_") > 0 Then
-        Cells(1, 1).Value = "Goto Eck_sheet"
-        If InStr(1, sh, "_Is") > 0 Then
-            p = 3
-        ElseIf InStr(1, sh, "_Ip") > 0 Then
-            p = 1
-        Else
-            p = 5
-        End If        ' 0 for Ie, 1 for Ip, 2 for Is, 3 for Is/Ip, 4 for If, 5 for If/Ip
-        
-        Set rng = Range(Cells(11, 1), Cells(11, 1).End(xlDown))
-        iRow = Application.CountA(rng)
-        Set rng = Range(Cells(11, 1), Cells(11, 1).End(xlToRight))
-        iCol = Application.CountA(rng)
-        
-        For q = 0 To iCol - 3   'numData = iRow - 1, numScan = iCol - 2
-            sheetCheck.Range(Cells(10 + (3 + iRow) * p, q + 2), Cells(iRow + 10 + (3 + iRow) * p, q + 2)).Copy
-            sheetAna.Cells(1, 2 + (q * 2)).PasteSpecial Paste:=xlValues
-            sheetCheck.Range(Cells(11, 1), Cells(iRow + 10, 1)).Copy
-            sheetAna.Cells(2, 1 + (q * 2)).PasteSpecial Paste:=xlValues
-            sheetAna.Cells(1, 1 + (q * 2)).Value = "PE/eV"
-            sheetAna.Cells(1, 2 + (q * 2)).Value = mid$(sh, 7, Len(sh) - 6) & "_" & mid$(sheetAna.Cells(1, 2 + (q * 2)).Value, Len(sheetAna.Cells(1, 2 + (q * 2)).Value), 1)
-        Next
-        
-        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-    ElseIf LCase(Cells(1, 1).Value) = "exr" Then
-        Cells(1, 1).Value = "Goto Eck_sheet"
-        
-        Set rng = Range(Cells(1, 1), Cells(1, 1).End(xlDown))
-        iRow = Application.CountA(rng)
-        Set rng = [1:1]
-        iCol = Application.CountA(rng)
-        
-        For q = 0 To iCol - 3            ' 0 for CPS, 1 for Ip, 2 for Ie, 3 for CPS/Ip
-            sheetCheck.Range(Cells(1 + (8 + iRow) * 0, q + 2), Cells(iRow - 1 + (8 + iRow) * 0, q + 2)).Copy
-            sheetAna.Cells(1, 2 + (q * 2)).PasteSpecial Paste:=xlValues
-            sheetCheck.Range(Cells(2, 1), Cells(iRow - 1, 1)).Copy
-            sheetAna.Cells(2, 1 + (q * 2)).PasteSpecial Paste:=xlValues
-            sheetAna.Cells(1, 1 + (q * 2)).Value = "ME/eV"
-        Next
-        
-        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-    End If
-    
-    Application.CutCopyMode = False
-    strErr = "skip"
-End Sub
-
 Sub Convert2Txt(ByRef strXas As String)
-    Dim numDataT As Integer, numDataF As Integer, ElemT As String, rng As Range, strCpa As Integer
+    Dim numDataT As Integer, numDataF As Integer, ElemT As String, rng As Range, strCpa As String
     
     Set rng = [1:1]
     iCol = Application.CountA(rng)
@@ -2179,6 +2082,7 @@ Sub Convert2Txt(ByRef strXas As String)
         Else
             strLabel = sheetAna.Cells(1, 2 + (q * 2)).Value
         End If
+        
         strTest = strCpa & "\" & strLabel & ".txt"
         Set rng = sheetAna.Range(Cells(1, 2 + (q * 2)), Cells(1, (2 + (q * 2))).End(xlDown))
         numDataT = Application.CountA(rng)
@@ -2961,9 +2865,7 @@ Sub FitAnalysis()
 End Sub
 
 Sub SheetCheckGenerator()    ' Check scan grating data
-    Dim C1 As Variant, C2 As Variant, C3 As Variant, dataCheck As Range, dataIntCheck As Range
-    
-    If ExistSheet(strSheetCheckName) Then Exit Sub
+    Dim C1 As Variant, C2 As Variant, C3 As Variant, dataCheck As Range, dataIntCheck As Range, strSheetCheckName As String, sheetCheck As Worksheet
     
     Worksheets.Add().Name = strSheetCheckName
     Set sheetCheck = Worksheets(strSheetCheckName)
@@ -5604,9 +5506,9 @@ AESmode:
         
         strTest = mid$(Cells(1, (5 + (n * 3))).Value, 1, Len(Cells(1, (5 + (n * 3))).Value) - 5)
         Cells(8 + (imax), (5 + (n * 3))).Value = Cells(1, (5 + (n * 3))).Value
-        Cells(9 + (imax), (4 + (n * 3))).Value = strl(2) + strTest
-        Cells(9 + (imax), (5 + (n * 3))).Value = strl(3) + strTest
-        Cells(9 + (imax), (6 + (n * 3))).Value = strl(4) + strTest
+        Cells(9 + (imax), (4 + (n * 3))).Value = strl(1) + strTest
+        Cells(9 + (imax), (5 + (n * 3))).Value = strl(2) + strTest
+        Cells(9 + (imax), (6 + (n * 3))).Value = strl(3) + strTest
         n = n + 1
 SkipOpen:
     Next Target
