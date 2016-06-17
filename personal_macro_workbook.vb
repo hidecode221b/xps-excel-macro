@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.07p"                             ' Version of this code.
+    ver = "8.08p"                             ' Version of this code.
     'direc = "E:\DATA\hideki\XPS\"            ' a  directory location of database (this is for PC with SSD storage.)
     direc = "D:\DATA\hideki\XPS\"            ' this is for PC with HDD storage.
     'direc = "C:\Users\Public\Data\"         ' this is for BOOTCAMP on MacBookAir.
@@ -81,7 +81,6 @@ Sub SheetNameAnalysis()
                 
                 For q = 1 To UBound(C1) - 1
                     C1(q) = C1(q - 1) & "\" & C1(q)
-                    Debug.Print C1(q)
                     FSO.CreateFolder C1(q)
                 Next q
                 
@@ -102,7 +101,6 @@ DeadInTheWater1:
                 C1 = Split(direc, "\")
                 For q = 1 To UBound(C1) - 1
                     C1(q) = C1(q - 1) & "\" & C1(q)
-                    Debug.Print C1(q)
                     FSO.CreateFolder C1(q)
                 Next q
                 
@@ -502,7 +500,7 @@ Sub TargetDataAnalysis()
         Do
             If InStr(strTest, "'") > 0 Then     ' remove "'" generated in Igor produced text
                 q = InStr(strTest, "'")
-                strTest = Left(strTest, q - 1) + mid(strTest, q + 1)
+                strTest = Left$(strTest, q - 1) + mid$(strTest, q + 1)
             Else
                 Cells(1, 1).Value = strTest
                 Exit Do
@@ -521,7 +519,7 @@ Sub TargetDataAnalysis()
         ElseIf StrComp(strAna, "chem", 1) = 0 Then
             Call PlotChem
         Else
-            Call KeBL            ' KE, BE, PE, GE, AE, ME/eV data setup
+            Call KeBL            ' KE, BE, PE, GE, QE, AE, ME/eV data setup
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
             
             If StrComp(strTest, "GE/eV", 1) = 0 Then        ' Grating scan with fixed gap
@@ -977,7 +975,7 @@ CheckElemAgain:
     ReDim C3(1 To numXPSFactors, 1 To 7)
     
     For n = 1 To numXPSFactors
-        strTest = C2(n, 1) + Left(C2(n, 2), 2)
+        strTest = C2(n, 1) + Left$(C2(n, 2), 2)
         C3(n, 1) = strTest
         
         If Dir(direc + "webCross\") = vbNullString Then
@@ -1000,7 +998,7 @@ CheckElemAgain:
         iRow = 1
         q = 0
         
-        Do Until EOF(fileNum)
+        Do
             Line Input #fileNum, Record
             C1 = Split(Record, vbTab)
 
@@ -1043,7 +1041,7 @@ CheckElemAgain:
             End If
             
             iRow = iRow + 1
-        Loop
+        Loop Until EOF(fileNum)
         
         Close #fileNum
         
@@ -1166,7 +1164,6 @@ SkipXPSnumZero:
         Elem = C3(n)
         j = 1 + k
         For q = 1 To (iRow)
-            Debug.Print C1(q, 1)
             If C1(q, 1) = Elem Then
                 C2(j, 1) = C1(q, 1)       ' Element
                 C2(j, 2) = C1(q, 2)       ' Transition
@@ -1208,7 +1205,7 @@ SkipXPSnumZero:
 End Sub
 
 Sub PlotElem()
-    Dim oriXPSFactors As Integer
+    Dim oriXPSFactors As Integer, rngElemBeX As Range, rngElemBeA As Range, numFinal As Integer, pts As Points, pt As Point
     
     oriXPSFactors = numXPSFactors / (UBound(highpe) + 1)
     sheetGraph.Activate
@@ -1242,10 +1239,6 @@ Sub PlotElem()
     Else
         Call descriptHidden2
     End If
-    
-    Dim rngElemBeX As Range
-    Dim rngElemBeA As Range
-    Dim numFinal As Integer
 
     numFinal = numXPSFactors + numAESFactors + 50
     Set rngElemBeX = Range(Cells(51, para + 14), Cells((50 + numXPSFactors), para + 14))
@@ -1313,8 +1306,6 @@ Sub PlotElem()
     Else
         j = 0
     End If
-    
-    Dim pts As Points, pt As Point
     
     If numXPSFactors > 0 Then
         ActiveChart.SeriesCollection.NewSeries
@@ -1446,8 +1437,7 @@ AESmode2:
 End Sub
 
 Sub PlotChem()
-    Dim Fname As Variant, Record As Variant
-    Dim C1 As Variant, C2 As Variant, C3 As Variant
+    Dim Fname As Variant, Record As Variant, C1 As Variant, C2 As Variant, C3 As Variant, rngElemBeC As Range, pts As Points, pt As Point
     
     If Dir(direc + "Chem\") = vbNullString Then
         Set sheetGraph = Worksheets("Graph_" + strSheetDataName)
@@ -1508,7 +1498,7 @@ Sub PlotChem()
         fileNum = FreeFile(0)
         Open Fname For Input As fileNum
 
-        Do Until EOF(fileNum)
+        Do
             Line Input #fileNum, Record
             C1 = Split(Record, vbTab)
             If q > 0 Then
@@ -1518,7 +1508,7 @@ Sub PlotChem()
                 iRow = iRow + 1
             End If
             q = 1
-        Loop
+        Loop Until EOF(fileNum)
         
         Close #fileNum
         iRow = iRow - 1
@@ -1569,7 +1559,7 @@ Sub PlotChem()
     Cells(50, para + 25).Value = "R.Int"
     
 SkipChemLoad:
-    Dim rngElemBeC As Range
+
     Set rngElemBeC = Range(Cells(51, para + 22), Cells((50 + numChemFactors), para + 22))
     
     ActiveSheet.ChartObjects(1).Activate
@@ -1579,8 +1569,6 @@ SkipChemLoad:
             Exit For
         End If
     Next
-    
-    Dim pts As Points, pt As Point
     
     ActiveChart.SeriesCollection.NewSeries
     With ActiveChart.SeriesCollection(ActiveChart.SeriesCollection.Count)
@@ -1659,6 +1647,7 @@ End Sub
 
 Sub GetCompare()
     Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, ncmp As Integer
+    
     If StrComp(TimeCheck, "yes", 1) = 0 Then TimeCheck = vbNullString
     Worksheets(strSheetGraphName).Activate
     
@@ -2035,8 +2024,7 @@ Sub GetAutoScale()
 End Sub
 
 Sub ExportCmp(ByRef strXas As String)
-    Dim rng As Range
-    Dim numDataT As Integer
+    Dim rng As Range, numDataT As Integer
     
     If LCase(Cells(1, 1).Value) = "exp" Or strXas = "Is" Then
         If ExistSheet(strSheetAnaName) Then
@@ -2075,8 +2063,8 @@ Sub ExportCmp(ByRef strXas As String)
         Next
         
         If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-
     End If
+    
     Application.CutCopyMode = False
     Cells(1, 1).Select
     
@@ -2088,6 +2076,7 @@ End Sub
 
 Sub ExportChk()
     Dim rng As Range
+    
     If ExistSheet(strSheetAnaName) Then
         Application.DisplayAlerts = False
         Worksheets(strSheetAnaName).Delete
@@ -2103,14 +2092,12 @@ Sub ExportChk()
     
     If LCase(Cells(1, 1).Value) = "exp" And InStr(1, sh, "Check_") > 0 Then
         Cells(1, 1).Value = "Goto Eck_sheet"
-        
         Set rng = Range(Cells(1, 1), Cells(1, 1).End(xlDown))
         iRow = Application.CountA(rng)
         Set rng = [1:1]
         iCol = Application.CountA(rng)
 
-        For q = 0 To iCol - 3
-            ' 0 for CPS, 1 for Ip, 2 for Ie, 3 for CPS/Ip
+        For q = 0 To iCol - 3            ' 0 for CPS, 1 for Ip, 2 for Ie, 3 for CPS/Ip
             sheetCheck.Range(Cells(1 + (8 + iRow) * 3, q + 2), Cells(iRow - 1 + (8 + iRow) * 3, q + 2)).Copy
             sheetAna.Cells(1, 2 + (q * 2)).PasteSpecial Paste:=xlValues
             sheetCheck.Range(Cells(2, 1), Cells(iRow - 1, 1)).Copy
@@ -2128,16 +2115,14 @@ Sub ExportChk()
             p = 1
         Else
             p = 5
-        End If
-        ' 0 for Ie, 1 for Ip, 2 for Is, 3 for Is/Ip, 4 for If, 5 for If/Ip
+        End If        ' 0 for Ie, 1 for Ip, 2 for Is, 3 for Is/Ip, 4 for If, 5 for If/Ip
         
         Set rng = Range(Cells(11, 1), Cells(11, 1).End(xlDown))
         iRow = Application.CountA(rng)
         Set rng = Range(Cells(11, 1), Cells(11, 1).End(xlToRight))
         iCol = Application.CountA(rng)
-        Debug.Print iCol, iRow
-        'numData = iRow - 1, numScan = iCol - 2
-        For q = 0 To iCol - 3
+        
+        For q = 0 To iCol - 3   'numData = iRow - 1, numScan = iCol - 2
             sheetCheck.Range(Cells(10 + (3 + iRow) * p, q + 2), Cells(iRow + 10 + (3 + iRow) * p, q + 2)).Copy
             sheetAna.Cells(1, 2 + (q * 2)).PasteSpecial Paste:=xlValues
             sheetCheck.Range(Cells(11, 1), Cells(iRow + 10, 1)).Copy
@@ -2155,8 +2140,7 @@ Sub ExportChk()
         Set rng = [1:1]
         iCol = Application.CountA(rng)
         
-        For q = 0 To iCol - 3
-            ' 0 for CPS, 1 for Ip, 2 for Ie, 3 for CPS/Ip
+        For q = 0 To iCol - 3            ' 0 for CPS, 1 for Ip, 2 for Ie, 3 for CPS/Ip
             sheetCheck.Range(Cells(1 + (8 + iRow) * 0, q + 2), Cells(iRow - 1 + (8 + iRow) * 0, q + 2)).Copy
             sheetAna.Cells(1, 2 + (q * 2)).PasteSpecial Paste:=xlValues
             sheetCheck.Range(Cells(2, 1), Cells(iRow - 1, 1)).Copy
@@ -2166,15 +2150,13 @@ Sub ExportChk()
         
         If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
     End If
+    
     Application.CutCopyMode = False
     strErr = "skip"
 End Sub
 
 Sub Convert2Txt(ByRef strXas As String)
-    Dim numDataT As Integer
-    Dim numDataF As Integer
-    Dim ElemT As String
-    Dim rng As Range, strCpa As Integer
+    Dim numDataT As Integer, numDataF As Integer, ElemT As String, rng As Range, strCpa As Integer
     
     Set rng = [1:1]
     iCol = Application.CountA(rng)
@@ -2213,6 +2195,7 @@ Sub Convert2Txt(ByRef strXas As String)
             Print #numDataF, ElemT
             ElemT = vbNullString
         Next j
+        
         Close #numDataF
         numDataF = numDataF + 1
     Next q
@@ -2220,6 +2203,7 @@ Sub Convert2Txt(ByRef strXas As String)
     If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
 
     Application.CutCopyMode = False
+    
     If strXas = "Is" Or strXas = "Ip" Then
     Else
         strErr = "skip"
@@ -2976,10 +2960,8 @@ Sub FitAnalysis()
     Call GetOut
 End Sub
 
-Sub SheetCheckGenerator()
-    Dim C1 As Variant, C2 As Variant, C3 As Variant
-    Dim dataCheck As Range, dataIntCheck As Range
-    ' Check scan grating data
+Sub SheetCheckGenerator()    ' Check scan grating data
+    Dim C1 As Variant, C2 As Variant, C3 As Variant, dataCheck As Range, dataIntCheck As Range
     
     If ExistSheet(strSheetCheckName) Then Exit Sub
     
@@ -3053,7 +3035,7 @@ Sub SheetCheckGenerator()
 End Sub
 
 Sub FitInitial()
-    Dim C1 As Variant
+    Dim C1 As Variant, mySeries As Series, myChartOBJ As ChartObject
     
     If StrComp(strAna, "ana", 1) = 0 Or StrComp(strl(1), "Pe", 1) = 0 Or StrComp(strl(1), "Po", 1) = 0 Then
         Worksheets(strSheetGraphName).Activate
@@ -3148,8 +3130,6 @@ Sub FitInitial()
     For n = k To 2 Step -1
         ActiveChart.SeriesCollection(n).Delete
     Next
-
-    Dim mySeries As Series, myChartOBJ As ChartObject
     
     For Each myChartOBJ In ActiveSheet.ChartObjects
         With myChartOBJ
@@ -3380,11 +3360,7 @@ Sub FitInitial()
 End Sub
 
 Sub FitInitialGuess()
-    Dim obchk As String
-    Dim obchk2 As String
-    Dim dbltchk As Single
-    Dim dblt As Integer
-    Dim C1 As Variant, C2 As Variant, C3 As Variant
+    Dim obchk As String, obchk2 As String, dbltchk As Single, dblt As Integer, C1 As Variant, C2 As Variant, C3 As Variant
     
     dblt = 0
     dbltchk = 0
@@ -3404,7 +3380,6 @@ Sub FitInitialGuess()
                 
                 If Len(C1(n, 2)) - Len(C1(n, 1)) > 2 Then
                     obchk = mid$(C1(n, 2), Len(C1(n, 1)) + 2, 2)
-                    Debug.Print obchk
                     If StrComp(obchk, "p3", 1) = 0 Then
                         dbltchk = C1(n, 3)
                         obchk2 = obchk
@@ -3477,7 +3452,6 @@ Sub FitInitialGuess()
                 
                 If Len(C1(n, 2)) - Len(C1(n, 1)) > 2 Then
                     obchk = mid$(C1(n, 2), Len(C1(n, 1)) + 2, 2)
-                    Debug.Print obchk
                     If StrComp(obchk, "p3", 1) = 0 Then
                         dbltchk = C1(n, 3)
                         obchk2 = obchk
@@ -3594,9 +3568,7 @@ Sub FitInitialGuess()
 End Sub
 
 Sub FitRange(ByRef strCpa As String)
-    Dim C1 As Variant, C2 As Variant
-    Dim rng As Range
-    Dim numDataN As Integer
+    Dim C1 As Variant, C2 As Variant, rng As Range, numDataN As Integer, myChartOBJ As ChartObject
     
     strSheetGraphName = "Graph_" + strSheetDataName
 
@@ -3823,8 +3795,6 @@ Sub FitRange(ByRef strCpa As String)
     C2 = Range(Cells(startR, 3), Cells(endR, 3))    'A
     C2(numDataN, 1) = C1(numDataN, 1)
     C2((numDataN - 1), 1) = C1(numDataN, 1)
-    
-    Dim myChartOBJ As ChartObject
     
     If IsEmpty(Cells(1, 101).Value) = False Then    ' range > fitLimit eV
         Cells(2, 101).Value = Application.Min(C1)
@@ -4120,23 +4090,23 @@ Resolve:
                 SolverAdd CellRef:=Cells(5, (4 + n)), Relation:=2, FormulaText:=0        ' width2
             End If
         Else
-            If mid(Cells(11, (4 + n)).Value, 1, 1) = "E" Then
+            If mid$(Cells(11, (4 + n)).Value, 1, 1) = "E" Then
                 SolverAdd CellRef:=Range(Cells(9, (4 + n)), Cells(10, (4 + n))), Relation:=2, FormulaText:=0
                 SolverAdd CellRef:=Cells(5, (4 + n)), Relation:=2, FormulaText:=0        ' width2
-            ElseIf mid(Cells(11, (4 + n)).Value, 1, 1) = "T" Then       ' MultiPak Asymmetric GL with exp tail
+            ElseIf mid$(Cells(11, (4 + n)).Value, 1, 1) = "T" Then       ' MultiPak Asymmetric GL with exp tail
                 SolverAdd CellRef:=Cells(10, (4 + n)), Relation:=2, FormulaText:=0
                 SolverAdd CellRef:=Cells(5, (4 + n)), Relation:=2, FormulaText:=0        ' width2
                 SolverAdd CellRef:=Cells(8, (4 + n)), Relation:=1, FormulaText:=3         ' max a : Tail scale
                 SolverAdd CellRef:=Cells(8, (4 + n)), Relation:=3, FormulaText:=0         ' min a : Tail scale
                 SolverAdd CellRef:=Cells(9, (4 + n)), Relation:=1, FormulaText:=Abs(Cells(6, 101).Value - Cells(7, 101).Value)          ' max b : Tail length
                 SolverAdd CellRef:=Cells(9, (4 + n)), Relation:=3, FormulaText:=1         ' min b : Tail length
-            ElseIf mid(Cells(11, (4 + n)).Value, 1, 1) = "D" Then
+            ElseIf mid$(Cells(11, (4 + n)).Value, 1, 1) = "D" Then
                     SolverAdd CellRef:=Cells(10, (4 + n)), Relation:=2, FormulaText:=0
                     SolverAdd CellRef:=Cells(8, (4 + n)), Relation:=1, FormulaText:=1         ' max a
                     SolverAdd CellRef:=Cells(8, (4 + n)), Relation:=3, FormulaText:=0         ' min a
                     SolverAdd CellRef:=Cells(9, (4 + n)), Relation:=1, FormulaText:=1         ' max b
                     SolverAdd CellRef:=Cells(9, (4 + n)), Relation:=3, FormulaText:=0         ' min b
-            ElseIf mid(Cells(11, (4 + n)).Value, 1, 1) = "U" Then
+            ElseIf mid$(Cells(11, (4 + n)).Value, 1, 1) = "U" Then
                 SolverAdd CellRef:=Cells(10, (4 + n)), Relation:=2, FormulaText:=0
                 SolverAdd CellRef:=Cells(8, (4 + n)), Relation:=1, FormulaText:=1         ' max a
                 SolverAdd CellRef:=Cells(8, (4 + n)), Relation:=3, FormulaText:=0         ' min a
@@ -4168,6 +4138,7 @@ Resolve:
     
     strErr = "Amp. ratio format error: (i; j; k) and i,j,k > 0"
     iRow = 1
+    
     For n = 5 To (4 + j)
         If Not Cells(14 + sftfit2, n) = vbNullString Then
             If iRow = 1 And mid$(Cells(14 + sftfit2, n), 1, 1) = "(" And mid$(Cells(14 + sftfit2, n), Len(Cells(14 + sftfit2, n)), 1) = ";" Then
@@ -4250,6 +4221,7 @@ Resolve:
     
     strErr = "BE diff format error: [ i; nj; k] and i,j,k > 0" & vbCrLf & " *n* represents negative sign."
     iRow = 0
+    
     For n = 5 To (4 + j)
         If Not Cells(15 + sftfit2, n) = vbNullString Then
             If iRow = 0 And StrComp(Cells(15 + sftfit2, n), "[", 1) = 0 Then
@@ -4327,6 +4299,7 @@ Resolve:
     SolverFinish KeepFinal:=1
     
     iRow = 1
+    
     For n = 5 To (4 + j)
         If Not Cells(14 + sftfit2, n) = vbNullString Then
             If iRow = 1 And mid$(Cells(14 + sftfit2, n), 1, 1) = "(" Then
@@ -4358,6 +4331,7 @@ Resolve:
     Next
     
     iRow = 0
+    
     For n = 5 To (4 + j)
         If Not Cells(15 + sftfit2, n) = vbNullString Then
             If iRow = 0 And StrComp(Cells(15 + sftfit2, n), "[", 1) = 0 Then
@@ -4368,7 +4342,6 @@ Resolve:
                 For iCol = iRow - 1 To 0 Step -1
                     If IsNumeric(bediff(iRow - iCol)) = True Then
                         If Abs((bediff(iRow - iCol) - (Cells(2, n - iCol) - Cells(2, n - iRow))) / bediff(iRow - iCol)) > a2 And fileNum < Cells(17, 101).Value Then
-                            Debug.Print Cells(2, n - iCol), Cells(2, n - iRow), Abs(Cells(2, n - iCol) - Cells(2, n - iRow))
                             GoTo Resolve
                         ElseIf fileNum >= Cells(17, 101).Value Then
                             a1 = a1 + Abs((bediff(iRow - iCol) - (Cells(2, n - iCol) - Cells(2, n - iRow))) / bediff(iRow - iCol))
@@ -4408,7 +4381,6 @@ ExitIter:
     End If
     
     For n = 1 To j
-        
         If Cells(7, (4 + n)).Value > 0 And Cells(7, (4 + n)).Value < 1 Then
             If Cells(7, (4 + n)).Font.Underline = xlUnderlineStyleSingle Then  ' exponential asymmetric blend based Voigt
                 Cells(13 + sftfit2, (4 + n)).Value = vbNullString ' R5C to be exp decay parameter.
@@ -4432,7 +4404,6 @@ ExitIter:
             Else
                 Cells(5, (4 + n)).Value = vbNullString
             End If
-        
         End If
         
         Cells(3, (4 + n)).FormulaR1C1 = "=(R12C101 - R13C101 - R14C101 - R2C)" ' KE
@@ -4709,24 +4680,20 @@ Sub GetOutFit()
     End If
     
     For n = 1 To j
-        If mid(Cells(11, (4 + n)).Value, 1, 1) = "T" Then
+        If mid$(Cells(11, (4 + n)).Value, 1, 1) = "T" Then
             Cells(10, (4 + n)) = vbNullString
             Cells(5, (4 + n)) = vbNullString
-            'Debug.Print "E"
         ElseIf Cells(7, (4 + n)).Value = 0 Or Cells(7, (4 + n)).Value = "Gauss" Or Cells(11, (4 + n)).Value = "GL" Then  ' G
             Range(Cells(8, (4 + n)), Cells(10, (4 + n))) = vbNullString
             Cells(5, (4 + n)) = vbNullString
-            'Debug.Print "G"
         ElseIf Cells(7, (4 + n)).Value = 1 Or Cells(7, (4 + n)).Value = "Lorentz" Then
             Range(Cells(8, (4 + n)), Cells(10, (4 + n))) = vbNullString
             Cells(5, (4 + n)) = vbNullString
-            'Debug.Print "L"
         Else
             If Cells(1, 1).Value = "EF" Then
                 Cells(10, (4 + n)) = vbNullString
             Else
                 Range(Cells(8, (4 + n)), Cells(10, (4 + n))) = vbNullString
-                'Debug.Print "G"
             End If
         End If
     Next
@@ -4743,8 +4710,7 @@ Sub GetOutFit()
 End Sub
 
 Sub EngBL()
-    Dim C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant
-    Dim imax As Integer
+    Dim C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant, imax As Integer, SourceRangeColor1 As Long
     
     If ExistSheet(strSheetGraphName) Then
         Application.DisplayAlerts = False
@@ -4941,7 +4907,6 @@ Sub EngBL()
         .Chart.Legend.Delete
     End With
     
-    Dim SourceRangeColor1 As Long
     SourceRangeColor1 = ActiveChart.SeriesCollection(1).Border.Color
     
     Range(Cells(10, 1), Cells(10, 2)).Interior.Color = SourceRangeColor1
@@ -4957,6 +4922,7 @@ End Sub
 
 Sub HigherOrderCheck()
     Dim strhighpe As String, C1 As Variant, strcheck As String
+    
     strhighpe = Cells(2, 3).Value
     
     If Len(strhighpe) < 4 Then Exit Sub
@@ -4965,10 +4931,10 @@ Sub HigherOrderCheck()
         n = 1
         j = 0
         strcheck = mid$(strhighpe, 2, Len(strhighpe) - 4)
-        Debug.Print "check", strcheck
+        
         For iRow = 1 To Len(strcheck)
             strLabel = mid$(strcheck, iRow, 1)
-            Debug.Print strLabel
+
             If IsNumeric(strLabel) = False Then
                 If strLabel = ";" Or strLabel = "." Then
                 Else
@@ -4984,7 +4950,6 @@ Sub HigherOrderCheck()
                 If CSng(C1(n)) > 0 Then
                     ReDim Preserve highpe(j + 1)
                     highpe(j + 1) = CSng(C1(n))
-                    Debug.Print highpe(j + 1), 1
                     j = j + 1
                 End If
             Next
@@ -4992,7 +4957,6 @@ Sub HigherOrderCheck()
             If CSng(strcheck) > 0 Then
                 ReDim Preserve highpe(j + 1)
                 highpe(j + 1) = CSng(strcheck)
-                Debug.Print highpe(j + 1), 2
                 j = j + 1
             End If
         End If
@@ -5000,7 +4964,7 @@ Sub HigherOrderCheck()
 End Sub
 
 Sub KeBL()
-    Dim C1 As Variant
+    Dim C1 As Variant, s As Variant
     
     If graphexist = 0 Then
         If Cells(1, 2).Value = "AlKa" Then
@@ -5038,19 +5002,21 @@ Sub KeBL()
     End If
     
     numData = ActiveSheet.UsedRange.Rows.Count - 1
+    C1 = Range(Cells(2, 1), Cells(numData + 1, 3))
     
-    If numData > 1 And IsNumeric(Cells(2, 1).Value) Then
-        Do While IsNumeric(Cells(numData + 1, 1).Value) = False
+    If numData > 1 And IsNumeric(C1(1, 1)) Then
+        For Each s In C1
+            If IsEmpty(C1(numData, 1)) = False And IsEmpty(C1(numData, 2)) = False Then
+                If IsNumeric(C1(numData, 1)) And IsNumeric(C1(numData, 2)) Then Exit For
+            End If
+            
             numData = numData - 1
-        Loop
-        Do While IsNumeric(Cells(numData + 1, 2).Value) = False
-            numData = numData - 1
-        Loop
+        Next
     Else
         Call GetOut
         Exit Sub
     End If
-    
+
     startEk = Cells(2, 1).Value
     endEk = Cells(numData + 1, 1).Value
     stepEk = Cells(3, 1).Value - Cells(2, 1).Value
@@ -5106,7 +5072,6 @@ Sub KeBL()
             Cells(1, 3).Value = "Ie/sort"
         End If
     End If
-    
 End Sub
 
 Sub offsetmultiple()
@@ -5135,8 +5100,7 @@ End Sub
 
 Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, sBG As Variant, cmp As Integer, ncmp As Integer, ncomp)
     Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long, strCpa As String, sheetTarget As Worksheet
-    Dim Target As Variant, C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant
-    Dim imax As Integer, NumSheets As Integer, peakNum As Integer, fitNum As Integer
+    Dim Target As Variant, C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant, imax As Integer, NumSheets As Integer, peakNum As Integer, fitNum As Integer
     
     If strAna = "FitRatioAnalysis" Then
         peakNum = sheetFit.Cells(3, para + 1).Value         ' # of Fit peaks
@@ -5657,8 +5621,7 @@ SkipOpen:
 End Sub
 
 Sub descriptGraph()
-    Dim strhighpe As String
-    Dim imax As Integer
+    Dim strhighpe As String, imax As Integer
     
     strhighpe = ""
     Cells(2, 1).Value = "PE"
@@ -5926,8 +5889,7 @@ Sub descriptHidden2()
 End Sub
 
 Sub descriptFit()
-    Dim tfa As Single
-    Dim tfb As Single
+    Dim tfa As Single, tfb As Single
 
     Cells(19, 101).Value = ver
     
@@ -5973,8 +5935,8 @@ Sub descriptFit()
             sftfit = 0
             sftfit2 = 0
         End If
-    Else
-        If Right(ver, 4) < 7.58 Then
+    ElseIf IsNumeric(Left$(ver, 4)) Then
+        If Left$(ver, 4) < 7.58 Then
             sftfit = 0
             sftfit2 = 0
         End If
@@ -6059,6 +6021,7 @@ Sub descriptFit()
     Cells(7, 102).Value = "min shape limit"
     Cells(8, 102).Value = "factor additional peaks" ' peak BE to be added with this value/#peaks
     Cells(9, 102).Value = "GL form"
+    
     If IsEmpty(Cells(9, 103).Value) Then
         If WorksheetFunction.Round(Cells(12, 101).Value, 1) = 1486.6 Then
             Cells(9, 103).Value = "MultiPak"
@@ -6518,11 +6481,9 @@ Sub VictoreenBG()
         If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
             iRow = startR + CInt(Abs(Cells(8, 2).Value - Cells(11 + sftfit2, 2).Value) / Abs(Cells(startR + 1, 1).Value - Cells(startR, 1).Value))
             Cells(6 + sftfit2, 2).FormulaR1C1 = "=AVERAGE(R" & startR & "C100:R" & iRow & "C100)"
-            Debug.Print iRow
         Else
             iRow = endR - CInt(Abs(Cells(8, 2).Value - Cells(11 + sftfit2, 2).Value) / Abs(Cells(startR + 1, 1).Value - Cells(startR, 1).Value))
             Cells(6 + sftfit2, 2).FormulaR1C1 = "=AVERAGE(R" & iRow & "C100:R" & endR & "C100)"
-            Debug.Print iRow
         End If
     Else
         Cells(8, 1).Value = "Both ends"
@@ -7311,7 +7272,6 @@ Sub FitEquations()
             Cells(11, (4 + n)).Value = "L"
         ElseIf 0 < Cells(7, (4 + n)).Value < 1 And Cells(9, 103).Value = "Sum" Then    ' GL sum form: SGL
             Cells(5, (4 + n)).Value = Cells(4, (4 + n)).Value
-            Debug.Print "else"
             Cells(startR, (4 + n)).FormulaR1C1 = "=R6C * ((R7C)*((((R5C)/2)^2)/((RC[" & (-3 - n) & "]-R2C)^2 + ((R5C)/2)^2)) + (1- R7C)*(EXP(-(1/2)*((RC[" & (-3 - n) & "]-R2C)/(R4C/2.35))^2)))"
             Range(Cells(startR, (4 + n)), Cells(endR, (4 + n))).FillDown
             Cells(10 + sftfit2, (4 + n)).FormulaR1C1 = "=((1-R7C)*(SQRT(2) * (R4C/2.35) * R6C * SQRT(3.14)) + R7C*((R6C * (R5C/2) * 3.14))) "
@@ -7337,13 +7297,12 @@ Sub FitEquations()
                 Cells(12 + sftfit2, (4 + n)).FormulaR1C1 = "=R15C / R24C"
                 Cells(11, (4 + n)).Value = "TSGL"
             Else
-                Debug.Print "GL multipak"     ' MultiPak GL sum form with a single FWHM for G and L
                 Cells(startR, (4 + n)).FormulaR1C1 = "=R6C * ((R7C)*((((R4C)/2)^2)/((RC[" & (-3 - n) & "]-R2C)^2 + ((R4C)/2)^2)) + (1- R7C)*(EXP(-(1/2)*((RC[" & (-3 - n) & "]-R2C)/(R4C/2.35))^2)))"
                 Range(Cells(startR, (4 + n)), Cells(endR, (4 + n))).FillDown
                 Cells(10 + sftfit2, (4 + n)).FormulaR1C1 = "=SQRT(2) * (R4C/2.35) * R6C * SQRT(3.14)"
                 Cells(11 + sftfit2, (4 + n)).FormulaR1C1 = "=R15C / R14C"
                 Cells(12 + sftfit2, (4 + n)).FormulaR1C1 = "=R15C / R24C"
-                Cells(11, (4 + n)).Value = "GL"
+                Cells(11, (4 + n)).Value = "GL"     ' MultiPak GL sum form with a single FWHM for G and L
             End If
         End If
         
@@ -7527,18 +7486,6 @@ Sub FitEquations()
     Next
     
     ActiveSheet.ChartObjects(1).Activate
-End Sub
-
-Sub numMajorUnitsCheck()
-    If Abs(startEk - endEk) <= 100 And Abs(startEk - endEk) > 50 Then
-            numMajorUnit = 4 * windowSize
-        ElseIf Abs(startEk - endEk) <= 50 And Abs(startEk - endEk) > 20 Then
-            numMajorUnit = 2 * windowSize
-        ElseIf Abs(startEk - endEk) > 100 Then
-            numMajorUnit = 50 * windowSize
-        ElseIf Abs(startEk - endEk) <= 20 Then
-            numMajorUnit = 1 * windowSize
-        End If
 End Sub
 
 Sub scalecheck()
@@ -7808,6 +7755,7 @@ Sub GetNormalize()
         
         ActiveSheet.ChartObjects(1).Activate
         p = ActiveChart.SeriesCollection.Count
+        
         For j = 1 To p
             If ActiveChart.SeriesCollection(j).Name = Cells(1, 5 + (n * 3)).Value Then
                 ActiveChart.SeriesCollection(j).Delete
@@ -7839,6 +7787,7 @@ Sub GetNormalize()
         
         If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
     End If
+    
     Application.CutCopyMode = False
     strErr = "skip"
 End Sub
@@ -7848,7 +7797,6 @@ Sub CombineLegend() ' no k is used because from GetCompare Sub
     Dim sheetSample As Worksheet, sheetTarget As Worksheet, icur As Integer, kcur As Integer
     
     If mid$(Results, 1, 1) = "n" Then
-        Debug.Print "n", mid$(Results, 2, Len(Results) - InStr(1, Results, "k")), mid$(Results, InStr(1, Results, "k") + 1, Len(Results) - InStr(1, Results, "k"))
         icur = CInt(mid$(Results, 2, Len(Results) - InStr(1, Results, "k"))) ' number of comp in each comp
         kcur = CInt(mid$(Results, InStr(1, Results, "k") + 1, Len(Results) - InStr(1, Results, "k")))            ' position of comp from 0
         Results = vbNullString
@@ -7856,10 +7804,8 @@ Sub CombineLegend() ' no k is used because from GetCompare Sub
         icur = -1
         kcur = -1
     End If
-    
-    Debug.Print icur, "g", kcur, "pos"
-    If Cells(40, para + 9).Value = "Ver." Then
-        ' check para is the same as that in the file analyzed previously
+
+    If Cells(40, para + 9).Value = "Ver." Then        ' check para is the same as that in the file analyzed previously
     Else
         For n = 1 To 500
             If StrComp(Cells(40, n + 9).Value, "Ver.", 1) = 0 Then Exit For
@@ -7875,7 +7821,6 @@ Sub CombineLegend() ' no k is used because from GetCompare Sub
     ncomp = sheetTarget.Cells(45, para + 10).Value
     
     If ncomp > 0 Then
-    
         If ExistSheet(strSheetSampleName) = False Then
             Worksheets.Add().Name = strSheetSampleName
             Set sheetSample = Worksheets(strSheetSampleName)
@@ -7883,7 +7828,7 @@ Sub CombineLegend() ' no k is used because from GetCompare Sub
             Cells(1, 2).Value = "Name"
             Cells(1, 3).Value = "Sep."
             Cells(1, 4).Value = "File name"
-            Debug.Print ActiveSheet.ChartObjects.Count ', InStr(1, ActiveChart.SeriesCollection(1).Name, spr)
+
             For n = 0 To ncomp
                 Cells(2 + n, 1).Value = n + 1
                 If n > 0 And InStr(1, sheetTarget.Cells(1, 2 + n * 3), spr) > 0 Then
@@ -8097,7 +8042,6 @@ Sub debugAll()      ' multiple file analysis in sequence
         If modex = -2 Then
             Application.DisplayAlerts = False
             strSheetDataName = mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)
-            Debug.Print strSheetDataName
             Workbooks(ActiveWorkbook.Name).Sheets("Fit_" + strSheetDataName).Range(Cells(14 + sftfit2, 1), Cells(19 + sftfit2, 2)) = C1
             Workbooks(ActiveWorkbook.Name).Sheets("Fit_" + strSheetDataName).Cells(19 + sftfit2, 4) = "Corr. RSF"
             j = Workbooks(ActiveWorkbook.Name).Sheets("Fit_" + strSheetDataName).Cells(8 + sftfit2, 2).Value
@@ -8123,7 +8067,6 @@ Sub debugAll()      ' multiple file analysis in sequence
         ' Error handling process here
         If StrComp(strErrX, "skip", 1) = 0 Then
             Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
-            Debug.Print "strErrX"
             Exit Sub
         End If
         ' Error handling process end
@@ -8240,7 +8183,6 @@ Sub debugAll()      ' multiple file analysis in sequence
                         Cells(6, 5 + k).Value = am4all(k)             ' AM: 4f7/2, 5/2
                         Cells(4, 5 + k).Value = fw4all(k)             ' FW: 4f7/2, 5/2
                     Next
-                    'Debug.Print be4all(0), be4all(1)
                 End If
                 
                 Call CLAM2
@@ -8276,7 +8218,7 @@ Sub UDsamples()         ' user defined database examples
     Sheets("Sheet3").Name = "Notes"
     
     Dim xpsdb() As String, aesdb() As String
-    xpsdb = Split("Element Orbit BE(eV) ASF C 1s 284.6 1 O 1s 532 2.93", " ")
+    xpsdb = Split("Element Orbit BE(eV) ASF C 1s 284.6 1 O 1s 532 2.93 Au 4f5/2 87.6 7.54 Au 4f7/2 84 9.58", " ")
     aesdb = Split("Element Auger KE(eV) RSF C KLL 266 0.6 O KLL 506 0.96", " ")
     
     Sheets("XPS").Activate
@@ -8410,5 +8352,7 @@ Sub SolverInstall2()
     
     Application.Run "Solver.xlam!Solver.Solver2.Auto_open"    ' initialize Solver
 End Sub
+
+
 
 
