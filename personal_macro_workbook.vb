@@ -21,9 +21,7 @@ Option Explicit
     
 Sub CLAM2()
     ver = "8.08p"                             ' Version of this code.
-    'direc = "E:\DATA\hideki\XPS\"            ' a  directory location of database (this is for PC with SSD storage.)
     direc = "D:\DATA\hideki\XPS\"            ' this is for PC with HDD storage.
-    'direc = "C:\Users\Public\Data\"         ' this is for BOOTCAMP on MacBookAir.
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
     windowRatio = 4 / 3     ' window width / height, "2/1" for eyes or "4/3" for ppt
@@ -5551,18 +5549,15 @@ Sub descriptGraph()
     Cells(10, 3).Value = "In"
     g = 0
     Cells(1, 2).Value = g
-    
     Cells(2, 2).Value = pe
     Cells(3, 2).Value = wf
     Cells(4, 2).Value = char
     Cells(5, 2).Value = startEk
     Cells(6, 2).Value = endEk
     Cells(7, 2).Value = stepEk
-
     Cells(8, 2).Value = 1
     Cells(8, 3).Value = "times"
     [B5:C8].Interior.Color = RGB(144, 202, 249)
-    
     Cells(9, 1).Value = "Offset/multp"
     Cells(9, 2).Value = off
     Cells(9, 3).Value = multi
@@ -5572,7 +5567,6 @@ Sub descriptGraph()
     [A2:A4].Interior.Color = RGB(244, 67, 54)
     [B2:C4].Interior.Color = RGB(244, 143, 177)
     [A5:A8].Interior.Color = RGB(3, 169, 244)
-    
     Range(Cells(9, 1), Cells(9, 1)).Interior.Color = RGB(139, 195, 74)
     Range(Cells(9, 2), Cells(9, 3)).Interior.Color = RGB(197, 225, 165)
     ReDim strl(3)
@@ -5596,7 +5590,6 @@ Sub descriptGraph()
         strl(1) = "Pe"
         strl(2) = "Sh"
         strl(3) = "Ab"
-        
     ElseIf strTest = "QE/eV" Then
         Cells(2, 2).Value = pe
         Cells(2, 1).Value = "x offset"
@@ -5607,7 +5600,6 @@ Sub descriptGraph()
         Cells(7, 1).Value = "Step"
         [C2:C7].Value = "a.u."
         Range(Cells(4, 1), Cells(4, 3)).Clear
-        
         Cells(10, 1).Value = "Mass"
         Cells(10, 2).Value = "+offset/multiple"
         Cells(10, 3).Value = "PP"
@@ -5622,16 +5614,12 @@ Sub descriptGraph()
         Cells(2, 1).Value = "PE"
         Cells(3, 1).Value = "WF"
         Cells(4, 1).Value = "Char"
-        
         Cells(5, 1).Value = "Start BE"
         Cells(6, 1).Value = "End BE"
         Cells(7, 1).Value = "Step BE"
-
         Cells(10, 1).Value = "Ek"   ' this is a trigger to handle getCompare correctly
         Cells(10, 2).Value = "Be"
-        
         Cells(10, 3).Value = "In"
-        
         Range(Cells(11, 2), Cells(11, 2).Offset(numData - 1, 0)).Value = Range(Cells(11, 1), Cells(11, 1).Offset(numData - 1, 0)).Value
         Cells(11, 1).FormulaR1C1 = "=R2C2 - RC[1] - R3C2"
         
@@ -5720,9 +5708,7 @@ Sub descriptGraph()
         End If
         
         Cells(10 + (imax), 1).FormulaR1C1 = "=R[-" & (imax - 1) & "]C"
-
         Range(Cells(10 + (imax), 1), Cells((2 * imax) - 1, 1)).FillDown
-            
         Range(Cells(10 + (imax), 2), Cells((2 * imax) - 1, 2)).FillDown
         Cells(10 + (imax), 3).FormulaR1C1 = "= (R[-" & (imax - 1) & "]C - R9C[-1]) *R9C"
         Range(Cells(10 + (imax), 3), Cells((2 * imax) - 1, 3)).FillDown
@@ -5743,7 +5729,6 @@ Sub descriptHidden1()
     Cells(1, 1).Value = "Grating"
     Cells(1, 3).Value = "lines/mm"
     Cells(1, 2).Value = g
-    
     Cells(40, para + 10).Value = ver
     Cells(40, para + 9).Value = "Ver."
     Cells(41, para + 9).Value = "dblMin"
@@ -5753,14 +5738,12 @@ Sub descriptHidden1()
     Cells(45, para + 9).Value = "ncomp"
     Cells(46, para + 9).Value = "XPS BE database:"
     Cells(47, para + 9).Value = "AES KE database:"
-    
     Cells(41, para + 11).Value = "numData"
     Cells(42, para + 11).Value = "numChemFactors"
     Cells(43, para + 11).Value = "numXPSFactors"
     Cells(44, para + 11).Value = "numAESFactors"
     Cells(45, para + 11).Value = "Gnum"
     Cells(41, para + 12).Value = numData
-    
     ncomp = 0
     Cells(45, para + 10).Value = ncomp
     Cells(45, para + 12).Value = 0
@@ -5855,8 +5838,8 @@ Sub descriptFit()
         Cells(20 + sftfit, 2).Value = "In"
     End If
     
-    
     Cells(15 + sftfit2, 2).Value = 0     ' Grating number, 0 means VersaProbe II
+    
     If Cells(15 + sftfit2, 2).Value = 0 Then    ' VersaProbe II AlKa
         Cells(14 + sftfit2, 2).Value = 23.5     ' CAE must be setup by user
     Else
@@ -5878,14 +5861,12 @@ Sub descriptFit()
     
     Cells(17 + sftfit2, 2).Value = tfa     ' CLAM2 BL3.2Ua: 1.35, VersaProbe II: 180.2540
     Cells(18 + sftfit2, 2).Value = tfb     ' CLAM2 BL3.2Ua: 0.35, VersaProbe II: 0.3480
-    
     Cells(2, 100).Value = "dblMin"
     Cells(3, 100).Value = "dblMax"
     Cells(4, 100).Value = "numXPSFactors"
     Cells(5, 100).Value = "numData"
     Cells(6, 100).Value = "startEb"
     Cells(7, 100).Value = "endEb"
-    
     Cells(12, 100).Value = "pe/shift"
     Cells(13, 100).Value = "wf"
     Cells(14, 100).Value = "char"
@@ -5894,7 +5875,6 @@ Sub descriptFit()
     Cells(17, 100).Value = "Iteration limit"
     Cells(18, 100).Value = "Average data"
     Cells(19, 100).Value = "Ver."
-    
     Cells(8, 100).Value = "fit done"
     Cells(9, 100).Value = "#peak before"
     Cells(10, 100).Value = "Avg points"
@@ -5905,16 +5885,13 @@ Sub descriptFit()
     Cells(5, 101).Value = numData
     Cells(6, 101).Value = startEb
     Cells(7, 101).Value = endEb
-   
     Cells(12, 101).Value = pe
     Cells(13, 101).Value = wf
     Cells(14, 101).Value = char
     Cells(16, 101).Value = "BG"
     Cells(17, 101).Value = 10       ' limit of iteration
     Cells(18, 101).FormulaR1C1 = "=Average(R31C2:R" & (30 + numData) & "C2)"
-    
     Cells(8, 101).Value = 0         ' trigger to change the number of peaks
-    
     Cells(2, 102).Value = "max FWHM1 limit"
     Cells(3, 102).Value = "min FWHM1 limit"
     Cells(4, 102).Value = "max FWHM2 limit"
@@ -5952,7 +5929,6 @@ Sub descriptFit()
             Cells(10, 101).Value = Application.Ceiling(numData / 10, 1)
         End If
         Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (100)
-
     ElseIf Cells(15 + sftfit2, 2).Value = 1 Then   ' grating #1
         Cells(2, 103).Value = 2       ' max FWHM1 limit
         Cells(3, 103).Value = 0.1       ' min FWHM1 limit
@@ -5996,7 +5972,6 @@ Sub descriptFit()
     Cells(17, 102).Value = "avg"
     Cells(18, 102).Value = "min"
     Cells(19, 102).Value = "max"
-    
     Cells(13, 103).FormulaR1C1 = "=R12C103 + (R12C103 - R15C103)*1.5"
     Cells(12, 103).FormulaR1C1 = "=PERCENTILE(R" & (21 + sftfit) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ":R" & (20 + sftfit + Cells(5, 101).Value) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ",0.75) "
     Cells(16, 103).FormulaR1C1 = "=PERCENTILE(R" & (21 + sftfit) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ":R" & (20 + sftfit + Cells(5, 101).Value) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ",0.5) "
@@ -6006,7 +5981,6 @@ Sub descriptFit()
     'Cells(18, 103).FormulaR1C1 = "=Stdevp(R" & (21 + sftfit) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ":R" & (20 + sftfit + Cells(5, 101).Value) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ") "
     Cells(18, 103).FormulaR1C1 = "=PERCENTILE(R" & (21 + sftfit) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ":R" & (20 + sftfit + Cells(5, 101).Value) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ",0) "
     Cells(19, 103).FormulaR1C1 = "=PERCENTILE(R" & (21 + sftfit) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ":R" & (20 + sftfit + Cells(5, 101).Value) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ",1) "
-
     Cells(11, 103).Value = DateValue(Now) & ", " & TimeValue(Now)
     Cells(11, 104).Value = DateValue(Now) + 1
     Cells(12, 104).FormulaR1C1 = "=R12C103"
@@ -6014,20 +5988,16 @@ Sub descriptFit()
     Cells(14, 104).FormulaR1C1 = "=R14C103"
     Cells(15, 104).FormulaR1C1 = "=R15C103"
     Cells(16, 104).FormulaR1C1 = "=R16C103"
-    
     [A2:A5].Interior.Color = RGB(156, 204, 101)    '43
     [B2:B5].Interior.Color = RGB(197, 225, 165)    '35
-    
     Range(Cells(6 + sftfit2, 1), Cells(6 + sftfit2, 1)).Interior.Color = RGB(102, 187, 106) 'RGB(128, 203, 196) ' RGB(156, 204, 101)    '43
     Range(Cells(6 + sftfit2, 2), Cells(6 + sftfit2, 2)).Interior.Color = RGB(165, 214, 167) 'RGB(178, 223, 219) ' RGB(197, 225, 165)    '35
-    
     Range(Cells(8 + sftfit2, 1), Cells(9 + sftfit2, 1)).Interior.Color = RGB(255, 160, 0) '45
     Range(Cells(8 + sftfit2, 2), Cells(9 + sftfit2, 2)).Interior.Color = RGB(255, 202, 40)     '44
     Range(Cells(11 + sftfit2, 1), Cells(12 + sftfit2, 1)).Interior.Color = RGB(186, 104, 200)  '39
     Range(Cells(11 + sftfit2, 2), Cells(12 + sftfit2, 2)).Interior.Color = RGB(225, 190, 231)  '38
     Range(Cells(14 + sftfit2, 1), Cells(19 + sftfit2, 1)).Interior.Color = RGB(161, 136, 127)   '16
     Range(Cells(14 + sftfit2, 2), Cells(19 + sftfit2, 2)).Interior.Color = RGB(188, 170, 164)  '15
-
     Range(Cells(1, 4), Cells(15 + sftfit2, 4)).Interior.Color = RGB(77, 208, 225)  '33
     Range(Cells(15 + sftfit2 + 1, 4), Cells(15 + sftfit2 + 4, 4)).Interior.Color = RGB(176, 190, 197)
     Range(Cells(1, 5), Cells(15 + sftfit2, 5)).Interior.Color = RGB(178, 235, 242) '34
@@ -6037,7 +6007,6 @@ End Sub
 Sub descriptInitialFit()
     Cells(20 + sftfit, 3).Value = "BG"
     Cells(20 + sftfit, 4).Value = "In-BG"
-
     Cells(1, 4).Value = "Name"
     Cells(2, 4).Value = "BE"
     Cells(3, 4).Value = "KE"
@@ -6045,6 +6014,7 @@ Sub descriptInitialFit()
     Cells(5, 4).Value = "FWHM2"
     Cells(6, 4).Value = "Amplitude"
     Cells(7, 4).Value = "Shape"
+    
     If sftfit2 >= 5 Then
         Cells(8, 4).Value = "Option a"
         Cells(9, 4).Value = "Option b"
@@ -6052,6 +6022,7 @@ Sub descriptInitialFit()
         Cells(11, 4).Value = "Form"
         Cells(12, 4).Value = "beta"
     End If
+    
     Cells(16 + sftfit2, 4).Value = "T.I. Area"
     Cells(17 + sftfit2, 4).Value = "S.I. Area"
     Cells(18 + sftfit2, 4).Value = "N.I. Area"
@@ -6065,7 +6036,6 @@ Sub descriptInitialFit()
     Cells(13 + sftfit2, 4).Value = "Asym"
     Cells(14 + sftfit2, 4).Value = "Amp. rat."
     Cells(15 + sftfit2, 4).Value = "BE diff."
-    
     Cells(11, 103).Value = DateValue(Now) & ", " & TimeValue(Now)   ' time stamp
     Cells(13, 103).FormulaR1C1 = "=R12C103 + (R12C103 - R15C103)*1.5"
     Cells(12, 103).FormulaR1C1 = "=PERCENTILE(R" & (startR) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ":R" & (endR) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ",0.75) "
@@ -6075,8 +6045,8 @@ Sub descriptInitialFit()
     Cells(17, 103).FormulaR1C1 = "=Average(R" & (startR) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ":R" & (endR) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ") "
     Cells(18, 103).FormulaR1C1 = "=PERCENTILE(R" & (startR) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ":R" & (endR) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ",0) "
     Cells(19, 103).FormulaR1C1 = "=PERCENTILE(R" & (startR) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ":R" & (endR) & "C" & (7 + Cells(8 + sftfit2, 2).Value) & ",1) "
-    
     Cells(21 + sftfit + numData, 4) = IntegrationTrapezoid(Range(Cells(21 + sftfit, 1), Cells(20 + sftfit + numData, 1)), Range(Cells(21 + sftfit, 4), Cells(20 + sftfit + numData, 4)))
+    
     For q = 1 To j
         Cells(16 + sftfit2, 4 + q) = IntegrationTrapezoid(Range(Cells(21 + sftfit, 1), Cells(20 + sftfit + numData, 1)), Range(Cells(21 + sftfit, 4 + q), Cells(20 + sftfit + numData, 4 + q)))
         Cells(17 + sftfit2, 4 + q).FormulaR1C1 = "= R" & (16 + sftfit2) & "C / (R" & (9 + sftfit2) & "C)"
@@ -6086,10 +6056,9 @@ Sub descriptInitialFit()
             Cells(18 + sftfit2, 4 + q).FormulaR1C1 = "= R" & (16 + sftfit2) & "C / R" & (19 + sftfit2) & "C"
         End If
     Next
-    Cells(21 + sftfit + numData, 5 + j) = IntegrationTrapezoid(Range(Cells(21 + sftfit, 1), Cells(20 + sftfit + numData, 1)), Range(Cells(21 + sftfit, 5 + j), Cells(20 + sftfit + numData, 5 + j)))
     
+    Cells(21 + sftfit + numData, 5 + j) = IntegrationTrapezoid(Range(Cells(21 + sftfit, 1), Cells(20 + sftfit + numData, 1)), Range(Cells(21 + sftfit, 5 + j), Cells(20 + sftfit + numData, 5 + j)))
     Range(Cells(11, 104), Cells(16, 104)).ClearContents
-
     If ActiveSheet.ChartObjects.Count = 2 Then GoTo SkipBarPlot
     
     ActiveSheet.ChartObjects(3).Activate
@@ -6122,12 +6091,10 @@ Sub ShirleyBG()
     End If
 
     Cells(4, 2).Value = Cells(3, 2).Value
-           
     Cells(startR, 98).FormulaR1C1 = "= (2 * RC1 - (R" & startR & "C1 + R" & endR & "C1))/(R" & endR & "C1 - R" & startR & "C1)" ' CT
     Range(Cells(startR, 98), Cells(endR, 98)).FillDown
 
     If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
-    
         If Cells(startR, 1).Value = Cells(6, 101).Value Then
             Cells(startR - 1, 3).FormulaR1C1 = "=AVERAGE(R[1]C2:R[" & (ns) & "]C2)"
             Cells(startR, 3).FormulaR1C1 = "=AVERAGE(R[1]C2:R[" & (ns) & "]C2)"
@@ -6175,13 +6142,11 @@ Sub ShirleyBG()
 
     Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV     ' added abs to solve sonvergence if negative data
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
-        
     Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
     
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Cells(4, 2)
     SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=1 ' max
     SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=-1 ' min
-    
     SolverSolve UserFinish:=True
     SolverFinish KeepFinal:=1
 End Sub
@@ -6191,7 +6156,6 @@ Sub ShirleyBG2() 'iteration mode
     
     C1 = Range(Cells(startR, 2), Cells(endR, 2))    'C
     C2 = Range(Cells(startR, 3), Cells(endR, 3))    'A
-    
     Cells(1, 1).Value = "Shirley"
     Cells(1, 2).Value = "Iteration"
     Cells(1, 3).Value = "BG"
@@ -6282,7 +6246,6 @@ Sub OffsetShirleyBG()
             Cells(k, 3).FormulaR1C1 = "=(R3C2 * (R" & (startR) & "C + ( R2C2 * SUM(R[-1]C99:R" & (startR) & "C99)))) + ((1-R3C2) * ((R4C2 * RC98) + R6C2))"
         Next
     Else        ' for BE
-        
         If Cells(endR, 1).Value = Cells(7, 101).Value Then
             Cells(endR + 1, 3).FormulaR1C1 = "=AVERAGE(R[-1]C2:R[" & (-ns) & "]C2)"
             Cells(endR, 3).FormulaR1C1 = "=AVERAGE(R[-1]C2:R[" & (-ns) & "]C2)"
@@ -6310,13 +6273,11 @@ Sub OffsetShirleyBG()
 
     Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
-    
     Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
-    
+
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(6, 2))
     SolverAdd CellRef:=Cells(2, 2), Relation:=1, FormulaText:=1 ' max
     SolverAdd CellRef:=Cells(2, 2), Relation:=3, FormulaText:=0 ' min
-    
     SolverAdd CellRef:=Cells(3, 2), Relation:=1, FormulaText:=1 ' max
     SolverAdd CellRef:=Cells(3, 2), Relation:=3, FormulaText:=0 ' min
 
@@ -6328,7 +6289,6 @@ Sub OffsetShirleyBG()
     
     SolverSolve UserFinish:=True
     SolverFinish KeepFinal:=1
-    
     [A2:A6].Interior.Color = RGB(156, 204, 101)    '43
     [B2:B6].Interior.Color = RGB(197, 225, 165)    '35
 End Sub
@@ -6356,7 +6316,6 @@ Sub VictoreenBG()
     If Cells(8, 101).Value = 0 Then
         Cells(8, 2).Value = Cells(11 + sftfit2, 2).Value + (Cells(12 + sftfit2, 2).Value - Cells(11 + sftfit2, 2).Value) / 20
         Cells(9, 2).Value = Cells(12 + sftfit2, 2).Value - (Cells(12 + sftfit2, 2).Value - Cells(11 + sftfit2, 2).Value) / 20
-
         Cells(2, 2).Value = dblMin
         Cells(3, 2).Value = ((dblMax - dblMin) / (Cells(12 + sftfit2, 2).Value - Cells(11 + sftfit2, 2).Value)) / 2
         Cells(4, 2).Value = 0
@@ -6371,7 +6330,6 @@ Sub VictoreenBG()
     Cells(startR, 99).FormulaR1C1 = "= (2 * (RC1-R8C2) - (R" & startR & "C1 + R" & endR & "C1 -2*R8C2))/(R" & endR & "C1 - R" & startR & "C1)" ' PE
     Range(Cells(startR, 99), Cells(endR, 99)).FillDown
     Cells(startR, 3).FormulaR1C1 = "= R2C2 + (R3C2 * RC98) + (R4C2 * (RC98^2)) + (R5C2 * (RC98^3)) + (R6C2 * (RC98^4))"
-        
     Range(Cells(startR, 3), Cells(endR, 3)).FillDown
     Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
@@ -6406,7 +6364,6 @@ Sub VictoreenBG()
 
     SolverSolve UserFinish:=True
     SolverFinish KeepFinal:=1
-    
     [A2:A6].Interior.Color = RGB(156, 204, 101)    '43
     [B2:B6].Interior.Color = RGB(197, 225, 165)    '35
     [A7:A9].Interior.Color = RGB(159, 168, 218)
@@ -6417,18 +6374,15 @@ Sub SplineShirleyBG()
     Cells(1, 1).Value = "Spline"
     Cells(1, 2).Value = "Shirley"
     Cells(1, 3).Value = "BG"
-    'Cells(2, 1).Value = "A"
     Cells(2, 1).Value = "Tolerance"
     Cells(3, 1).Value = "Initial A"
     Cells(4, 1).Value = "Final A"
-    
     Cells(5, 1).Value = "Iteration"
     Cells(6, 1).Value = "Ratio S:P"
     Cells(7, 1).Value = "0th poly"
     Cells(8, 1).Value = "1st poly"
     Cells(9, 1).Value = "2nd poly"
     Cells(10, 1).Value = "3rd poly"
-    
     Cells(16, 100).Value = "Spline"
     Cells(16, 101).Value = "Shirley"
     
@@ -6438,11 +6392,11 @@ Sub SplineShirleyBG()
     ElseIf Cells(3, 2).Value >= 0.1 Or Cells(3, 2).Value <= 0.000001 Then
         Cells(3, 2).Value = 0.001
     End If
+    
     Cells(4, 2).Value = Cells(3, 2).Value
     
     For k = 2 To 10
         If Cells(k, 2).Font.Bold = "True" Then
-            
         ElseIf k = 2 Then
             If Cells(8, 101).Value = 0 Then Cells(2, 2).Value = 0.000001
             If Cells(3, 2).Value > 0.1 Or Cells(3, 2).Value <= 0.0000001 Then Cells(3, 2).Value = 0.001
@@ -6520,7 +6474,6 @@ Sub SplineShirleyBG()
     
     Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
-    
     Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
     
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(4, 2), Cells(10, 2))
@@ -6544,7 +6497,6 @@ Sub SplineShirleyBG()
     
     SolverSolve UserFinish:=True
     SolverFinish KeepFinal:=1
-    
     Range(Cells(6, 1), Cells(10, 1)).Interior.Color = RGB(156, 204, 101)   '43
     Range(Cells(6, 2), Cells(10, 2)).Interior.Color = RGB(197, 225, 165)   '35
 End Sub
@@ -6576,13 +6528,11 @@ Sub TangentArcBG()
     End If
     
     Cells(startR, 3).FormulaR1C1 = "=R2C2 + (1-R7C2) * (R6C2 * (RC1 - R4C2)) + R7C2 * (R3C2 * ((0.5) + (1/3.14) * ATAN((RC1 - R4C2)/(R5C2 / 2))))"
-
     Range(Cells(startR, 3), Cells(endR, 3)).FillDown
     Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
-    
     Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
-    
+
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7, 2))
     SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=Cells(11 + sftfit2, 2).Value        ' This is a point to control the position of inflection
     SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=Cells(12 + sftfit2, 2).Value
@@ -6604,14 +6554,12 @@ Sub TangentArcBG()
 
     SolverSolve UserFinish:=True
     SolverFinish KeepFinal:=1
-    
     Range(Cells(6, 1), Cells(7, 1)).Interior.Color = RGB(156, 204, 101)  '43
     Range(Cells(6, 2), Cells(7, 2)).Interior.Color = RGB(197, 225, 165)  '35
 End Sub
 
 Sub PolynominalBG()
     If StrComp(strl(1), "Po", 1) = 0 Then
-        
     Else
         For k = 2 To 5
             If Cells(k, 2).Font.Bold = "True" Then
@@ -6649,10 +6597,9 @@ Sub PolynominalBG()
     Else
         Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
     End If
-    Range(Cells(startR, 100), Cells(endR, 100)).FillDown
     
+    Range(Cells(startR, 100), Cells(endR, 100)).FillDown
     Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
-
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(5, 2))
     
     For k = 2 To 5
@@ -6696,7 +6643,6 @@ Sub TougaardBG2()
     
     For k = 2 To 6
         If Cells(k, 2).Font.Bold = "True" Then
-        
         ElseIf k = 2 Then
             Cells(2, 2).Value = 2866    '2866 or 1840 or 736
         ElseIf k = 3 Then
@@ -6714,9 +6660,7 @@ Sub TougaardBG2()
 
     Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
-    
     Cells(6 + sftfit2, 2).FormulaR1C1 = "= (Average(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + Average(R" & endR - 1 & "C100:R" & (endR - ns + 1) & "C100)) / 2"
-    
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(6, 2))
     SolverAdd CellRef:=Range(Cells(2, 2), Cells(5, 2)), Relation:=1, FormulaText:=5000
     SolverAdd CellRef:=Range(Cells(2, 2), Cells(5, 2)), Relation:=3, FormulaText:=0
@@ -6729,7 +6673,6 @@ Sub TougaardBG2()
     
     SolverSolve UserFinish:=True
     SolverFinish KeepFinal:=1
-
     [A2:A7].Interior.Color = RGB(156, 204, 101)    '43
     [B2:B7].Interior.Color = RGB(197, 225, 165)    '35
 End Sub
@@ -6801,7 +6744,6 @@ Sub SplineTougaardBG2()
     
     Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
-    
     Cells(6 + sftfit2, 2).FormulaR1C1 = "= (Average(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + Average(R" & endR - 1 & "C100:R" & (endR - ns + 1) & "C100)) / 2"
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(10, 2))
     SolverAdd CellRef:=Range(Cells(2, 2), Cells(5, 2)), Relation:=1, FormulaText:=5000
@@ -6820,7 +6762,6 @@ Sub SplineTougaardBG2()
     
     SolverSolve UserFinish:=True
     SolverFinish KeepFinal:=1
-
     [A2:A10].Interior.Color = RGB(156, 204, 101)    '43
     [B2:B10].Interior.Color = RGB(197, 225, 165)    '35
 End Sub
@@ -6834,13 +6775,11 @@ Sub XponetialBG()
     Cells(4, 1).Value = "e1x"
     Cells(5, 1).Value = "e1t"
     Cells(6, 1).Value = "e2a"
-    
     Cells(16, 100).Value = "Double"
     Cells(16, 101).Value = "Exponential"
     
     For k = 2 To 8
         If Cells(k, 2).Font.Bold = "True" Then
-        
         ElseIf k = 2 Then
             Cells(k, 2).Value = Cells(2, 101).Value
         ElseIf k = 3 Then
@@ -6860,15 +6799,11 @@ Sub XponetialBG()
     
     Cells(startR, 98).FormulaR1C1 = "= (2 * RC1 - (R" & startR & "C1 + R" & endR & "C1))/(R" & endR & "C1 - R" & startR & "C1)"
     Range(Cells(startR, 98), Cells(endR, 98)).FillDown
-    
     Cells(startR, 3).FormulaR1C1 = "=R2C2 + (R3C2 * exp(-((RC98 - R4C2)/R5C2))) + (R6C2 * exp(-((RC98 - R7C2)/R8C2)))"
     Range(Cells(startR, 3), Cells(endR, 3)).FillDown
-    
     Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
-    
     Cells(6 + sftfit2, 2).FormulaR1C1 = "= (Average(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + Average(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
-    
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(8, 2))
 
     For k = 2 To 8
@@ -6884,7 +6819,6 @@ Sub XponetialBG()
     
     Cells(7, 1).Value = "e2x"
     Cells(8, 1).Value = "e2t"
-
     Range(Cells(6, 1), Cells(8, 1)).Interior.Color = RGB(156, 204, 101)    '43
     Range(Cells(6, 2), Cells(8, 2)).Interior.Color = RGB(197, 225, 165)    '35
 End Sub
@@ -6912,7 +6846,6 @@ Sub descriptEFfit1()
     Cells(6, 1).Value = "Poly2nd"
     Cells(7, 1).Value = "Poly3rd"
     Cells(8, 1).Value = "Norm (FD)"
-    
     Cells(5 + sftfit2, 1).Value = "Solve FD"
     Cells(6 + sftfit2, 1).Value = "Solve GC"
     Cells(7 + sftfit2, 1).Value = "EF range"
@@ -6944,7 +6877,6 @@ Sub descriptEFfit1()
     Cells(20 + sftfit, 6).Value = "FitEF (GC)"
     Cells(20 + sftfit, 7).Value = "Least fits (GC)"
     Cells(20 + sftfit, 8).Value = "Residual (GC)"
-    
     Cells(8, 101).Value = 0     ' 7.45: revised from "-1"
     Cells(16, 100).Value = "EF"
     Cells(16, 101).Value = "fit"
@@ -6963,18 +6895,15 @@ Sub descriptEFfit2()
     Cells(7, 4).Value = "Total"
     Cells(8, 4).Value = "Norm (GC)"
     Cells(1, 5).Value = "EF"
-    
     Cells(3, 5).FormulaR1C1 = "=(" & (pe - wf - char) & " - R2C)" ' KE
     Cells(5, 5).FormulaR1C1 = "=(4.39 * R4C/11604)" ' Width     ' kT = 0.02585 eV at 300 K, 10-90% of electrons in 4.39 kT
     Cells(7, 5).FormulaR1C1 = "=sqrt(R5C5^2 + R6C5^2)" ' Width
-
     Cells(1, 4).Interior.Color = RGB(77, 150, 200)    '33
     Range(Cells(2, 4), Cells(8, 4)).Interior.Color = RGB(77, 208, 225)    '33
     Cells(1, 5).Interior.Color = RGB(77, 182, 172)
     Range(Cells(2, 5), Cells(8, 5)).Interior.Color = RGB(178, 235, 242)   '34
     Range(Cells(6, 1), Cells(8, 1)).Interior.Color = RGB(156, 204, 101)   '43
     Range(Cells(6, 2), Cells(8, 2)).Interior.Color = RGB(197, 225, 165)   '35
-
     Cells(5 + sftfit2, 1).Interior.Color = RGB(102, 187, 106) 'RGB(128, 203, 196) ' RGB(156, 204, 101)    '43
     Cells(5 + sftfit2, 2).Interior.Color = RGB(165, 214, 167) 'RGB(178, 223, 219) ' RGB(197, 225, 165)    '35
     
@@ -6991,7 +6920,6 @@ Sub descriptEFfit2()
     Cells(19, 103).FormulaR1C1 = "=PERCENTILE(R" & (p) & "C8:R" & (q) & "C8,1) "
     
     Range(Cells(11, 104), Cells(16, 104)).ClearContents '.Delete
-    
     If ActiveSheet.ChartObjects.Count = 2 Then GoTo SkipBarPlotEF
     
     ActiveSheet.ChartObjects(3).Activate
@@ -7224,10 +7152,8 @@ Sub FitEquations()
     Cells(startR, (6 + j)).FormulaR1C1 = "=((RC2 - R[" & (2 + numData) & "]C[-1])^2)/(abs(R[" & (2 + numData) & "]C[-1]))"     ' Least fits 2, added abs to converge if the data in negative
     Range(Cells(startR, (6 + j)), Cells(endR, (6 + j))).FillDown
     Cells(9 + sftfit2, 2).FormulaR1C1 = "=(SUM(R" & (21 + sftfit) & "C" & (6 + j) & ":R" & (20 + sftfit + numData) & "C" & (6 + j) & ")) /(" & (endR - startR + 1) & ")" 'Sum of LS4
-
     Cells(20 + sftfit, (5 + j)).Value = "SUM fits"
     Cells(20 + sftfit, (6 + j)).Value = "Least fits"
-    
     Cells(20 + sftfit, (7 + j)).Value = "Residual"
     Cells(startR, (7 + j)).FormulaR1C1 = "=(RC2 - R[" & (2 + numData) & "]C[-2])"    ' percentage
     Range(Cells(startR, (7 + j)), Cells(endR, (7 + j))).FillDown
@@ -7616,7 +7542,6 @@ Sub GetNormalize()
         Cells(9 + (imax), (4 + (n * 3))).Value = strl(1) + strTest
         Cells(9 + (imax), (5 + (n * 3))).Value = strl(2) + strTest
         Cells(9 + (imax), (6 + (n * 3))).Value = strl(3) + strTest
-        
         Cells(2, ((4 + (n * 3)))).Value = "PE shifts"
         Cells(2, ((5 + (n * 3)))).Value = 0
         Cells(2, ((6 + (n * 3)))).Value = "eV"
@@ -7627,14 +7552,12 @@ Sub GetNormalize()
         Cells(6, ((5 + (n * 3)))).Value = Cells(10 + numData, 7).Value
         Cells(7, ((5 + (n * 3)))).Value = Cells(12, 7).Value - Cells(11, 7).Value
         Range(Cells(5, 9), Cells(7, 9)) = "eV"
-
         Cells(9, ((4 + (n * 3)))).Value = "Offset/multp"
         Cells(9, ((5 + (n * 3)))).Value = off
         Cells(9, ((6 + (n * 3)))).Value = multi
         Cells(10, ((4 + (n * 3)))).Value = "PE"
         Cells(10, ((5 + (n * 3)))).Value = "+shift"
         Cells(10, ((6 + (n * 3)))).Value = "Ab"
-        
         Range(Cells(5, (4 + (n * 3))), Cells(7, (4 + (n * 3)))).Interior.ColorIndex = 41
         Range(Cells(5, (5 + (n * 3))), Cells(7, (6 + (n * 3)))).Interior.ColorIndex = 37
         Range(Cells(2, (4 + (n * 3))), Cells(2, (4 + (n * 3)))).Interior.ColorIndex = 3
@@ -7644,9 +7567,7 @@ Sub GetNormalize()
     
         Cells(11, (5 + (n * 3))).FormulaR1C1 = "=R2C + RC[-1]"
         Cells(10 + (imax), (5 + (n * 3))).FormulaR1C1 = "=R2C + R[-" & (imax - 1) & "]C[-1]"
-        
         Range(Cells(11, (5 + (n * 3))), Cells((imax), (5 + (n * 3)))).FillDown
-        
         Cells(10 + (imax), (4 + (n * 3))).FormulaR1C1 = "=R[-" & (imax - 1) & "]C"
         Range(Cells(10 + (imax), (4 + (n * 3))), Cells((2 * imax) - 1, (4 + (n * 3)))).FillDown
         Range(Cells(10 + (imax), (5 + (n * 3))), Cells((2 * imax) - 1, (5 + (n * 3)))).FillDown
@@ -7677,10 +7598,8 @@ Sub GetNormalize()
         
         Range(Cells(10, (4 + (n * 3))), Cells(10, ((4 + (n * 3))))).Interior.Color = SourceRangeColor1
         Range(Cells(9 + (imax), (4 + (n * 3))), Cells(9 + (imax), ((4 + (n * 3))))).Interior.Color = SourceRangeColor1
-
         Range(Cells(10, (5 + (n * 3))), Cells(10, ((5 + (n * 3))))).Interior.Color = SourceRangeColor1
         Range(Cells(9 + (imax), (5 + (n * 3))), Cells(9 + (imax), ((5 + (n * 3))))).Interior.Color = SourceRangeColor1
-        
         sheetGraph.Range(Cells(11 + numData + 8, (5 + (n * 3))), Cells(11 + (numData * 2) + 8, (6 + (n * 3)))).Copy
         sheetAna.Cells(1, 1 + ((n - 1) * 2)).PasteSpecial Paste:=xlValues
         sheetAna.Cells(1, 1).Value = "PE/eV"
@@ -7888,11 +7807,7 @@ Sub debugAll()      ' multiple file analysis in sequence
         OpenFileName = Application.GetOpenFilename(FileFilter:="Text Files (*.txt), *.txt,MultiPak Files (*.csv), *.csv", Title:="Please select file(s)", MultiSelect:=True)
     End If
     
-    If IsArray(OpenFileName) Then
-
-    Else
-        Exit Sub
-    End If
+    If IsArray(OpenFileName) = False Then Exit Sub
     
     If modex <= -1 Then
         wb = ActiveWorkbook.Name
@@ -7932,6 +7847,7 @@ Sub debugAll()      ' multiple file analysis in sequence
         Else
             If StrComp(Target, ActiveWorkbook.FullName, 1) = 0 Or StrComp(mid$(Target, 1, Len(Target) - 4), mid$(ActiveWorkbook.FullName, 1, Len(ActiveWorkbook.FullName) - 5), 1) = 0 Then GoTo SkipOpenDebug
         End If
+        
         strTest = mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\"))
         
         If Not WorkbookOpen(strTest) Then
@@ -7961,7 +7877,6 @@ Sub debugAll()      ' multiple file analysis in sequence
         End If
         
         ' 1st Code to run in each Target
-        
         testMacro = "debug"     ' This is a trigger to run the debugAll code in sequence
         Call CLAM2              ' This is a main code. First run makes Graph, Fit, and Check sheets
         ' Code until here
@@ -7986,7 +7901,6 @@ Sub debugAll()      ' multiple file analysis in sequence
                 sheetGraph.Cells(1, 4).PasteSpecial
                 sheetGraph.Cells(1, 1).Value = "norm"
                 sheetGraph.Cells(45, para + 10).Value = 1
-                
                 ActiveSheet.ChartObjects(1).Activate
                 ActiveChart.SeriesCollection.NewSeries
                 seriesnum = ActiveChart.SeriesCollection.Count
@@ -8018,13 +7932,11 @@ Sub debugAll()      ' multiple file analysis in sequence
             End If
             
             Call CLAM2
-            
-            ' Error handling process here
+
             If StrComp(strErrX, "skip", 1) = 0 Then
                 Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
                 Exit Sub
             End If
-            ' Error handling process end
             
             If debugMode = "debugGraphn" Then
                 Workbooks(ActiveWorkbook.Name).Close SaveChanges:=True
@@ -8034,14 +7946,11 @@ Sub debugAll()      ' multiple file analysis in sequence
 
                 sheetFit.Activate       ' activate fit sheet for fitting with Shirley BG
                 Call CLAM2
-                ' Code until here
 
-                ' Error handling process here
                 If StrComp(strErrX, "skip", 1) = 0 Then
                     Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
                     Exit Sub
                 End If
-                ' Error handling process end
                 
                 shfX.Activate
                 C1 = shfX.Range(Cells(1, 1), Cells(19 + sftfit2, 3))
@@ -8049,12 +7958,9 @@ Sub debugAll()      ' multiple file analysis in sequence
                 sheetFit.Activate
                 sheetFit.Range(Cells(1, 1), Cells(19 + sftfit2, 3)) = C1
                 sheetFit.Range(Cells(2, 103), Cells(9, 103)) = C2
-                'Application.CutCopyMode = False
                 
                 testMacro = "debug"     ' This is a trigger to run the debugAll code in sequence
-                'sheetFit.Activate
                 Call CLAM2
-                ' Code until here
                 
                 shfX.Activate
                 If debugMode = "debugShift" And idebug = 0 Then
@@ -8088,7 +7994,6 @@ Sub debugAll()      ' multiple file analysis in sequence
                 End If
                 
                 Call CLAM2
-                ' Code until here
                 
                 If debugMode = "debugShift" Then
                     For k = 0 To j - 1
@@ -8098,12 +8003,10 @@ Sub debugAll()      ' multiple file analysis in sequence
                     Next
                 End If
                 
-                ' Error handling process here
                 If StrComp(strErrX, "skip", 1) = 0 Then
                     Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
                     Exit Sub
                 End If
-                ' Error handling process end
             End If
         End If
         
