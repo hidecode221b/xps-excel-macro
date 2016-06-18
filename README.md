@@ -52,7 +52,7 @@ Ctrl+Q has been used for many users during the experiment and post-data processi
 Details of advanced function available in the code will be described in the future.
 
 ###References for database
-Database files are available only in PC at the beamline because the software is only licensed in PC at the beamline.
+Database files are available only in PC at the beamline because the software is only licensed in PC at the beamline. You can also purchase the complete packages including databases or advanced functions from the link below.
 
 - https://sites.google.com/site/xpsdataanalysispackage/
 
