@@ -53,7 +53,9 @@ Details of advanced function available in the code will be described in the futu
 
 ###References for database
 Database files are available only in PC at the beamline because the software is only licensed in PC at the beamline.
-However, the demo or preview version of software can be downloaded and installed to refer the database.
+
+- https://sites.google.com/site/xpsdataanalysispackage/
+
 On-line database links are also freely available for everyone to identify the database references.
 
 - http://www.uksaf.org/data.html
