@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.08p"                             ' Version of this code.
+    ver = "8.09p"                             ' Version of this code.
     direc = "D:\DATA\hideki\XPS\"            ' database file directory
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
@@ -121,16 +121,18 @@ DeadInTheWater2:
     End If
     
     Call Initial
-    
     Application.ScreenUpdating = False
     Application.EnableEvents = False
     Application.Calculation = xlCalculationAutomatic    ' revised for Office 2010
-    
     graphexist = 0
     sh = ActiveSheet.Name
     
     If InStr(1, sh, "Graph_") > 0 Then
-        strSheetDataName = mid$(sh, 7, (Len(sh) - 6))
+        If InStr(1, sh, "Graph_Norm_") > 0 Then
+            strSheetDataName = "Norm_" & mid$(sh, 12, (Len(sh) - 11))
+        Else
+            strSheetDataName = mid$(sh, 7, (Len(sh) - 6))
+        End If
         graphexist = 1       ' for trigger for Graph sheet
         
         If IsEmpty(Cells(1, 2).Value) = False Then
@@ -211,7 +213,6 @@ DeadInTheWater2:
             End If
         End If
         multi = Cells(9, 3).Value
-        
         strAna = Cells(10, 3).Value
         
         If Cells(40, para + 9).Value = "Ver." Then
@@ -219,7 +220,6 @@ DeadInTheWater2:
             For q = 1 To 500
                 If StrComp(Cells(40, q + 9).Value, "Ver.", 1) = 0 Then Exit For
             Next
-            
             para = q
         End If
         
@@ -346,7 +346,6 @@ DeadInTheWater2:
             For q = 1 To 500
                 If StrComp(Workbooks(wb).Sheets("Graph_" + strSheetDataName).Cells(40, q + 9).Value, "Ver.", 1) = 0 Then Exit For
             Next
-
             para = q
         End If
         
@@ -396,7 +395,6 @@ DeadInTheWater2:
         wb = ActiveWorkbook.Name
         
         If StrComp(Cells(1, para + 1).Value, "Parameters", 1) = 0 Then
-            
         Else
             For q = 1 To 500
                 If Cells(1, q).Value = "Parameters" Then
@@ -413,8 +411,6 @@ DeadInTheWater2:
         
         Application.CutCopyMode = False
         End
-            
-        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
     Else
         If InStr(ActiveWorkbook.Name, ".") < 1 Then
             TimeCheck = MsgBox("Save the file with the extention: xlsx and try it again!", vbExclamation)
@@ -428,6 +424,7 @@ DeadInTheWater2:
         For Each sheetData In Worksheets
             If sheetData.Name = strTest Then flag = True
         Next sheetData
+        
         If flag = True Then
             ActiveSheet.Name = mid$(sh, 1, 25)
             strSheetDataName = mid$(sh, 1, 25)
@@ -455,7 +452,6 @@ DeadInTheWater2:
         wb = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1) + ".xlsx"
     
         Application.DisplayAlerts = False
-        
         If Len(ActiveWorkbook.Path) < 2 Then
             Application.Dialogs(xlDialogSaveAs).Show
         Else
@@ -478,7 +474,6 @@ Error2:
 Error1:
     Err.Clear
     wb = mid$(ActiveWorkbook.Name, 1, InStr(ActiveWorkbook.Name, ".") - 1) + "_bk.xlsx"
-    
     ActiveWorkbook.SaveAs Filename:=ActiveWorkbook.Path + "\" + wb, FileFormat:=51
 End Sub
 
