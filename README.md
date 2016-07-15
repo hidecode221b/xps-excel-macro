@@ -20,16 +20,16 @@ Any data formatted in the Excel spreadsheet can be analysed in the code as follo
 What kind of sheet or data column set generated depends on the operation in the worksheet. In the Graph sheet of XPS data, one spectrum data consists of three columns. First column is used for kinetic energy, second binding energy, and third spectral intensity. In the bottom of first three-column set, the other three columns are followed to be further normalized. First and second columns of second set are the same as those in the first set, and third column the normalized spectral intensity by offset and multiple factors. First chart shown in the Graph sheet is based on the second and third columns in the second set, and second chart is on the first and third columns in the second set.
 
 ##Comparing data
-You can compare the spectral data with another in the Graph sheet. Open the Excel file analyzed in this code and type "comp" in the D1 cell, and then run the code. Choose the Excel files to be compared. You can also add the data one after another to type "comp" in the cell like G1, J1, and so on.
+You can compare the spectral data with one after another in the Graph sheet. Open the Excel file analyzed in this code and type "comp" in the D1 cells of Graph sheet. Choose the Excel files including the Graph sheet in it to be compared. You can also add the data one after another to type "comp" in the every 3 columns after D1 like G1, J1, and so on. Compared data normalized and calibrated in that sheet is easily exported in the sets of two-column data for each spectrum by "exp" in A1 cell. The resulting data in the Exp sheet can be imported in the software you want to plot for further analysis or quality to journal submission. 
 
-##Energy and intensity calibrations
-Standard sample data is used to calibrate the peak energy or normalisation factor. The code has a function to compare the data processed, so the you can easily identify the calibration factors. The code also generates the template for standard element binding energy and sensitivity data to calibrate the energy. 
+##Energy and intensity calibration
+Standard sample data or database is used to calibrate the peak energy or spectral intensity. In the Graph sheet, the photon energy, work function, and charging factor are adjustable parameters for binding energy calibration. The offset and multiple factors are also available to scale spectral intensity for data comparison. To compare the multiple spectra at a glance, both ends of spectral intensity are automatically scaled in the syntax of "auto" at A1 cell in Graph sheet. To specify the energy ranges for spectral offset and multiple scaling, "auto[x0,x1:x2,x3]" can be used in a way that the spectral range between x0 and x1 is averaged to be 0 (offset) and the range between x2 and x3 is averaged to be 1 (multiple). If either x0/x2 or x1/x3 is null, nothing happens to be scaled in the corresponding range. The original data scales for offset and multiple are 0 and 1 respectively.
 
-##Normalization
-Spectral intensity is normalized with the other reference spectrum. Reference data can be added in the "Comp" sequence in the Graph sheet piror to the normalization. "Norm" at A1 cell in the Graph sheet with the code will normalize the first data set by the second data set leading to the resultant third data set. According to the normalized data in the third data set in the Graph sheet, the Norm sheet is produced as new data set to be analyzed in the code. 
+##Spectral normalization
+Spectral intensity is divided (normalized) by the other reference spectrum to compensate the noise or contamination happened during the measurement. Reference data can be added as the second data set by "comp" in the Graph sheet piror to the normalization as mentioned above. The code started with "norm" at A1 cell in the Graph sheet continues normalizing the first data set by the second data set leading to the resultant third data set. According to the normalized data in the third data set in the Graph sheet, the Norm sheet is produced with normalized data set to be analyzed in the code further. 
 
 ##Curve fitting
-The peaks identified in the Graph sheet are analyzed in the Fit sheet. Peak area is calibrated with analytical and numerical ways together with the background subtraction process. The number of peaks can be chosen with parameters such as energy, width, amplitude etc. All the parameters can be constrained or limited in a specific range. Amplitude ratio and peak energy difference are also set up in the cell with specified syntax.
+The peaks calibrated and identified by the database in the Graph sheet are analyzed in the Fit sheet based on the least-square reggression method. Peak area is evaluated with analytical and numerical ways together with the choice of background subtraction processes. The number of peaks can be chosen with parameters such as curve shape, energy, FWHM width, amplitude etc. All the parameters can be constrained or limited in a specific range. Amplitude ratio and peak energy difference are also set up in the cell with specified syntax.
 
 ###Type of background subtraction and peak fitting function
 - Gaussian, Lorentzian, and its blended function with tail parameters for asymmetry
@@ -41,7 +41,7 @@ The peaks identified in the Graph sheet are analyzed in the Fit sheet. Peak area
 - Multiple file analysis based on the initial parameters used in a file
 
 ##Multiple data file analysis
-Once the XPS data is analyzed, you can apply the same analysis conditions in the another files in the energy and intensity calibration or fitting curve as initial parameters. All processed data are summarized in the single Excel sheet to evaluate the atomic element ratio.
+Once a XPS data is analyzed in the Excel VBA code, you can apply its analysis in the another Excel files in terms of the energy and intensity calibration or fitting curve as initial parameters. Atomic consentration in each sample for each element is summarized in the Ana sheet based on the Fit sheets of all spectra. The trend of atomic concentrations in samples is summarized in the Rto sheet based on the Ana sheets for all samples.
 
 ##Notes
 Ctrl+Q has been used for many users during the experiment and post-data processing to publish the data in the manuscript in peer-reviewd journals in the following.
