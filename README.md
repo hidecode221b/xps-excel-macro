@@ -29,16 +29,16 @@ Standard sample data or database is used to calibrate the peak energy or spectra
 Spectral intensity is divided (normalized) by the other reference spectrum to compensate the noise or contamination happened during the measurement. Reference data can be added as the second data set by "comp" in the Graph sheet piror to the normalization as mentioned above. The code started with "norm" at A1 cell in the Graph sheet continues normalizing the first data set by the second data set leading to the resultant third data set. According to the normalized data in the third data set in the Graph sheet, the Norm sheet is produced with normalized data set to be analyzed in the code further. 
 
 ##Curve fitting
-The peaks calibrated and identified by the database in the Graph sheet are analyzed in the Fit sheet based on the least-square reggression method. Peak area is evaluated with analytical and numerical ways together with the choice of background subtraction processes. The number of peaks can be chosen with parameters such as curve shape, energy, FWHM width, amplitude etc. All the parameters can be constrained or limited in a specific range. Amplitude ratio and peak energy difference are also set up in the cell with specified syntax.
+The peaks calibrated and identified by the database in the Graph sheet are analyzed in the Fit sheet based on the least-square reggression method. Peak area is evaluated with analytical and numerical ways together with the choice of background subtraction processes. The number of peaks can be chosen with parameters such as curve shape, energy, FWHM width, amplitude etc. All the parameters can be constrained or limited in a specific range. Amplitude ratios and peak energy differences among the peaks are also adjustable in the cells with specified syntax. 
 
 ###Type of background subtraction and peak fitting function
-- Gaussian, Lorentzian, and its blended function with tail parameters for asymmetry
+- Gaussian, Lorentzian, and its blended function with tail parameters for asymmetric peak
 - Shirley and Tougaard backgrounds with and without spline numerical convolution
+- Constant, linear, parapobolic, and spline for polynomial background
 - Arctangent and Victoreen backgrounds for XAS pre-edge subtraction
-- Peak area with various sensitivity factors including photoionization cross section, source angle correction, MFP, analyzer transmission function etc.
+- Trapezoidal (numerical) integration for peak areas normalized by various sensitivity factors including photoionization cross section, source angle correction, MFP, analyzer transmission function etc.
 - Fermi edge fitting with the Gaussian-convoluted Fermi-Dirac function
-- Trapezoidal integration for peak area
-- Multiple file analysis based on the initial parameters used in a file
+- User-defined function can be easily implemented in the visual Basic programming.
 
 ##Multiple data file analysis
 Once a XPS data is analyzed in the Excel VBA code, you can apply its analysis in the another Excel files in terms of the energy and intensity calibration or fitting curve as initial parameters. Atomic consentration in each sample for each element is summarized in the Ana sheet based on the Fit sheets of all spectra. The trend of atomic concentrations in samples is summarized in the Rto sheet based on the Ana sheets for all samples.
