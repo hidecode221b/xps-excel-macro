@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.09p"                             ' Version of this code.
+    ver = "8.10p"                             ' Version of this code.
     direc = "D:\DATA\hideki\XPS\"            ' database file directory
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
@@ -3765,7 +3765,6 @@ Sub FitCurve()
 
     Call FitRange(strCpa)
     If strErrX = "skip" Then Exit Sub
-
     Call SolverSetup
     
     If StrComp(strTest, "t", 1) <> 0 And StrComp(strLabel, "t", 1) <> 0 And StrComp(strTest, "e", 1) <> 0 Then
@@ -3853,7 +3852,6 @@ Sub FitCurve()
 AsymIteration:
     ls = Cells(9 + sftfit2, 2).Value
     p = 0
-    
     fileNum = 0     ' # of iteration
     a0 = 0          ' Check tolerance for amp. ration
     a1 = 0          ' Check tolerance for BE diff.
@@ -3901,10 +3899,8 @@ Resolve:
         SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Shirley
     ElseIf StrComp(Cells(1, 1).Value, "Tougaard") = 0 Then
         SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Tougaard
-    
     ElseIf StrComp(Cells(1, 1).Value, "Victoreen", 1) = 0 Then
         SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static
-
     ElseIf StrComp(Cells(1, 1).Value, "Arctan", 1) = 0 Or StrComp(Cells(1, 1).Value, "R_erf", 1) = 0 Then
         SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j))) ' active
         SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=Cells(11 + sftfit2, 2).Value        ' This is a point to control the position of inflection
@@ -4372,7 +4368,6 @@ SkipInitialEF:
     Range(Cells(startR, 3), Cells(endR, 3)).FillDown
     Cells(startR, 4).FormulaR1C1 = "=((RC[-2] - RC[-1])^2)"
     Range(Cells(startR, 4), Cells(endR, 4)).FillDown
-
     Cells(5 + sftfit2, 2).FormulaR1C1 = "=SUM(R" & startR & "C4:R" & endR & "C4)"
     Cells(startR, 5).FormulaR1C1 = "=(RC[-3] - RC[-2])"
     Range(Cells(startR, 5), Cells(endR, 5)).FillDown
@@ -4595,7 +4590,6 @@ Sub GetOutFit()
     
     Cells(7 + sftfit2, 1).Value = "Peak fit"
     Cells(7 + sftfit2, 2).Value = vbNullString
-
     Range(Cells(2, 3), Cells(7 + sftfit2, 3)).ClearContents
     Range(Cells(2, 3), Cells(7 + sftfit2, 3)).Interior.ColorIndex = xlNone
     Cells(1, 1).Select
@@ -4689,7 +4683,6 @@ Sub EngBL()
     Cells(3, 3).Value = "mm"
     Cells(4, 1).Value = "1st har."
     Cells(4, 3).Value = "eV"
-    
     Cells(41, para + 13).Value = "B (T)"
     Cells(42, para + 13).Value = "K"
     Cells(5, 1).Value = "Start PE"
@@ -4700,24 +4693,19 @@ Sub EngBL()
     Cells(6, 2).Value = endEb
     Cells(7, 2).Value = stepEk
     Cells(8, 2).Value = 1
-    
     Cells(9, 1).Value = "Offset/multp"
     Cells(9, 2).Value = off
     Cells(9, 3).Value = multi
-    
     Cells(10, 1).Value = "PE"
     Cells(10, 2).Value = "+shift"
     Cells(10, 3).Value = "Ab"
-    
     strl(0) = "Photon energy (eV)"
     strl(1) = "Pe"
     strl(2) = "Sh"
     strl(3) = "Ab"
-    
     [C2:C2].Value = "eV"
     [C5:C7].Value = "eV"
     [C8:C8].Value = "times"
-    
     [A2:A2].Interior.ColorIndex = 3
     [B2:C2].Interior.ColorIndex = 38
     [A5:A8].Interior.ColorIndex = 41
@@ -4742,21 +4730,16 @@ Sub EngBL()
     
     Range(Cells(11, 1), Cells(10 + numData, 1)) = C1
     Range(Cells(11, 3), Cells(10 + numData, 3)) = C4
-    
     Cells(11, 2).FormulaR1C1 = "=R2C2 + RC[-1]"
     Range(Cells(11, 2), Cells(10 + numData, 2)).FillDown
     
     imax = numData + 10
-    
     Cells(10 + (imax), 1).FormulaR1C1 = "=R[-" & (imax - 1) & "]C"
     Range(Cells(10 + (imax), 1), Cells((2 * imax) - 1, 1)).FillDown
-        
     Cells(10 + (imax), 2).FormulaR1C1 = "=R2C + R[-" & (imax - 1) & "]C[-1]"
     Range(Cells(10 + (imax), 2), Cells((2 * imax) - 1, 2)).FillDown
     Cells(10 + (imax), 3).FormulaR1C1 = "= (R[-" & (imax - 1) & "]C - R9C[-1]) *R9C"
     Range(Cells(10 + (imax), 3), Cells((2 * imax) - 1, 3)).FillDown
-    
-            
     Set dataData = Range(Cells(10 + (imax), 2), Cells(10 + (imax), 2).Offset(numData - 1, 1))
     startEb = Application.Floor(Cells(10 + (imax), 2).Value, char)
     endEb = Application.Ceiling(Cells(9 + (imax) + numData, 2).Value, char)
@@ -4803,7 +4786,6 @@ Sub EngBL()
     End With
     
     SourceRangeColor1 = ActiveChart.SeriesCollection(1).Border.Color
-    
     Range(Cells(10, 1), Cells(10, 2)).Interior.Color = SourceRangeColor1
     Range(Cells(9 + (imax), 1), Cells(9 + (imax), 2)).Interior.Color = SourceRangeColor1
     strTest = mid$(strSheetGraphName, InStr(strSheetGraphName, "_") + 1, Len(strSheetGraphName) - 6)
@@ -5129,7 +5111,6 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
                 End If
                 GoTo SkipOpen
             End If
-            
         ElseIf strl(5) = 2 Then
             If Not Cells(2, 1).Value = "PE" Then
                 If j = 0 Then
@@ -5273,7 +5254,6 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
             fitNuma = Workbooks(Target).Sheets(strCpa).Cells(4, para + 1).Value    ' # of files
             C1 = Workbooks(Target).Sheets(strCpa).Range(Cells(1, 1), Cells((4 + spacera * 4) + 5 * fitNuma, 9 + 2 * peakNuma)) ' No check in matching among the peak names.
             C2 = Workbooks(Target).Sheets(strCpa).Range(Cells(4, 6 + peakNuma), Cells(3 + fitNuma, 8 + peakNuma))
-            
             C3(1, peakNum + 5) = Target
             C3(2, peakNum + 5) = strCpa
 
@@ -5314,7 +5294,6 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
                 strl(1) = "Be"
                 strl(2) = "Sh"
                 strl(3) = "In"
-                
                 Cells(4, (4 + (n * 3))) = "Shift"
                 Cells(4, (5 + (n * 3))) = 0
                 Cells(4, (6 + (n * 3))) = "eV"
@@ -5325,7 +5304,6 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
                 strl(1) = "Pe"
                 strl(2) = "Sh"
                 strl(3) = "Ab"
-                
                 Cells(2, (4 + (n * 3))).Value = "Shift"
                 Cells(2, (5 + (n * 3))).Value = 0
                 Cells(2, (6 + (n * 3))).Value = "eV"
@@ -5336,7 +5314,6 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
                 strl(1) = "Po"
                 strl(2) = "Sh"
                 strl(3) = "Ab"
-                
                 Cells(2, (4 + (n * 3))).Value = "Shift"
                 Cells(2, (5 + (n * 3))).Value = 0
                 Cells(2, (6 + (n * 3))).Value = "a.u."
@@ -5407,7 +5384,6 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
         ElseIf strl(3) = "De" Then
             Cells(10 + (imax), (4 + (n * 3))).FormulaR1C1 = "=R2C2 + R[-" & (imax - 1) & "]C"
             Range(Cells(10 + (imax), (4 + (n * 3))), Cells((2 * imax) - 1, (4 + (n * 3)))).FillDown
-                
             Cells(10 + (imax), (5 + (n * 3))).FormulaR1C1 = "= (R[-" & (imax - 1) & "]C - R9C) * R9C[1]"
             Range(Cells(10 + (imax), (5 + (n * 3))), Cells((2 * imax) - 1, (5 + (n * 3)))).FillDown
             Cells(10 + (imax), (6 + (n * 3))).FormulaR1C1 = "= (R[-" & (imax - 1) & "]C) * R9C"
@@ -5471,12 +5447,10 @@ AESmode:
         
         If strl(1) = "Ke" And (strl(4) = "Ke" Or strl(4) = "Ek") Then
             ActiveSheet.ChartObjects(2).Activate
-
             If n > ncomp - 1 Then
                ActiveChart.SeriesCollection.NewSeries
-            Else
-
             End If
+            
             With ActiveChart.SeriesCollection(p)
                 .ChartType = xlXYScatterLinesNoMarkers
                 '.Name = Cells(1, 5 + (n * 3)).Value
@@ -5485,17 +5459,21 @@ AESmode:
                 .Values = dataKeGraph.Offset(0, 2)
                 SourceRangeColor2 = .Border.Color
             End With
-        
             Range(Cells(10, (4 + (n * 3))), Cells(10, ((4 + (n * 3))))).Interior.Color = SourceRangeColor2
             Range(Cells(9 + (imax), (4 + (n * 3))), Cells(9 + (imax), ((4 + (n * 3))))).Interior.Color = SourceRangeColor2
         Else
             Range(Cells(10, (4 + (n * 3))), Cells(10, ((4 + (n * 3))))).Interior.Color = SourceRangeColor1
             Range(Cells(9 + (imax), (4 + (n * 3))), Cells(9 + (imax), ((4 + (n * 3))))).Interior.Color = SourceRangeColor1
-
         End If
 
         Range(Cells(10, (5 + (n * 3))), Cells(10, ((5 + (n * 3))))).Interior.Color = SourceRangeColor1
         Range(Cells(9 + (imax), (5 + (n * 3))), Cells(9 + (imax), ((5 + (n * 3))))).Interior.Color = SourceRangeColor1
+        
+        If StrComp(strAna, "Graph_Norm", 1) = 0 And n = 0 Then
+            For q = 1 To 3
+                strl(q) = strl(q) & "Norm_"
+            Next
+        End If
         
         strTest = mid$(Cells(1, (5 + (n * 3))).Value, 1, Len(Cells(1, (5 + (n * 3))).Value) - 5)
         Cells(8 + (imax), (5 + (n * 3))).Value = Cells(1, (5 + (n * 3))).Value
