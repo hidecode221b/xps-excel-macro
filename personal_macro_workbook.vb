@@ -3783,7 +3783,7 @@ Sub FitCurve()
             Call PolynominalTougaardBG2
         Else
             Call PolynominalBG
-        EndIf
+        End If
     ElseIf StrComp(strTest, "a", 1) = 0 Then
         Call TangentArcBG
     ElseIf StrComp(strTest, "t", 1) = 0 Then
@@ -3920,7 +3920,7 @@ Resolve:
                     SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
                 End If
             Next
-        EndIf
+        End If
     ElseIf StrComp(Cells(1, 1).Value, "Shirley", 1) = 0 Then
         SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Shirley
     ElseIf StrComp(Cells(1, 1).Value, "Tougaard") = 0 Then
@@ -4521,7 +4521,7 @@ Sub GetOutFit()
             Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
             Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
             Cells(5, 1).Value = "a3"
-        EndIf
+        End If
     ElseIf StrComp(strTest, "a", 1) = 0 Or StrComp(strTest, "r", 1) = 0 Then
         Range(Cells(8, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
         Range(Cells(8, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
