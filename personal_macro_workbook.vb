@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.10p"                             ' Version of this code.
+    ver = "8.11p"                             ' Version of this code.
     direc = "D:\DATA\hideki\XPS\"            ' database file directory
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
@@ -3777,7 +3777,13 @@ Sub FitCurve()
         Call GetOutFit
         Exit Sub
     ElseIf StrComp(strTest, "p", 1) = 0 Then
-        Call PolynominalBG
+        If StrComp(strLabel, "s", 1) = 0 Then
+            Call PolynominalShirleyBG
+        ElseIf StrComp(strLabel, "t", 1) = 0 Then
+            Call PolynominalTougaardBG2
+        Else
+            Call PolynominalBG
+        EndIf
     ElseIf StrComp(strTest, "a", 1) = 0 Then
         Call TangentArcBG
     ElseIf StrComp(strTest, "t", 1) = 0 Then
@@ -3793,11 +3799,7 @@ Sub FitCurve()
         Call GetOutFit
         Exit Sub
     ElseIf StrComp(strTest, "s", 1) = 0 Then
-        If StrComp(strLabel, "s", 1) = 0 Then
-            Call SplineShirleyBG
-        ElseIf StrComp(strLabel, "t", 1) = 0 Then
-            Call SplineTougaardBG2
-        ElseIf StrComp(strLabel, "i", 1) = 0 Then
+        If StrComp(strLabel, "i", 1) = 0 Then
             Call ShirleyBG2
         Else
             Call ShirleyBG
@@ -3888,13 +3890,37 @@ Resolve:
     Call SolverSetup
 
     If StrComp(Cells(1, 1).Value, "Polynominal", 1) = 0 Then
-        SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j)))
+        If StrComp(Cells(1, 2).Value, "Shirley", 1) = 0 Then
+            SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j))) ' active Shirley
+            For k = 2 To 10
+                If Cells(k, 2).Font.Bold = "True" Then
+                    SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
+                ElseIf k = 6 Then
+                    SolverAdd CellRef:=Cells(6, 2), Relation:=1, FormulaText:=1 ' max ratio
+                    SolverAdd CellRef:=Cells(6, 2), Relation:=3, FormulaText:=0 ' min
+                End If
+            Next
+            SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=1 ' max A
+            SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=0 ' min
+        ElseIf StrComp(Cells(1, 2).Value, "Tougaard", 1) = 0 Then
+            SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j))) ' active Tougaard
+            For k = 2 To 10
+                If Cells(k, 2).Font.Bold = "True" Then
+                    SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
+                ElseIf k = 7 Then
+                    SolverAdd CellRef:=Cells(7, 2), Relation:=1, FormulaText:=1 ' max
+                    SolverAdd CellRef:=Cells(7, 2), Relation:=3, FormulaText:=0 ' min
+                End If
+            Next
+        Else
+            SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j)))
 
-        For k = 2 To 5
-            If Cells(k, 2).Font.Bold = "True" Then
-                SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
-            End If
-        Next
+            For k = 2 To 5
+                If Cells(k, 2).Font.Bold = "True" Then
+                    SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
+                End If
+            Next
+        EndIf
     ElseIf StrComp(Cells(1, 1).Value, "Shirley", 1) = 0 Then
         SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Shirley
     ElseIf StrComp(Cells(1, 1).Value, "Tougaard") = 0 Then
@@ -3918,28 +3944,6 @@ Resolve:
         For k = 2 To 7
             If Cells(k, 2).Font.Bold = "True" Then
                 SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
-            End If
-        Next
-    ElseIf StrComp(Cells(1, 2).Value, "Shirley", 1) = 0 Then
-        SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j))) ' active Shirley
-        For k = 2 To 10
-            If Cells(k, 2).Font.Bold = "True" Then
-                SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
-            ElseIf k = 6 Then
-                SolverAdd CellRef:=Cells(6, 2), Relation:=1, FormulaText:=1 ' max ratio
-                SolverAdd CellRef:=Cells(6, 2), Relation:=3, FormulaText:=0 ' min
-            End If
-        Next
-        SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=1 ' max A
-        SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=0 ' min
-    ElseIf StrComp(Cells(1, 2).Value, "Tougaard", 1) = 0 Then
-        SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j))) ' active Tougaard
-        For k = 2 To 10
-            If Cells(k, 2).Font.Bold = "True" Then
-                SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
-            ElseIf k = 7 Then
-                SolverAdd CellRef:=Cells(7, 2), Relation:=1, FormulaText:=1 ' max
-                SolverAdd CellRef:=Cells(7, 2), Relation:=3, FormulaText:=0 ' min
             End If
         Next
     Else
@@ -4508,9 +4512,16 @@ Sub GetOutFit()
     End If
     
     If StrComp(strTest, "p", 1) = 0 Then
-        Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
-        Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
-        Cells(5, 1).Value = "a3"
+        If StrComp(strLabel, "s", 1) = 0 Then
+            Cells(5, 2).Value = fileNum
+            Cells(5, 1).Value = "Iteration"
+            Cells(5, 2).Font.Bold = "False"
+        ElseIf StrComp(strLabel, "t", 1) = 0 Then
+        Else
+            Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
+            Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
+            Cells(5, 1).Value = "a3"
+        EndIf
     ElseIf StrComp(strTest, "a", 1) = 0 Or StrComp(strTest, "r", 1) = 0 Then
         Range(Cells(8, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
         Range(Cells(8, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
@@ -4550,13 +4561,7 @@ Sub GetOutFit()
         Range(Cells(9, 4), Cells(19 + sftfit2, 5)).Interior.ColorIndex = xlNone
         Range(Cells(9, 1), Cells(9, 2)).ClearContents
     ElseIf StrComp(strTest, "s", 1) = 0 Then
-        If StrComp(strLabel, "s", 1) = 0 Then
-            Cells(5, 2).Value = fileNum
-            Cells(5, 1).Value = "Iteration"
-            Cells(5, 2).Font.Bold = "False"
-        ElseIf StrComp(strLabel, "t", 1) = 0 Then
-
-        ElseIf StrComp(strLabel, "i", 1) = 0 Then    ' Shiley iteration
+        If StrComp(strLabel, "i", 1) = 0 Then    ' Shiley iteration
             Cells(5, 2).Value = ns
             Cells(5, 1).Value = "Iteration"
             Cells(5, 2).Font.Bold = "False"
@@ -6343,8 +6348,8 @@ Sub VictoreenBG()
     [B7:B9].Interior.Color = RGB(197, 202, 233)
 End Sub
 
-Sub SplineShirleyBG()
-    Cells(1, 1).Value = "Spline"
+Sub PolynominalShirleyBG()
+    Cells(1, 1).Value = "Polynominal"
     Cells(1, 2).Value = "Shirley"
     Cells(1, 3).Value = "BG"
     Cells(2, 1).Value = "Tolerance"
@@ -6356,7 +6361,7 @@ Sub SplineShirleyBG()
     Cells(8, 1).Value = "1st poly"
     Cells(9, 1).Value = "2nd poly"
     Cells(10, 1).Value = "3rd poly"
-    Cells(16, 100).Value = "Spline"
+    Cells(16, 100).Value = "Polynominal"
     Cells(16, 101).Value = "Shirley"
     
     If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
@@ -6650,7 +6655,7 @@ Sub TougaardBG2()
     [B2:B7].Interior.Color = RGB(197, 225, 165)    '35
 End Sub
 
-Sub SplineTougaardBG2()
+Sub PolynominalTougaardBG2()
     Dim pnpara As String
     
     If StrComp(mid$(Cells(3, 1).Value, 1, 6), "C (C'=", 1) = 0 And IsNumeric(mid$(Cells(3, 1).Value, 7, 2)) = True Then
@@ -6668,7 +6673,7 @@ Sub SplineTougaardBG2()
         pnpara = "+1"
     End If
     
-    Cells(1, 1).Value = "Spline"
+    Cells(1, 1).Value = "Polynominal"
     Cells(1, 2).Value = "Tougaard"
     Cells(1, 3).Value = "BG"
     Cells(2, 1).Value = "B"
@@ -6680,7 +6685,7 @@ Sub SplineTougaardBG2()
     Cells(8, 1).Value = "1st poly"
     Cells(9, 1).Value = "2nd poly"
     Cells(10, 1).Value = "3rd poly"
-    Cells(16, 100).Value = "Spline"
+    Cells(16, 100).Value = "Polynominal"
     Cells(16, 101).Value = "Tougaard"
     
     For k = 2 To 10
