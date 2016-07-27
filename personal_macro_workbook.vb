@@ -5,7 +5,7 @@ Option Explicit
     Dim j As Integer, k As Integer, q As Integer, p As Integer, n As Integer, iRow As Integer, iCol As Integer, ns As Integer, fileNum As Integer
     Dim startR As Integer, endR As Integer, g As Integer, cae As Integer, ncomp As Integer, numXPSFactors As Integer, numAESFactors As Integer
     Dim numMajorUnit As Integer, modex As Integer, para As Integer, graphexist As Integer, numData As Integer, numChemFactors As Integer
-    Dim idebug As Integer, spacer As Integer, sftfit As Integer, sftfit2 As Integer, cmp As Integer
+    Dim idebug As Integer, spacer As Integer, sftfit As Integer, sftfit2 As Integer, cmp As Integer, scanNum As Integer
     
     Dim wb As String, ver As String, TimeCheck As String, strAna As String, direc As String, ElemD As String, Results As String, testMacro As String
     Dim strSheetDataName As String, strSheetGraphName As String, strSheetFitName As String, strSheetAnaName As String
@@ -20,8 +20,8 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.11p"                             ' Version of this code.
-    direc = "D:\DATA\hideki\XPS\"            ' database file directory
+    ver = "8.12p"                             ' Version of this code.
+    direc = "D:\DATA\hideki\XPS\"            ' database file directory, D means folder undet the d drive .
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
     windowRatio = 4 / 3     ' window width / height, "2/1" for eyes or "4/3" for ppt
@@ -504,6 +504,7 @@ Sub TargetDataAnalysis()
             Call PlotChem
         Else
             Call KeBL            ' KE, BE, PE, GE, QE, AE, ME/eV data setup
+            
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
             
             If StrComp(strTest, "GE/eV", 1) = 0 Then        ' Grating scan with fixed gap
@@ -521,6 +522,18 @@ Sub TargetDataAnalysis()
             End If
         End If
     Else
+        strTest = mid$(Cells(2, 1).Value, 1, 5)
+        
+        Call FormatData
+        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+        Call PlotCLAM2
+        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+        Call ElemXPS
+        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+        Call PlotElem
+        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+        Call FitCurve
+
         If StrComp(TimeCheck, "yes", 1) = 0 Then TimeCheck = "yes2"
         Call GetOut
     End If
@@ -3788,8 +3801,6 @@ Sub FitCurve()
         Call TangentArcBG
     ElseIf StrComp(strTest, "t", 1) = 0 Then
         Call TougaardBG2
-    ElseIf StrComp(strTest, "o", 1) = 0 Then
-        Call OffsetShirleyBG
     ElseIf StrComp(strTest, "v", 1) = 0 Then
         Call VictoreenBG
     ElseIf StrComp(strTest, "d", 1) = 0 Then
@@ -3798,14 +3809,8 @@ Sub FitCurve()
         Call FitEF
         Call GetOutFit
         Exit Sub
-    ElseIf StrComp(strTest, "s", 1) = 0 Then
-        If StrComp(strLabel, "i", 1) = 0 Then
-            Call ShirleyBG2
-        Else
-            Call ShirleyBG
-        End If
     Else
-        Call ShirleyBG      ' Solver mode; ShirleyBG2 for iteration mode.
+        Call ShirleyBG
     End If
     
     Cells(startR, 4).FormulaR1C1 = "=RC[-2] - RC[-1]"
@@ -4533,12 +4538,6 @@ Sub GetOutFit()
         Cells(5, 2).Font.Bold = "False"
         Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
         Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
-    ElseIf StrComp(strTest, "o", 1) = 0 Then
-        Cells(5, 2).Value = fileNum
-        Cells(5, 1).Value = "Iteration"
-        Cells(6, 1).Value = "linear a0"
-        Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
-        Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
     ElseIf StrComp(strTest, "v", 1) = 0 Then
         If Cells(8, 2).Value = vbNullString Then
             Cells(8, 1).Value = "No edge"
@@ -4560,18 +4559,12 @@ Sub GetOutFit()
         Range(Cells(9, 4), Cells(19 + sftfit2, 5)).ClearContents
         Range(Cells(9, 4), Cells(19 + sftfit2, 5)).Interior.ColorIndex = xlNone
         Range(Cells(9, 1), Cells(9, 2)).ClearContents
-    ElseIf StrComp(strTest, "s", 1) = 0 Then
-        If StrComp(strLabel, "i", 1) = 0 Then    ' Shiley iteration
-            Cells(5, 2).Value = ns
-            Cells(5, 1).Value = "Iteration"
-            Cells(5, 2).Font.Bold = "False"
-        Else    ' Shirley
-            Cells(5, 2).Value = fileNum
-            Cells(5, 1).Value = "Iteration"
-            Cells(5, 2).Font.Bold = "False"
-            Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
-            Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
-        End If
+    Else
+        Cells(5, 2).Value = fileNum
+        Cells(5, 1).Value = "Iteration"
+        Cells(5, 2).Font.Bold = "False"
+        Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
+        Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
     End If
     
     For n = 1 To j
@@ -4845,6 +4838,104 @@ Sub HigherOrderCheck()
     End If
 End Sub
 
+Sub FormatData()   ' this is a template for data loading.
+    Dim iniRow As Integer, endRow As Integer, totalDataPoints As Integer, eneCol As Single, speCol As Single, cnt As Integer, msgap As Integer
+    
+    If StrComp(strTest, "CLAM2", 1) = 0 Then        ' XPS mode
+        strTest = "KE/eV"
+    ElseIf StrComp(strTest, "Photo", 1) = 0 Then    ' XAS mode
+        strTest = "PE/eV"
+    Else
+        
+    End If
+    
+    If graphexist = 0 And strTest = "KE/eV" Then
+        ' if parameters are already specified in text, read from text. AlKa: 1486.6, MgKa: 1253.6 eV
+        If StrComp(testMacro, "debug", 1) = 0 Then
+            If peX = 0 Then
+                peX = Application.InputBox(Title:="Manual input mode", Prompt:="Input a photon energy [eV] or cancel to switch AES mode", Default:=600, Type:=1)
+            End If
+            pe = peX
+        Else
+            pe = Application.InputBox(Title:="Manual input mode", Prompt:="Input a photon energy [eV] or cancel to switch AES mode", Default:=600, Type:=1)
+        End If
+            
+        If pe <= 0 Then
+            strTest = "AE/eV"
+        End If
+        
+        wf = 4
+        char = 0
+        
+        ' initialize parameters adjustable
+        off = 0
+        multi = 1
+        ncomp = 0
+        highpe(0) = pe
+        ' optional parameters
+        cae = 100       ' pass energy
+        g = 1200        ' grating line density
+    End If
+    
+    If strTest = "KE/eV" Then
+        ' Data position specified here by row and column in text data
+        eneCol = 1  ' kinetic energy column
+        speCol = 7  ' photoelectron spectral column
+    
+        iniRow = 22                     ' initial row position in text data at 22 row
+        endRow = Cells(iniRow, speCol).End(xlDown).Row
+        numData = endRow - iniRow + 1
+        msgap = 3   ' gap between multple scanned data
+    ElseIf strTest = "PE/eV" Then
+        If Cells(7, 7).Value = "If/Ip" Then
+            eneCol = 1  ' photon energy column
+            speCol = 7  ' TFY spectral column
+        Else
+            eneCol = 1  ' photon energy column
+            speCol = 5  ' TEY spectral column
+        End If
+    
+        iniRow = 12                     ' initial row position in text data at 12 row
+        endRow = Cells(iniRow, speCol).End(xlDown).Row
+        numData = endRow - iniRow + 1
+        msgap = 3   ' gap between multple scanned data
+    Else
+        ' Data position specified here by row and column in text data
+        eneCol = 1  ' kinetic energy column
+        speCol = 7  ' photoelectron spectral column
+    
+        iniRow = 22                     ' initial row position in text data
+        endRow = Cells(iniRow, speCol).End(xlDown).Row
+        numData = endRow - iniRow + 1
+        msgap = 3   ' gap between multple scanned data
+    End If
+    
+    ' Check multiple scanned data
+    cnt = 0
+    Do
+        endRow = iniRow + (numData + msgap) * cnt + numData - 1
+        If IsEmpty(Cells(endRow, speCol)) = True Then Exit Do
+        cnt = cnt + 1
+    Loop
+    
+    iniRow = iniRow + (numData + msgap) * (cnt - 1)
+    endRow = iniRow + numData - 1
+    scanNum = cnt
+    'Debug.Print cnt, iniRow, endRow, numData
+    
+    Set dataKeData = Range(Cells(iniRow, eneCol), Cells(endRow, eneCol))  ' x-axis: kinetic energy
+    Set dataIntData = dataKeData.Offset(, speCol - 1)                  ' y-axis: spectral intensity
+    
+    Set dataData = Union(dataKeData, dataIntData)
+    
+    ' measurement parameters
+    startEk = Cells(iniRow, eneCol).Value       ' start kinetic energy
+    endEk = Cells(endRow, eneCol).Value         ' end kinetic energy
+    stepEk = Cells(iniRow + 1, eneCol).Value - Cells(iniRow, eneCol).Value      ' step of energy
+    
+    numData = CInt(((endEk - startEk) / stepEk) + 1)  ' number of points
+End Sub
+
 Sub KeBL()
     Dim C1 As Variant, s As Variant
     
@@ -4861,7 +4952,9 @@ Sub KeBL()
             Else
                 pe = Application.InputBox(Title:="Manual input mode", Prompt:="Input a photon energy [eV] or cancel to switch AES mode", Default:=650, Type:=1)
             End If
+            
             highpe(0) = pe
+            
             If pe <= 0 Then
                 Cells(1, 1).Value = "AE/eV"
                 strTest = "AE/eV"
@@ -4891,7 +4984,6 @@ Sub KeBL()
             If IsEmpty(C1(numData, 1)) = False And IsEmpty(C1(numData, 2)) = False Then
                 If IsNumeric(C1(numData, 1)) And IsNumeric(C1(numData, 2)) Then Exit For
             End If
-            
             numData = numData - 1
         Next
     Else
@@ -5533,7 +5625,7 @@ Sub descriptGraph()
     Cells(5, 2).Value = startEk
     Cells(6, 2).Value = endEk
     Cells(7, 2).Value = stepEk
-    Cells(8, 2).Value = 1
+    Cells(8, 2).Value = scanNum
     Cells(8, 3).Value = "times"
     [B5:C8].Interior.Color = RGB(144, 202, 249)
     Cells(9, 1).Value = "Offset/multp"
@@ -6127,148 +6219,6 @@ Sub ShirleyBG()
     SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=-1 ' min
     SolverSolve UserFinish:=True
     SolverFinish KeepFinal:=1
-End Sub
-
-Sub ShirleyBG2() 'iteration mode
-    Dim C1 As Variant, C2 As Variant
-    
-    C1 = Range(Cells(startR, 2), Cells(endR, 2))    'C
-    C2 = Range(Cells(startR, 3), Cells(endR, 3))    'A
-    Cells(1, 1).Value = "Shirley"
-    Cells(1, 2).Value = "Iteration"
-    Cells(1, 3).Value = "BG"
-    Cells(2, 2).Value = 0.000001
-    Cells(3, 2).Value = 0.001
-    Cells(4, 2).Value = 0.001
-    Cells(5, 2).Value = 0
-    Cells(2, 1).Value = "Tolerance"
-    Cells(3, 1).Value = "Initial A"
-    Cells(4, 1).Value = "Final A"
-    Cells(5, 1).Value = "Iteration"
-    Cells(16, 100).Value = "Shirley"
-    Cells(16, 101).Value = "Iteration"
-    a0 = Cells(2, 2).Value
-    a1 = Cells(3, 2).Value
-    
-    Do
-        a2 = a1             ' Iteration mode
-        gamma = 0
-        k = k + 1
-        'If gA < 0 Then gA = gA * (-1)
-        For n = (numData - 2) To 1 Step -1
-            gamma = gamma + (C1((n + 1), 1) - C2((n + 1), 1))
-            C2(n, 1) = C2((numData - 1), 1) + (a1 * gamma)
-        Next
-    
-        a1 = a1 * (1 + ((C1(1, 1) - C2(1, 1)) / C1(1, 1)))
-
-        If k > 500 Or a1 > 2 Then
-            Exit Do
-        ElseIf Abs(a2 - a1) < a0 Then
-            Range(Cells(startR, 3), Cells(endR, 3)) = C2
-            Cells(4, 2).Value = a1
-            Cells(5, 2).Value = k   ' it will be overwriten.
-            ns = k
-            Exit Do
-        End If
-    Loop
-End Sub
-
-Sub OffsetShirleyBG()
-    Cells(1, 1).Value = "Offset"
-    Cells(1, 2).Value = "Shirley"
-    Cells(1, 3).Value = "BG"
-    Cells(2, 1).Value = "A"
-    Cells(3, 1).Value = "ratio S:L"
-    Cells(4, 1).Value = "linear a1"
-    Cells(5, 1).Value = "Iteration"
-    Cells(16, 100).Value = "Offset"
-    Cells(16, 101).Value = "Shirley"
-    
-    For k = 2 To 6
-        If Cells(k, 2).Font.Bold = "True" Then
-            
-        ElseIf k = 2 Then
-            If Cells(2, 2).Value > 0.001 Or Cells(2, 2).Value < 0 Then Cells(2, 2).Value = 0.001
-        ElseIf k = 3 Then
-            Cells(3, 2).Value = 0.9
-        ElseIf k = 4 Then
-            If Abs(Cells(4, 2).Value) > 1 Then Cells(4, 2).Value = 0
-        ElseIf k = 6 Then
-            If Abs(Cells(4, 2).Value) > 1 Then Cells(4, 2).Value = 0
-        End If
-    Next
-    
-    Cells(startR, 98).FormulaR1C1 = "= (2 * RC1 - (R" & startR & "C1 + R" & endR & "C1))/(R" & endR & "C1 - R" & startR & "C1)"
-    Range(Cells(startR, 98), Cells(endR, 98)).FillDown
-    
-    If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
-        If Cells(startR, 1).Value = Cells(6, 101).Value Then
-            Cells(startR - 1, 3).FormulaR1C1 = "=AVERAGE(R[1]C2:R[" & (ns) & "]C2)"
-            Cells(startR, 3).FormulaR1C1 = "=AVERAGE(R[1]C2:R[" & (ns) & "]C2)"
-            Cells(startR - 1, 3).Value = Cells(startR - 1, 3).Value
-            Cells(startR, 3).Value = Cells(startR, 3).Value
-        ElseIf Cells(startR + Int(ns / 2), 1).Value > Cells(11 + sftfit2, 2).Value And Cells(startR, 1).Value <= Cells(11 + sftfit2, 2).Value Then
-            Cells(startR - 1, 3).FormulaR1C1 = "=AVERAGE(RC2:R[" & (ns - 1) & "]C2)"
-            Cells(startR, 3).FormulaR1C1 = "=AVERAGE(RC2:R[" & (ns - 1) & "]C2)"
-        ElseIf Cells(startR + Int(ns / 2), 1).Value <= Cells(11 + sftfit2, 2).Value Then
-            Cells(startR - 1, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (Int(ns / 2)) & "]C2:R[" & (Int(ns / 2) + 1) & "]C2)"
-            Cells(startR, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (Int(ns / 2)) & "]C2:R[" & (Int(ns / 2) + 1) & "]C2)"
-        End If
-        
-        Cells(startR, 99).FormulaR1C1 = "= ABS(RC2 - R[-1]C3)"
-        Cells(startR, 99).Value = Cells(startR, 99).Value
-        
-        For k = startR + 1 To endR Step 1
-            Cells(k, 99).FormulaR1C1 = "= ABS(R[-1]C2 - R[-1]C3)"
-            Cells(k, 3).FormulaR1C1 = "=(R3C2 * (R" & (startR) & "C + ( R2C2 * SUM(R[-1]C99:R" & (startR) & "C99)))) + ((1-R3C2) * ((R4C2 * RC98) + R6C2))"
-        Next
-    Else        ' for BE
-        If Cells(endR, 1).Value = Cells(7, 101).Value Then
-            Cells(endR + 1, 3).FormulaR1C1 = "=AVERAGE(R[-1]C2:R[" & (-ns) & "]C2)"
-            Cells(endR, 3).FormulaR1C1 = "=AVERAGE(R[-1]C2:R[" & (-ns) & "]C2)"
-            Cells(endR + 1, 3).Value = Cells(endR + 1, 3).Value
-            Cells(endR, 3).Value = Cells(endR, 3).Value
-        ElseIf Cells(Cells(5, 101).Value + 20 + sftfit - Int(ns / 2), 1).Value > Cells(11 + sftfit2, 2).Value And Cells(Cells(5, 101).Value + 20 + sftfit, 1).Value <= Cells(11 + sftfit2, 2).Value Then
-            Cells(endR + 1, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (ns - (Cells(5, 101).Value + 20 + sftfit - endR)) & "]C2:R[" & (Cells(5, 101).Value + 20 + sftfit - endR - 1) & "]C2)"
-            Cells(endR, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (ns - (Cells(5, 101).Value + 20 + sftfit - endR)) & "]C2:R[" & (Cells(5, 101).Value + 20 + sftfit - endR - 1) & "]C2)"
-            Cells(endR + 1, 3).Value = Cells(endR + 1, 3).Value
-            Cells(endR, 3).Value = Cells(endR, 3).Value
-        ElseIf Cells(Cells(5, 101).Value + 20 + sftfit - Int(ns / 2), 1).Value <= Cells(11 + sftfit2, 2).Value Then
-            Cells(endR + 1, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (Int(ns / 2) - 1) & "]C2:R[" & (Int(ns / 2)) & "]C2)"
-            Cells(endR, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (Int(ns / 2) - 1) & "]C2:R[" & (Int(ns / 2)) & "]C2)"
-            Cells(endR + 1, 3).Value = Cells(endR + 1, 3).Value
-            Cells(endR, 3).Value = Cells(endR, 3).Value
-        End If
-        
-        Cells(endR, 99).FormulaR1C1 = "= ABS(RC2 - R[1]C3)"
-        
-        For k = endR - 1 To startR Step -1
-            Cells(k, 99).FormulaR1C1 = "= ABS(R[1]C2 - R[1]C3)"
-            Cells(k, 3).FormulaR1C1 = "=(R3C2 * (R" & (endR + 1) & "C + ( R2C2 * SUM(R[1]C99:R" & (endR) & "C99)))) + ((1-R3C2) * ((R4C2 * RC98) + R6C2))"
-        Next
-    End If
-
-    Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
-    Range(Cells(startR, 100), Cells(endR, 100)).FillDown
-    Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
-
-    SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(6, 2))
-    SolverAdd CellRef:=Cells(2, 2), Relation:=1, FormulaText:=1 ' max
-    SolverAdd CellRef:=Cells(2, 2), Relation:=3, FormulaText:=0 ' min
-    SolverAdd CellRef:=Cells(3, 2), Relation:=1, FormulaText:=1 ' max
-    SolverAdd CellRef:=Cells(3, 2), Relation:=3, FormulaText:=0 ' min
-
-    For k = 2 To 6
-        If Cells(k, 2).Font.Bold = "True" Then
-            SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
-        End If
-    Next
-    
-    SolverSolve UserFinish:=True
-    SolverFinish KeepFinal:=1
-    [A2:A6].Interior.Color = RGB(156, 204, 101)    '43
-    [B2:B6].Interior.Color = RGB(197, 225, 165)    '35
 End Sub
 
 Sub VictoreenBG()
@@ -8135,6 +8085,8 @@ Sub SolverInstall2()
     
     Application.Run "Solver.xlam!Solver.Solver2.Auto_open"    ' initialize Solver
 End Sub
+
+
 
 
 
