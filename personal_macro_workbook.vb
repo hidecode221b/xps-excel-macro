@@ -6593,7 +6593,7 @@ Sub TougaardBG()
     Else
     
         Cells(endR, 3).FormulaR1C1 = "=SUM(RC2:R[" & (-ns + 1) & "]C2)/ " & ns & ""
-        Cells(endR, 99) = 0
+        Cells(endR, 99) = Cells(endR, 3).Value
         
         For k = endR To startR + 1 Step -1
             Cells(k - 1, 99).FormulaR1C1 = "= ((RC2 * R2C2 * (" & ((endR - k + 1) * stepEk) & " ))/((R3C2 + " & p & " * (" & ((endR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((endR - k + 1) * stepEk) & " )^2)))"
