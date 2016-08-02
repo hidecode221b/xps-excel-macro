@@ -3793,7 +3793,7 @@ Sub FitCurve()
         If StrComp(strLabel, "s", 1) = 0 Then
             Call PolynominalShirleyBG
         ElseIf StrComp(strLabel, "t", 1) = 0 Then
-            Call PolynominalTougaardBG2
+            Call PolynominalTougaardBG
         Else
             Call PolynominalBG
         End If
@@ -3908,15 +3908,7 @@ Resolve:
             SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=1 ' max A
             SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=0 ' min
         ElseIf StrComp(Cells(1, 2).Value, "Tougaard", 1) = 0 Then
-            SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j))) ' active Tougaard
-            For k = 2 To 10
-                If Cells(k, 2).Font.Bold = "True" Then
-                    SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
-                ElseIf k = 7 Then
-                    SolverAdd CellRef:=Cells(7, 2), Relation:=1, FormulaText:=1 ' max
-                    SolverAdd CellRef:=Cells(7, 2), Relation:=3, FormulaText:=0 ' min
-                End If
-            Next
+            SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Tougaard
         Else
             SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j)))
 
@@ -6638,7 +6630,7 @@ Sub TougaardBG()
     
 End Sub
 
-Sub PolynominalTougaardBG2()
+Sub PolynominalTougaardBG()
     Dim pnpara As String
     
     If StrComp(mid$(Cells(3, 1).Value, 1, 6), "C (C'=", 1) = 0 And IsNumeric(mid$(Cells(3, 1).Value, 7, 2)) = True Then
@@ -6674,38 +6666,74 @@ Sub PolynominalTougaardBG2()
     For k = 2 To 10
         If Cells(8, 101).Value = 0 And k >= 7 Then
             Cells(k, 2).Font.Bold = "False"
+            
         End If
         
         If Cells(k, 2).Font.Bold = "True" Then
         ElseIf k = 2 Then
             Cells(2, 2).Value = 2866    '2866 or 1840 or 736
+            'If Cells(2, 2).Value > 3000 Or Cells(2, 2).Value < 200 Then Cells(2, 2).Value = 2866
         ElseIf k = 3 Then
             Cells(3, 2).Value = 1643    '1643 or 1000 or 400
+            'If Cells(3, 2).Value > 2000 Or Cells(3, 2).Value < 1000 Then Cells(3, 2).Value = 1643
         ElseIf k = 4 Then
             Cells(4, 2).Value = 1       ' 1 default
+            'If Cells(4, 2).Value > 1000 Or Cells(4, 2).Value < 0 Then Cells(4, 2).Value = 0
         ElseIf k = 5 Then
             Cells(5, 2).Value = 1
         ElseIf k = 6 Then
             Cells(6, 2).Value = Cells(2, 101).Value
         ElseIf k = 7 Then
             Cells(7, 2).Value = 0.9 ' ratio for Toug to Poly BG
+'            If IsNumeric(Cells(k, 2).Value) = False Then Cells(k, 2).Value = 0.5
+'            If Cells(k, 2).Value > 1 Or Cells(k, 2).Value < 0.001 Then Cells(k, 2).Value = 0.5
         ElseIf k = 8 Then
             Cells(k, 2).Value = 0   ' 1st poly
+            'If Abs(Cells(k, 2).Value) > 1 Then Cells(k, 2).Value = 0
         ElseIf k = 9 Then
             Cells(k, 2).Value = 0   ' 2nd poly
+            'If IsNumeric(Cells(k, 2).Value) = False Then Cells(k, 2).Value = 0
+            'If Abs(Cells(k, 2).Value) > 1 Then Cells(k, 2).Value = 0
         ElseIf k = 10 Then
             Cells(k, 2).Value = 0   ' 3rd poly
+            'If Abs(Cells(k, 2).Value) > 1 Then Cells(k, 2).Value = 0
+            
         End If
+
     Next
     
     Cells(startR, 98).FormulaR1C1 = "= (2 * RC1 - (R" & startR & "C1 + R" & endR & "C1))/(R" & endR & "C1 - R" & startR & "C1)"
     Range(Cells(startR, 98), Cells(endR, 98)).FillDown
-
-    Call descriptTPConv
+    stepEk = Cells(21 + sftfit, 1).Value - Cells(22 + sftfit, 1).Value
     
+    
+    If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
+        
+        Cells(startR, 3).FormulaR1C1 = "=SUM(RC2:R[" & (ns - 1) & "]C2)/ " & ns & ""
+        Cells(startR, 99).Value = 0
+        
+        For k = startR To endR - 1 Step 1
+            Cells(k + 1, 99).FormulaR1C1 = "= ((RC2 * R2C2 * (" & ((startR - k + 1) * stepEk) & " ))/((R3C2 + " & p & " * (" & ((startR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((startR - k + 1) * stepEk) & " )^2)))"
+            Cells(k + 1, 3).FormulaR1C1 = "=R6C2 * (R" & startR & "C + SUM(R[1]C99:R" & (startR) & "C99)) + ((1-R6C2) * (R7C2 + (R8C2 * (RC98) + (R9C2 * (RC98)^2) + (R10C2 * (RC98)^3))))"
+        Next
+    Else
+    
+        Cells(endR, 3).FormulaR1C1 = "=SUM(RC2:R[" & (-ns + 1) & "]C2)/ " & ns & ""
+        Cells(endR, 99) = 0
+        
+        For k = endR To startR + 1 Step -1
+            Cells(k - 1, 99).FormulaR1C1 = "= ((RC2 * R2C2 * (" & ((endR - k + 1) * stepEk) & " ))/((R3C2 + " & p & " * (" & ((endR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((endR - k + 1) * stepEk) & " )^2)))"
+            Cells(k - 1, 3).FormulaR1C1 = "=R6C2 * (R" & endR & "C + SUM(R[1]C99:R" & (endR) & "C99)) + ((1-R6C2) * (R7C2 + (R8C2 * (RC98) + (R9C2 * (RC98)^2) + (R10C2 * (RC98)^3))))"
+        Next
+    End If
+    
+    'Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/((RC2 + RC3)^2)" ' CV
     Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
-    Cells(6 + sftfit2, 2).FormulaR1C1 = "= (Average(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + Average(R" & endR - 1 & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    
+    Cells(6 + sftfit2, 2).FormulaR1C1 = "= (Average(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + Average(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    'Cells(6 + sftfit2, 2).FormulaR1C1 = "=SUM(R" & startR & "C100:R" & endR & "C100)"
+    
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(10, 2))
     SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=1, FormulaText:=5000
     SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=3, FormulaText:=0.001
@@ -6726,8 +6754,10 @@ Sub PolynominalTougaardBG2()
     
     SolverSolve UserFinish:=True
     SolverFinish KeepFinal:=1
+
     [A2:A10].Interior.Color = RGB(156, 204, 101)    '43
     [B2:B10].Interior.Color = RGB(197, 225, 165)    '35
+    
 End Sub
 
 Sub XponetialBG()
@@ -7692,42 +7722,6 @@ Sub descriptGConv()
         Range(Cells(startR, 100 + k), Cells(endR, 100 + k)).FillDown
         Cells(startR + k - 1, 100).FormulaR1C1 = "=Sum(R" & (startR) & "C" & (100 + k) & ":R" & (endR) & "C" & (100 + k) & ")"
     Next k
-End Sub
-
-Sub descriptTConv()
-    If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
-        For k = 1 To (endR - startR + 1)
-            Cells(startR + k - 1, 110 + k).FormulaR1C1 = "=((RC2 * R2C2 * (RC1 -R" & (startR + k - 1) & "C1))/((R3C2 + " & p & " * (RC1 -R" & (startR + k - 1) & "C1)^2)^2 + R4C2 * ((RC1 -R" & (startR + k - 1) & "C1)^2)))" ' CV
-            Range(Cells(startR + k - 1, 110 + k), Cells(endR, 110 + k)).FillDown
-            Cells(startR + k - 1, 109).FormulaR1C1 = "=Sum(R" & (startR + k - 1) & "C" & (110 + 1) & ":R" & (startR + k - 1) & "C" & (110 + endR - startR + 1) & ")"
-            Cells(startR + k - 1, 3).FormulaR1C1 = "=R5C2 * (Sum(R" & (startR) & "C" & (109) & ":R" & (startR + k - 1) & "C" & (109) & ")/(" & (endR - startR + 1) & ") + R6C2)"
-        Next k
-    Else
-        For k = 1 To (endR - startR + 1)
-            Cells(endR - k + 1, 110 + k).FormulaR1C1 = "=((RC2 * R2C2 * (RC1 -R" & (endR - k + 1) & "C1))/((R3C2 + " & p & " * (RC1 -R" & (endR - k + 1) & "C1)^2)^2 + R4C2 * ((RC1 -R" & (endR - k + 1) & "C1)^2)))" ' CV
-            Range(Cells(startR, 110 + k), Cells(endR - k + 1, 110 + k)).FillUp
-            Cells(startR + k - 1, 109).FormulaR1C1 = "=Sum(R" & (startR + k - 1) & "C" & (110 + 1) & ":R" & (startR + k - 1) & "C" & (110 + endR - startR + 1) & ")"
-            Cells(endR - k + 1, 3).FormulaR1C1 = "=R5C2 * (Sum(R" & (endR - k + 1) & "C" & (109) & ":R" & (endR) & "C" & (109) & ")/(" & (endR - startR + 1) & ") + R6C2)"
-        Next k
-    End If
-End Sub
-
-Sub descriptTPConv()
-    If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
-        For k = 1 To (endR - startR + 1)
-            Cells(startR + k - 1, 110 + k).FormulaR1C1 = "=((RC2 * R2C2 * (RC1 -R" & (startR + k - 1) & "C1))/((R3C2 + " & p & " * (RC1 -R" & (startR + k - 1) & "C1)^2)^2 + R4C2 * ((RC1 -R" & (startR + k - 1) & "C1)^2)))" ' CV
-            Range(Cells(startR + k - 1, 110 + k), Cells(endR, 110 + k)).FillDown
-            Cells(startR + k - 1, 109).FormulaR1C1 = "=Sum(R" & (startR + k - 1) & "C" & (110 + 1) & ":R" & (startR + k - 1) & "C" & (110 + endR - startR + 1) & ")"
-            Cells(startR + k - 1, 3).FormulaR1C1 = "=(R7C2 * R5C2 * (Sum(R" & (startR) & "C" & (109) & ":R" & (endR - startR + 1) & "C" & (109) & ")/(" & (endR - startR + 1) & ") + R6C2) + ((1-R7C2) * (R8C2 * (RC98) + (R9C2 * (RC98)^2) + (R10C2 * (RC98)^3))))"
-        Next k
-    Else
-        For k = 1 To (endR - startR + 1)
-            Cells(endR - k + 1, 110 + k).FormulaR1C1 = "=((RC2 * R2C2 * (RC1 -R" & (endR - k + 1) & "C1))/((R3C2 + " & p & " * (RC1 -R" & (endR - k + 1) & "C1)^2)^2 + R4C2 * ((RC1 -R" & (endR - k + 1) & "C1)^2)))" ' CV
-            Range(Cells(startR, 110 + k), Cells(endR - k + 1, 110 + k)).FillUp
-            Cells(startR + k - 1, 109).FormulaR1C1 = "=Sum(R" & (startR + k - 1) & "C" & (110 + 1) & ":R" & (startR + k - 1) & "C" & (110 + endR - startR + 1) & ")"
-            Cells(endR - k + 1, 3).FormulaR1C1 = "=(R7C2 * R5C2 * (Sum(R" & (endR - k + 1) & "C" & (109) & ":R" & (endR) & "C" & (109) & ")/(" & (endR - startR + 1) & ") + R6C2) + ((1-R7C2) * (R8C2 * (RC98) + (R9C2 * (RC98)^2) + (R10C2 * (RC98)^3))))"
-        Next k
-    End If
 End Sub
 
 Sub debugAll()      ' multiple file analysis in sequence
