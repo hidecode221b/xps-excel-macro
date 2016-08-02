@@ -3800,7 +3800,7 @@ Sub FitCurve()
     ElseIf StrComp(strTest, "a", 1) = 0 Then
         Call TangentArcBG
     ElseIf StrComp(strTest, "t", 1) = 0 Then
-        Call TougaardBG2
+        Call TougaardBG
     ElseIf StrComp(strTest, "v", 1) = 0 Then
         Call VictoreenBG
     ElseIf StrComp(strTest, "d", 1) = 0 Then
@@ -6540,7 +6540,7 @@ Sub PolynominalBG()
     SolverFinish KeepFinal:=1
 End Sub
 
-Sub TougaardBG2()
+Sub TougaardBG()
     Dim pnpara As String
     
     If StrComp(mid$(Cells(3, 1).Value, 1, 6), "C (C'=", 1) = 0 And IsNumeric(mid$(Cells(3, 1).Value, 7, 2)) = True Then
@@ -6569,26 +6569,54 @@ Sub TougaardBG2()
     Cells(16, 100).Value = "Tougaard"
     Cells(16, 101).Value = "BG"
     
-    For k = 2 To 6
+    For k = 2 To 5
         If Cells(k, 2).Font.Bold = "True" Then
+        
         ElseIf k = 2 Then
             Cells(2, 2).Value = 2866    '2866 or 1840 or 736
+            'If Cells(2, 2).Value > 3000 Or Cells(2, 2).Value < 200 Then Cells(2, 2).Value = 2866
         ElseIf k = 3 Then
             Cells(3, 2).Value = 1643    '1643 or 1000 or 400
+            'If Cells(3, 2).Value > 2000 Or Cells(3, 2).Value < 1000 Then Cells(3, 2).Value = 1643
         ElseIf k = 4 Then
             Cells(4, 2).Value = 1       ' 1 default
+            'If Cells(4, 2).Value > 1000 Or Cells(4, 2).Value < 0 Then Cells(4, 2).Value = 0
         ElseIf k = 5 Then
             Cells(5, 2).Value = 1
-        ElseIf k = 6 Then
-            Cells(6, 2).Value = Cells(2, 101).Value
+            
         End If
     Next
     
-    Call descriptTConv
-
+    stepEk = Cells(21 + sftfit, 1).Value - Cells(22 + sftfit, 1).Value
+    
+    If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
+        
+        Cells(startR, 3).FormulaR1C1 = "=SUM(RC2:R[" & (ns - 1) & "]C2)/ " & ns & ""
+        Cells(startR, 99).Value = Cells(startR, 3).Value
+        
+        For k = startR To endR - 1 Step 1
+            Cells(k + 1, 99).FormulaR1C1 = "= ((RC2 * R2C2 * (" & ((startR - k + 1) * stepEk) & " ))/((R3C2 + " & p & " * (" & ((startR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((startR - k + 1) * stepEk) & " )^2)))"
+            Cells(k + 1, 3).FormulaR1C1 = "=R5C2 * (R6C2 + SUM(R[-1]C99:R" & (startR) & "C99))"
+        Next
+    Else
+    
+        Cells(endR, 3).FormulaR1C1 = "=SUM(RC2:R[" & (-ns + 1) & "]C2)/ " & ns & ""
+        Cells(endR, 99) = 0
+        
+        For k = endR To startR + 1 Step -1
+            Cells(k - 1, 99).FormulaR1C1 = "= ((RC2 * R2C2 * (" & ((endR - k + 1) * stepEk) & " ))/((R3C2 + " & p & " * (" & ((endR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((endR - k + 1) * stepEk) & " )^2)))"
+            Cells(k - 1, 3).FormulaR1C1 = "=R5C2 * (R6C2 + SUM(R[1]C99:R" & (endR) & "C99))"
+        Next
+    End If
+    
+    'Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/((RC2 + RC3)^2)" ' CV
     Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
-    Cells(6 + sftfit2, 2).FormulaR1C1 = "= (Average(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + Average(R" & endR - 1 & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    
+    Cells(6 + sftfit2, 2).FormulaR1C1 = "= (Average(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + Average(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    'Cells(6 + sftfit2, 2).FormulaR1C1 = "= Average(R" & startR & "C100:R" & (startR + ns - 1) & "C100)"
+    'Cells(6 + sftfit2, 2).FormulaR1C1 = "=Average(R" & startR & "C100:R" & endR & "C100)"
+    
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(6, 2))
     SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=1, FormulaText:=5000
     SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=3, FormulaText:=0.001
@@ -6604,8 +6632,10 @@ Sub TougaardBG2()
     
     SolverSolve UserFinish:=True
     SolverFinish KeepFinal:=1
+    
     [A2:A6].Interior.Color = RGB(156, 204, 101)    '43
     [B2:B6].Interior.Color = RGB(197, 225, 165)    '35
+    
 End Sub
 
 Sub PolynominalTougaardBG2()
