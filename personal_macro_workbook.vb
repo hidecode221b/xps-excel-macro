@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.12p"                             ' Version of this code.
+    ver = "8.13p"                             ' Version of this code.
     direc = "D:\DATA\hideki\XPS\"            ' database file directory, D means folder undet the d drive .
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
@@ -6714,7 +6714,7 @@ Sub PolynominalTougaardBG()
         
         For k = startR To endR - 1 Step 1
             Cells(k + 1, 99).FormulaR1C1 = "= ((RC2 * R2C2 * (" & ((startR - k + 1) * stepEk) & " ))/((R3C2 + " & p & " * (" & ((startR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((startR - k + 1) * stepEk) & " )^2)))"
-            Cells(k + 1, 3).FormulaR1C1 = "=R6C2 * (R" & startR & "C + SUM(R[1]C99:R" & (startR) & "C99)) + ((1-R6C2) * (R7C2 + (R8C2 * (RC98) + (R9C2 * (RC98)^2) + (R10C2 * (RC98)^3))))"
+            Cells(k + 1, 3).FormulaR1C1 = "=R7C2 * (R" & startR & "C + SUM(R[1]C99:R" & (startR) & "C99)) + ((1-R7C2) * (R6C2 + (R8C2 * (RC98) + (R9C2 * (RC98)^2) + (R10C2 * (RC98)^3))))"
         Next
     Else
     
@@ -6723,7 +6723,7 @@ Sub PolynominalTougaardBG()
         
         For k = endR To startR + 1 Step -1
             Cells(k - 1, 99).FormulaR1C1 = "= ((RC2 * R2C2 * (" & ((endR - k + 1) * stepEk) & " ))/((R3C2 + " & p & " * (" & ((endR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((endR - k + 1) * stepEk) & " )^2)))"
-            Cells(k - 1, 3).FormulaR1C1 = "=R6C2 * (R" & endR & "C + SUM(R[1]C99:R" & (endR) & "C99)) + ((1-R6C2) * (R7C2 + (R8C2 * (RC98) + (R9C2 * (RC98)^2) + (R10C2 * (RC98)^3))))"
+            Cells(k - 1, 3).FormulaR1C1 = "=R7C2 * (R" & endR & "C + SUM(R[1]C99:R" & (endR) & "C99)) + ((1-R7C2) * (R6C2 + (R8C2 * (RC98) + (R9C2 * (RC98)^2) + (R10C2 * (RC98)^3))))"
         Next
     End If
     
