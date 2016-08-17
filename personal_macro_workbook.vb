@@ -3895,36 +3895,20 @@ Resolve:
     Call SolverSetup
 
     If StrComp(Cells(1, 1).Value, "Polynominal", 1) = 0 Then
-        If StrComp(Cells(1, 2).Value, "Shirley", 1) = 0 Then
-            SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j))) ' active Shirley
-            For k = 2 To 10
-                If Cells(k, 2).Font.Bold = "True" Then
-                    SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
-                ElseIf k = 6 Then
-                    SolverAdd CellRef:=Cells(6, 2), Relation:=1, FormulaText:=1 ' max ratio
-                    SolverAdd CellRef:=Cells(6, 2), Relation:=3, FormulaText:=0 ' min
-                End If
-            Next
-            SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=1 ' max A
-            SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=0 ' min
-        ElseIf StrComp(Cells(1, 2).Value, "Tougaard", 1) = 0 Then
-            SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Tougaard
-        Else
-            SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j)))
-
-            For k = 2 To 5
-                If Cells(k, 2).Font.Bold = "True" Then
-                    SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
-                End If
-            Next
-        End If
+        SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static
+'        SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j)))  ' active
+'        For k = 2 To 11
+'            If Cells(k, 2).Font.Bold = "True" Then
+'                SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
+'            End If
+'        Next
     ElseIf StrComp(Cells(1, 1).Value, "Shirley", 1) = 0 Then
         SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Shirley
     ElseIf StrComp(Cells(1, 1).Value, "Tougaard") = 0 Then
         SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Tougaard
     ElseIf StrComp(Cells(1, 1).Value, "Victoreen", 1) = 0 Then
         SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static
-    ElseIf StrComp(Cells(1, 1).Value, "Arctan", 1) = 0 Or StrComp(Cells(1, 1).Value, "R_erf", 1) = 0 Then
+    ElseIf StrComp(Cells(1, 1).Value, "Arctan", 1) = 0 Then
         SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j))) ' active
         SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=Cells(11 + sftfit2, 2).Value        ' This is a point to control the position of inflection
         SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=Cells(12 + sftfit2, 2).Value
@@ -3944,12 +3928,13 @@ Resolve:
             End If
         Next
     Else
-        SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j)))  ' active
-        For k = 2 To 11
-            If Cells(k, 2).Font.Bold = "True" Then
-                SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
-            End If
-        Next
+        SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j)))  ' static
+'        SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j)))  ' active
+'        For k = 2 To 11
+'            If Cells(k, 2).Font.Bold = "True" Then
+'                SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
+'            End If
+'        Next
     End If
     
     If StrComp(strl(1), "Pe", 1) = 0 Or StrComp(strl(1), "Po", 1) = 0 Then
@@ -8115,6 +8100,8 @@ Sub SolverInstall2()
     
     Application.Run "Solver.xlam!Solver.Solver2.Auto_open"    ' initialize Solver
 End Sub
+
+
 
 
 
