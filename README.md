@@ -33,8 +33,9 @@ The peaks calibrated and identified by the database in the Graph sheet are analy
 
 ###Type of background subtraction and peak fitting function
 - Gaussian, Lorentzian, and its blended function with tail parameters for asymmetric peak
-- Shirley and Tougaard backgrounds with and without spline numerical convolution
-- Constant, linear, parapobolic, and spline for polynomial background
+- Shirley and Tougaard backgrounds blended with and without polynomial function
+- Constant, linear, quadratic, and cubic for polynomial background
+- Polynomial and its blended backgrounds optimized with peak fittings (active: "BG" to "ABG")
 - Arctangent and Victoreen backgrounds for XAS pre-edge subtraction
 - Trapezoidal (numerical) integration for peak areas normalized by various sensitivity factors including photoionization cross section, source angle correction, MFP, analyzer transmission function etc.
 - Fermi edge fitting with the Gaussian-convoluted Fermi-Dirac function
