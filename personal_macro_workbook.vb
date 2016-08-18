@@ -6317,13 +6317,7 @@ End Sub
 Sub PolynominalShirleyBG()
     Cells(1, 1).Value = "Polynominal"
     Cells(1, 2).Value = "Shirley"
-    
-    If StrComp(mid$(LCase(Cells(1, 3).Value), 1, 1), "a", 1) = 0 Then
-        Cells(1, 3).Value = "ABG"
-    Else
-        Cells(1, 3).Value = "BG"
-    End If
-    
+    Cells(1, 3).Value = "ABG"   ' active only
     Cells(2, 1).Value = "Tolerance"
     Cells(3, 1).Value = "Initial A"
     Cells(4, 1).Value = "Final A"
@@ -6675,13 +6669,7 @@ Sub PolynominalTougaardBG()
     
     Cells(1, 1).Value = "Polynominal"
     Cells(1, 2).Value = "Tougaard"
-    
-    If StrComp(mid$(LCase(Cells(1, 3).Value), 1, 1), "a", 1) = 0 Then
-        Cells(1, 3).Value = "ABG"
-    Else
-        Cells(1, 3).Value = "BG"
-    End If
-    
+    Cells(1, 3).Value = "ABG"   ' active only
     Cells(2, 1).Value = "B"
     Cells(3, 1).Value = "C (C'=" & pnpara & ")"
     Cells(4, 1).Value = "D"
