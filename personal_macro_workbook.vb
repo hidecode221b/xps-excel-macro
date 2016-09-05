@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.13p"                             ' Version of this code.
+    ver = "8.16p"                             ' Version of this code.
     direc = "D:\DATA\hideki\XPS\"            ' database file directory, D means folder undet the d drive .
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
@@ -4386,7 +4386,7 @@ Sub FitEF()
     Range(Cells(20 + sftfit, 3), Cells((2 * numData + 22 + sftfit), 55)).ClearContents
     Range(Cells(1, 3), Cells(15 + sftfit2, 55)).Interior.ColorIndex = xlNone
     
-    Call descriptEFfit1
+    Call descriptEFfit1(fcmp)
     Call descriptGConv
     
 SkipInitialEF:
@@ -6772,7 +6772,7 @@ Function ShowTrial(Reason As Integer)
     ShowTrial = 0
 End Function
 
-Sub descriptEFfit1()
+Sub descriptEFfit1(fcmp As Range)
     Cells(1, 1).Value = "EF"
     Cells(1, 2).Value = "fit"
     Cells(1, 3).Value = vbNullString
