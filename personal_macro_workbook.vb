@@ -1793,8 +1793,8 @@ Error1:
 End Sub
 
 Sub GetAutoScale()
-    Dim numDataT As Integer, npts As Integer, pstart As Integer, pend As Integer, jc As Integer, dt As Integer, rng As Range
-    Dim iniRow1 As Single, iniRow2 As Single, endRow1 As Single, endRow2 As Single, strAuto As String
+    Dim numDataT As Integer, npts As Integer, pstart As Integer, pend As Integer, jc As Integer, dt As Integer, rng As Range, rg As Range
+    Dim iniRow1 As Single, iniRow2 As Single, endRow1 As Single, endRow2 As Single, strAuto As String, maxv As Single, calv As Single
     
     strAuto = LCase(Cells(1, 1).Value)
     
@@ -1968,6 +1968,31 @@ Sub GetAutoScale()
                         End If
                     End If
                 End If
+            ElseIf StrComp(mid$(strAuto, 5, 1), "{", 1) = 0 And StrComp(mid$(strAuto, Len(strAuto), 1), "}", 1) = 0 Then ' calibrate BE at max value
+                npts = 0
+                maxv = Application.Max(rng)
+                
+                For Each rg In rng
+                    If rg = maxv Then
+                        pstart = rg.Row
+                    End If
+                Next
+                
+                'pstart = Application.Match(maxv, rng, 0) + 11
+                Debug.Print maxv, pstart, mid$(strAuto, 6, Len(strAuto) - 6)
+                
+                If IsEmpty(mid$(strAuto, 6, Len(strAuto) - 6)) = False Then
+                    If IsNumeric(mid$(strAuto, 6, Len(strAuto) - 6)) Then
+                        calv = mid$(strAuto, 6, Len(strAuto) - 6)
+                    Else
+                        calv = 284.6
+                    End If
+                Else
+                    calv = 284.6
+                End If
+                
+                Cells(4, 3 * dt + 2).Value = 0  ' reset char value to be calibrated
+                Cells(4, 3 * dt + 2).Value = Cells(pstart, (2 + (dt * 3))).Value - calv
             ElseIf IsNumeric(mid$(strAuto, 5, Len(strAuto) - 4)) = True Then
                 npts = mid$(strAuto, 5, Len(strAuto) - 4)
                 If npts >= 0 And npts < numDataT / 2 Then
@@ -7555,8 +7580,8 @@ Sub CombineLegend() ' no k is used because from GetCompare Sub
     Dim sheetSample As Worksheet, sheetTarget As Worksheet, icur As Integer, kcur As Integer
     
     If mid$(Results, 1, 1) = "n" Then
-        icur = CInt(mid$(Results, 2, Len(Results) - InStr(1, Results, "k"))) ' number of comp in each comp
-        kcur = CInt(mid$(Results, InStr(1, Results, "k") + 1, Len(Results) - InStr(1, Results, "k")))            ' position of comp from 0
+        icur = CInt(mid$(Results, 2, Len(Results) - InStr(1, Results, "c"))) ' number of comp in each comp
+        kcur = CInt(mid$(Results, InStr(1, Results, "c") + 1, Len(Results) - InStr(1, Results, "c")))            ' position of comp from 0
         Results = vbNullString
     Else
         icur = -1
