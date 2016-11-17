@@ -20,8 +20,8 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.16p"                             ' Version of this code.
-    direc = "D:\DATA\hideki\XPS\"            ' database file directory, D means folder undet the d drive .
+    ver = "8.17p"                             ' Version of this code.
+    direc = "E:\DATA\hideki\XPS\"            ' database file directory, D means folder undet the d drive .
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
     windowRatio = 4 / 3     ' window width / height, "2/1" for eyes or "4/3" for ppt
@@ -523,16 +523,19 @@ Sub TargetDataAnalysis()
         End If
     Else
         strTest = mid$(Cells(2, 1).Value, 1, 5)
-        
-        Call FormatData
-        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-        Call PlotCLAM2
-        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-        Call ElemXPS
-        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-        Call PlotElem
-        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-        Call FitCurve
+        If cmp >= 0 Then
+            Call GetCompare
+        Else
+            Call FormatData
+            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            Call PlotCLAM2
+            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            Call ElemXPS
+            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            Call PlotElem
+            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            Call FitCurve
+        End If
 
         If StrComp(TimeCheck, "yes", 1) = 0 Then TimeCheck = "yes2"
         Call GetOut
@@ -598,7 +601,6 @@ Sub PlotCLAM2()
         End If
         
         For n = 1 To numData
-        
             If IsEmpty(C4(n, 1)) Then
                 C4(n, 1) = 1
             Else
@@ -5328,7 +5330,7 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
             MsgBox "Macro code used in some data comparison is obsolete!"
             End
         ElseIf mid$(sheetTarget.Cells(40, iCol + 10).Value, 1, 4) >= 6.56 Then
-            numData = Workbooks(Target).Sheets(strCpa).Cells(41, iCol + 12).Value
+            numData = sheetTarget.Cells(41, iCol + 12).Value
         Else
             MsgBox "Macro code used in some data comparison is obsolete!"
             End
@@ -5492,6 +5494,11 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
         
         imax = numData + 10
         
+        For p = 1 To 3
+            If Len(strl(p)) > 2 Then strl(p) = mid$(strl(p), 1, 2)
+        Next
+        Debug.Print strl(1), strl(2), strl(3)
+        
         If strl(1) = "Ke" And strl(3) = "In" Then
             If strl(4) = "Be" Then
                 Cells(11, (5 + (n * 3))).FormulaR1C1 = "=R4C + RC[-1]"
@@ -5520,7 +5527,7 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
                 Cells(10 + (imax), (5 + (n * 3))).FormulaR1C1 = "=R[-" & (imax - 1) & "]C"
             End If
         ElseIf strl(3) = "De" Then
-            Cells(10 + (imax), (4 + (n * 3))).FormulaR1C1 = "=R2C2 + R[-" & (imax - 1) & "]C"
+            Cells(10 + (imax), (4 + (n * 3))).FormulaR1C1 = "=R2C + R[-" & (imax - 1) & "]C"
             Range(Cells(10 + (imax), (4 + (n * 3))), Cells((2 * imax) - 1, (4 + (n * 3)))).FillDown
             Cells(10 + (imax), (5 + (n * 3))).FormulaR1C1 = "= (R[-" & (imax - 1) & "]C - R9C) * R9C[1]"
             Range(Cells(10 + (imax), (5 + (n * 3))), Cells((2 * imax) - 1, (5 + (n * 3)))).FillDown
@@ -5537,6 +5544,7 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
         
         Cells(10 + (imax), (4 + (n * 3))).FormulaR1C1 = "=R[-" & (imax - 1) & "]C"
         Range(Cells(10 + (imax), (4 + (n * 3))), Cells((2 * imax) - 1, (4 + (n * 3)))).FillDown
+        
         Range(Cells(10 + (imax), (5 + (n * 3))), Cells((2 * imax) - 1, (5 + (n * 3)))).FillDown
         Cells(10 + (imax), (6 + (n * 3))).FormulaR1C1 = "= (R[-" & (imax - 1) & "]C - R9C[-1]) * R9C"
         Range(Cells(10 + (imax), (6 + (n * 3))), Cells((2 * imax) - 1, (6 + (n * 3)))).FillDown
@@ -8083,6 +8091,8 @@ Sub SolverInstall2()
     
     Application.Run "Solver.xlam!Solver.Solver2.Auto_open"    ' initialize Solver
 End Sub
+
+
 
 
 
