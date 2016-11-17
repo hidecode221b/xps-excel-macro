@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.17p"                             ' Version of this code.
+    ver = "8.18p"                             ' Version of this code.
     direc = "E:\DATA\hideki\XPS\"            ' database file directory, D means folder undet the d drive .
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
@@ -5116,7 +5116,7 @@ Sub offsetmultiple()
 End Sub
 
 Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, sBG As Variant, cmp As Integer, ncmp As Integer, ncomp)
-    Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long, strCpa As String, sheetTarget As Worksheet
+    Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long, strCpa As String, sheetTarget As Worksheet, strNorm As String
     Dim Target As Variant, C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant, imax As Integer, NumSheets As Integer, peakNum As Integer, fitNum As Integer
     
     If strAna = "FitRatioAnalysis" Then
@@ -5494,11 +5494,6 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
         
         imax = numData + 10
         
-        For p = 1 To 3
-            If Len(strl(p)) > 2 Then strl(p) = mid$(strl(p), 1, 2)
-        Next
-        Debug.Print strl(1), strl(2), strl(3)
-        
         If strl(1) = "Ke" And strl(3) = "In" Then
             If strl(4) = "Be" Then
                 Cells(11, (5 + (n * 3))).FormulaR1C1 = "=R4C + RC[-1]"
@@ -5615,17 +5610,17 @@ AESmode:
         Range(Cells(10, (5 + (n * 3))), Cells(10, ((5 + (n * 3))))).Interior.Color = SourceRangeColor1
         Range(Cells(9 + (imax), (5 + (n * 3))), Cells(9 + (imax), ((5 + (n * 3))))).Interior.Color = SourceRangeColor1
         
-        If StrComp(strAna, "Graph_Norm", 1) = 0 And n = 0 Then
-            For q = 1 To 3
-                strl(q) = strl(q) & "Norm_"
-            Next
+        If StrComp(strAna, "Graph_Norm", 1) = 0 Then
+            strNorm = "Norm_"
+        Else
+            strNorm = vbNullString
         End If
         
         strTest = mid$(Cells(1, (5 + (n * 3))).Value, 1, Len(Cells(1, (5 + (n * 3))).Value) - 5)
         Cells(8 + (imax), (5 + (n * 3))).Value = Cells(1, (5 + (n * 3))).Value
-        Cells(9 + (imax), (4 + (n * 3))).Value = strl(1) + strTest
-        Cells(9 + (imax), (5 + (n * 3))).Value = strl(2) + strTest
-        Cells(9 + (imax), (6 + (n * 3))).Value = strl(3) + strTest
+        Cells(9 + (imax), (4 + (n * 3))).Value = strl(1) + strNorm + strTest
+        Cells(9 + (imax), (5 + (n * 3))).Value = strl(2) + strNorm + strTest
+        Cells(9 + (imax), (6 + (n * 3))).Value = strl(3) + strNorm + strTest
         n = n + 1
 SkipOpen:
     Next Target
