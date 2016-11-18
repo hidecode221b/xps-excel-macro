@@ -7697,7 +7697,7 @@ End Sub
 
 Sub debugAll()      ' multiple file analysis in sequence
     Dim be4all() As Variant, am4all() As Variant, fw4all() As Variant, wbX As String, shgX As Worksheet, shfX As Worksheet, strSheetDataNameX As String, numpeakX As Integer
-    Dim Target As Variant, C1 As Variant, C2 As Variant, OpenFileName As Variant, debugMode As String, seriesnum As Integer, SourceRangeColor1 As Long, rng As Range
+    Dim Target As Variant, C1 As Variant, C2 As Variant, OpenFileName As Variant, debugMode As String, seriesnum As Integer, SourceRangeColor1 As Long, rng As Range, strNorm As String
     
     If mid$(testMacro, 1, 5) = "debug" Then
         modex = -1
@@ -7712,12 +7712,15 @@ Sub debugAll()      ' multiple file analysis in sequence
         ElseIf testMacro = "debugPara" Then
             debugMode = "debugPara"
             modex = -2
+        ElseIf testMacro = "debugCopy" Then ' fit the spectrum based on the fitted sheet
+            debugMode = "debugCopy"
+            modex = -3
         End If
     Else
         modex = 0
     End If
     
-    If modex >= -2 And modex <= 6 Then
+    If modex >= -3 And modex <= 6 Then
     Else
         Call GetOut
         Exit Sub
@@ -7730,7 +7733,7 @@ Sub debugAll()      ' multiple file analysis in sequence
         ChDir ActiveWorkbook.Path
     End If
     
-    If modex = -2 Then
+    If modex <= -2 Then
         OpenFileName = Application.GetOpenFilename(FileFilter:="Text Files (*.xlsx), *.xlsx", Title:="Please select file(s)", MultiSelect:=True)
     Else
         OpenFileName = Application.GetOpenFilename(FileFilter:="Text Files (*.txt), *.txt,MultiPak Files (*.csv), *.csv", Title:="Please select file(s)", MultiSelect:=True)
@@ -7741,6 +7744,11 @@ Sub debugAll()      ' multiple file analysis in sequence
     If modex <= -1 Then
         wb = ActiveWorkbook.Name
         wbX = wb
+        If StrComp(mid$(strSheetDataName, 1, 5), "Norm_", 1) = 0 Then
+            strNorm = "Norm_"
+        Else
+            strNorm = vbNullString
+        End If
         strSheetDataNameX = strSheetDataName
         Set shgX = Workbooks(wbX).Sheets("Graph_" + strSheetDataNameX)
         peX = Workbooks(wb).Sheets("Graph_" + strSheetDataName).Cells(2, 2).Value
@@ -7750,17 +7758,19 @@ Sub debugAll()      ' multiple file analysis in sequence
         ElseIf debugMode = "debugPara" Then
             Set shfX = Workbooks(wbX).Sheets("Fit_" + strSheetDataNameX)
             C1 = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Range(Cells(14 + sftfit2, 1), Cells(19 + sftfit2, 2)).Value
+        ElseIf debugMode = "debugCopy" Then
+            C1 = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Range(Cells(1, 1), Cells(24 + sftfit2, para + 20))
         End If
     End If
     
     If modex = -1 Then
         ElemX = Workbooks(wbX).Sheets("Graph_" + strSheetDataName).Cells(51, para + 9).Value
-    ElseIf modex = 1 Or modex = -2 Then
+    ElseIf modex = 1 Or modex <= -2 Then
     Else
         ElemX = Application.InputBox(Title:="Input atomic elements", Prompt:="Example:C,O,Co,etc ... without space!", Default:="C,O,Au", Type:=2)
     End If
     
-    If modex = 1 Or modex = -2 Then
+    If modex = 1 Or modex <= -2 Then
     Else
         If ElemX <> "False" Then
         Else
@@ -7788,7 +7798,7 @@ Sub debugAll()      ' multiple file analysis in sequence
         
         If modex = -2 Then
             Application.DisplayAlerts = False
-            strSheetDataName = mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)
+            strSheetDataName = strNorm + mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)
             Workbooks(ActiveWorkbook.Name).Sheets("Fit_" + strSheetDataName).Range(Cells(14 + sftfit2, 1), Cells(19 + sftfit2, 2)) = C1
             Workbooks(ActiveWorkbook.Name).Sheets("Fit_" + strSheetDataName).Cells(19 + sftfit2, 4) = "Corr. RSF"
             j = Workbooks(ActiveWorkbook.Name).Sheets("Fit_" + strSheetDataName).Cells(8 + sftfit2, 2).Value
@@ -7801,6 +7811,23 @@ Sub debugAll()      ' multiple file analysis in sequence
                 Cells(19 + sftfit2, 4 + q).FormulaR1C1 = "= (R15C101 * (1 - (0.25 * R12C)*(3 * (cos(3.14*R24C2/180))^2 - 1)) * R14C * ((R3C)^(R21C2)) * R19C2 * (((R22C2^2)/((R22C2^2)+((R3C)/(R19C2))^2))^R23C2))"
             Next
             Workbooks(ActiveWorkbook.Name).Close SaveChanges:=True
+            Application.DisplayAlerts = True
+            GoTo SkipOpenDebug
+        ElseIf modex = -3 Then
+            Application.DisplayAlerts = False
+            strSheetDataName = strNorm + mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)
+            Sheets("Fit_" + strSheetDataName).Activate
+            Workbooks(ActiveWorkbook.Name).Sheets("Fit_" + strSheetDataName).Range(Cells(1, 1), Cells(24 + sftfit2, para + 20)) = C1
+            testMacro = "debug"     ' This is a trigger to run the debugAll code in sequence
+            Call CLAM2              ' This is a main code. First run makes Graph, Fit, and Check sheets
+            
+            If StrComp(strErrX, "skip", 1) = 0 Then
+                Workbooks(ActiveWorkbook.Name).Close savechanges:=False
+                Debug.Print "strErrX"
+                Exit Sub
+            End If
+
+            Workbooks(ActiveWorkbook.Name).Close savechanges:=True
             Application.DisplayAlerts = True
             GoTo SkipOpenDebug
         End If
