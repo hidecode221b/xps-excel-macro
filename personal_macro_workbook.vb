@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.18p"                             ' Version of this code.
+    ver = "8.19p"                             ' Version of this code.
     direc = "E:\DATA\hideki\XPS\"            ' database file directory, D means folder undet the d drive .
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
@@ -7399,6 +7399,10 @@ Sub Initial()
         If Err.Number = 91 Then Call debugAll       ' if no workbook is open, go to debugAll process!
         End
     End If
+
+    If InStr(ActiveWorkbook.Name, ".txt") > 0 Then
+        Call ExcelRenew ' regenerate xlsx file from text opened with different insstance
+    End If
     
     With Application.AddIns
     For n = 1 To .Count
@@ -7417,6 +7421,32 @@ Sub Initial()
         End If
     Next n
     End With
+End Sub
+
+Sub ExcelRenew()
+    Dim xlApp As Excel.Application, nxlApp As Excel.Application, wb As String, fname As String
+    
+    'MsgBox "ReGenerate xlsx, and call the code again"
+    Application.DisplayAlerts = False
+    On Error Resume Next
+    
+    Set xlApp = GetObject(ActiveWorkbook.FullName).Application
+    
+    wb = mid$(xlApp.ActiveWorkbook.Name, 1, Len(xlApp.ActiveWorkbook.Name) - 4) + ".xlsx"
+    fname = ActiveWorkbook.Path + "\" + wb
+    
+    xlApp.ActiveWorkbook.SaveAs Filename:=fname, FileFormat:=51
+    xlApp.ActiveWorkbook.Close savechanges:=False
+    xlApp.Quit
+    
+    Set nxlApp = GetObject(, "excel.application")
+    nxlApp.Visible = True
+    nxlApp.Workbooks.Open fname
+    Set xlApp = Nothing
+    Set nxlApp = Nothing
+    
+    Application.DisplayAlerts = True
+    End
 End Sub
 
 Sub GetNormalize()
@@ -7717,13 +7747,7 @@ Sub debugAll()      ' multiple file analysis in sequence
             modex = -3
         End If
     Else
-        modex = 0
-    End If
-    
-    If modex >= -3 And modex <= 6 Then
-    Else
-        Call GetOut
-        Exit Sub
+        modex = 1
     End If
     
     strErrX = ""
@@ -7765,13 +7789,13 @@ Sub debugAll()      ' multiple file analysis in sequence
     
     If modex = -1 Then
         ElemX = Workbooks(wbX).Sheets("Graph_" + strSheetDataName).Cells(51, para + 9).Value
-    ElseIf modex = 1 Or modex <= -2 Then
-    Else
+    ElseIf modex <= -2 Then
+    ElseIf modex = 1
         ElemX = Application.InputBox(Title:="Input atomic elements", Prompt:="Example:C,O,Co,etc ... without space!", Default:="C,O,Au", Type:=2)
     End If
     
-    If modex = 1 Or modex <= -2 Then
-    Else
+    If modex <= -2 Then
+    ElseIf modex = 1
         If ElemX <> "False" Then
         Else
             Call GetOut
