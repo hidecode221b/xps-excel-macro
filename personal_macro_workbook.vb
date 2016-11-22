@@ -21,7 +21,7 @@ Option Explicit
     
 Sub CLAM2()
     ver = "8.19p"                             ' Version of this code.
-    direc = "E:\DATA\hideki\XPS\"            ' database file directory, D means folder undet the d drive .
+    direc = "D:\DATA\hideki\XPS\"            ' database file directory, D means folder undet the d drive .
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
     windowRatio = 4 / 3     ' window width / height, "2/1" for eyes or "4/3" for ppt
