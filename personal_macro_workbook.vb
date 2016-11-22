@@ -7400,7 +7400,7 @@ Sub Initial()
         End
     End If
 
-    If InStr(ActiveWorkbook.Name, ".txt") > 0 Then
+    If InStr(ActiveWorkbook.Name, ".txt") > 0  And InstanceCount > 1 Then
         Call ExcelRenew ' regenerate xlsx file from text opened with different insstance
     End If
     
@@ -7423,30 +7423,52 @@ Sub Initial()
     End With
 End Sub
 
-Sub ExcelRenew()
-    Dim xlApp As Excel.Application, nxlApp As Excel.Application, wb As String, fname As String
+Function InstanceCount() As Integer
+    Dim objList As Object, objType As Object, strObj$
     
-    'MsgBox "ReGenerate xlsx, and call the code again"
+    strObj = "Excel.exe"
+    Set objType = GetObject("winmgmts:").ExecQuery("select * from win32_process where name='" & strObj & "'")
+    InstanceCount = objType.Count
+' http://www.mrexcel.com/forum/excel-questions/400446-visual-basic-applications-check-if-excel-already-open.html
+End Function
+
+Sub ExcelRenew()
+    Dim xlApp As Object, nxlApp As Object, wb As String, fname As String
+
     Application.DisplayAlerts = False
     On Error Resume Next
     
     Set xlApp = GetObject(ActiveWorkbook.FullName).Application
-    
     wb = mid$(xlApp.ActiveWorkbook.Name, 1, Len(xlApp.ActiveWorkbook.Name) - 4) + ".xlsx"
-    fname = ActiveWorkbook.Path + "\" + wb
+    fname = xlApp.ActiveWorkbook.Path + "\" + wb
     
-    xlApp.ActiveWorkbook.SaveAs Filename:=fname, FileFormat:=51
+    xlApp.ActiveWorkbook.SaveAs fileName:=fname, FileFormat:=51
     xlApp.ActiveWorkbook.Close savechanges:=False
     xlApp.Quit
+    xlApp.Visible = False
     
     Set nxlApp = GetObject(, "excel.application")
-    nxlApp.Visible = True
-    nxlApp.Workbooks.Open fname
+    
+    If nxlApp Is Nothing Or xlApp Is nxlApp Then
+        Set xlApp = Nothing
+        Set nxlApp = Nothing
+        Application.DisplayAlerts = True
+        End
+    End If
+    
+    With nxlApp
+        .Applocation.Visible = True
+        .UserControl = True
+        .Workbooks.Open fname
+        .Run ("PERSONAL.XLSB!CLAM2")
+    End With
+    
     Set xlApp = Nothing
     Set nxlApp = Nothing
     
     Application.DisplayAlerts = True
     End
+' http://www.access-programmers.co.uk/forums/showthread.php?t=253555
 End Sub
 
 Sub GetNormalize()
