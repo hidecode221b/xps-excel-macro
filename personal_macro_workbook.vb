@@ -7812,12 +7812,12 @@ Sub debugAll()      ' multiple file analysis in sequence
     If modex = -1 Then
         ElemX = Workbooks(wbX).Sheets("Graph_" + strSheetDataName).Cells(51, para + 9).Value
     ElseIf modex <= -2 Then
-    ElseIf modex = 1
+    ElseIf modex = 1 Then
         ElemX = Application.InputBox(Title:="Input atomic elements", Prompt:="Example:C,O,Co,etc ... without space!", Default:="C,O,Au", Type:=2)
     End If
     
     If modex <= -2 Then
-    ElseIf modex = 1
+    ElseIf modex = 1 Then
         If ElemX <> "False" Then
         Else
             Call GetOut
