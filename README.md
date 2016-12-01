@@ -29,7 +29,7 @@ Standard sample data or database is used to calibrate the peak energy or spectra
 Spectral intensity is divided (normalized) by the other reference spectrum to compensate the noise or contamination happened during the measurement. Reference data can be added as the second data set by "comp" in the Graph sheet piror to the normalization as mentioned above. The code started with "norm" at A1 cell in the Graph sheet continues normalizing the first data set by the second data set leading to the resultant third data set. According to the normalized data in the third data set in the Graph sheet, the Norm sheet is produced with normalized data set to be analyzed in the code further. 
 
 ##Curve fitting
-The peaks calibrated and identified by the database in the Graph sheet are analyzed in the Fit sheet based on the least-square reggression method. Peak area is evaluated with analytical and numerical ways together with the choice of background subtraction processes. The number of peaks can be chosen with parameters such as curve shape, energy, FWHM width, amplitude etc. All the parameters can be constrained or limited in a specific range. Amplitude ratios and peak energy differences among the peaks are also adjustable in the cells with specified syntax. 
+The peaks calibrated and identified by the database in the Graph sheet are analyzed in the Fit sheet based on the least-square regression method. Peak area is evaluated with analytical and numerical ways together with the choice of background subtraction processes. The number of peaks can be chosen with parameters such as curve shape, energy, FWHM width, amplitude etc. All the parameters can be constrained or limited in a specific range. Amplitude ratios and peak energy differences among the peaks are also adjustable in the cells with specified syntax. 
 
 ###Type of background subtraction and peak fitting function
 - Gaussian, Lorentzian, and its blended function with tail parameters for asymmetric peak
@@ -51,6 +51,7 @@ Ctrl+Q has been used for many users during the experiment and post-data processi
 - http://dx.doi.org/10.1016/j.apsusc.2016.01.180
 - http://dx.doi.org/10.1016/j.carbon.2015.01.018
 - http://dx.doi.org/10.1016/j.jenvman.2015.09.036
+- http://dx.doi.org/10.1039/C6RA09972F
 
 Details of advanced function available in the code will be described in the future.
 
