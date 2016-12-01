@@ -7884,10 +7884,10 @@ Sub debugAll()      ' multiple file analysis in sequence
         ' Code until here
         
         ' Error handling process here
-        If StrComp(strErrX, "skip", 1) = 0 Then
-            Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
-            Exit Sub
-        End If
+        'If StrComp(strErrX, "skip", 1) = 0 Then
+        '    Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
+        '    Exit Sub
+        'End If
         ' Error handling process end
         
         If modex = -1 Then
