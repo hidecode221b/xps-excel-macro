@@ -7402,6 +7402,10 @@ Sub Initial()
 
     If InStr(ActiveWorkbook.Name, ".txt") > 0  And InstanceCount > 1 Then
         Call ExcelRenew ' regenerate xlsx file from text opened with different insstance
+    ElseIf StrComp(ActiveSheet.Name, "renew", 1) = 0 Then
+        testMacro = "debug"
+        ElemX = ElemD
+        ActiveSheet.Name = ActiveWorkbook.Name
     End If
     
     With Application.AddIns
@@ -7441,7 +7445,7 @@ Sub ExcelRenew()
     Set xlApp = GetObject(ActiveWorkbook.FullName).Application
     wb = mid$(xlApp.ActiveWorkbook.Name, 1, Len(xlApp.ActiveWorkbook.Name) - 4) + ".xlsx"
     fname = xlApp.ActiveWorkbook.Path + "\" + wb
-    
+    xlApp.ActiveSheet.Name = "renew"
     xlApp.ActiveWorkbook.SaveAs fileName:=fname, FileFormat:=51
     xlApp.ActiveWorkbook.Close savechanges:=False
     xlApp.Quit
