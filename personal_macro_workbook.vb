@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.19p"                             ' Version of this code.
+    ver = "8.20p"                             ' Version of this code.
     direc = "D:\DATA\hideki\XPS\"            ' database file directory, D means folder undet the d drive .
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
@@ -737,8 +737,13 @@ SkipGraph2:
                     .AxisTitle.Text = "Intensity normalized by Ip (arb. units)"
                 End If
             End If
-            .MinimumScale = dblMin
-            .MaximumScale = dblMax
+            If dblMin <> dblMax Then
+                .MinimumScale = dblMin
+                .MaximumScale = dblMax
+            Else
+                .MinimumScaleIsAuto = True
+                .MaximumScaleIsAuto = True
+            End If
             .AxisTitle.Font.Size = 12
             .AxisTitle.Font.Bold = False
             .MajorGridlines.Border.LineStyle = xlDot
@@ -3882,6 +3887,11 @@ Sub FitCurve()
     ActiveSheet.Calculate
     
 AsymIteration:
+    If IsNumeric(Cells(9 + sftfit2, 2).Value) = False Then
+        Call GetOutFit
+        Exit Sub
+    End If
+
     ls = Cells(9 + sftfit2, 2).Value
     p = 0
     fileNum = 0     ' # of iteration
@@ -5311,7 +5321,11 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
         End If
         
         strSheetDataName = mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)
-        Set sheetTarget = Workbooks(Target).Worksheets("Graph_" + strSheetDataName)
+        If ExistSheet("Graph_" + strSheetDataName) Then
+            Set sheetTarget = Workbooks(Target).Worksheets("Graph_" + strSheetDataName)
+        Else
+            Set sheetTarget = Workbooks(Target).ActiveSheet
+        End If
         
         If StrComp(sheetTarget.Cells(40, para + 9).Value, "Ver.", 1) = 0 Then
             iCol = para
