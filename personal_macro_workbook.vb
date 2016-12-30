@@ -2000,6 +2000,30 @@ Sub GetAutoScale()
                 
                 Cells(4, 3 * dt + 2).Value = 0  ' reset char value to be calibrated
                 Cells(4, 3 * dt + 2).Value = Cells(pstart, (2 + (dt * 3))).Value - calv
+             ElseIf StrComp(mid$(strAuto, 5, 1), "'", 1) = 0 And StrComp(mid$(strAuto, Len(strAuto), 1), "'", 1) = 0 Then ' char to a value
+                npts = 0
+                maxv = Application.Max(rng)
+
+                For Each rg In rng
+                    If rg = maxv Then
+                        pstart = rg.Row
+                    End If
+                Next
+
+                'pstart = Application.Match(maxv, rng, 0) + 11
+                Debug.Print maxv, pstart, mid$(strAuto, 6, Len(strAuto) - 6)
+
+                If IsEmpty(mid$(strAuto, 6, Len(strAuto) - 6)) = False Then
+                    If IsNumeric(mid$(strAuto, 6, Len(strAuto) - 6)) Then
+                        calv = mid$(strAuto, 6, Len(strAuto) - 6)
+                    Else
+                        calv = 0
+                    End If
+                Else
+                    calv = 0
+                End If
+
+                Cells(4, 3 * dt + 2).Value = calv  ' reset char value as a constant
             ElseIf IsNumeric(mid$(strAuto, 5, Len(strAuto) - 4)) = True Then
                 npts = mid$(strAuto, 5, Len(strAuto) - 4)
                 If npts >= 0 And npts < numDataT / 2 Then
@@ -2017,6 +2041,46 @@ Sub GetAutoScale()
                 Else    ' XAS mode
                     Cells(9, 3 * dt + 2).Value = Cells(10 + npts, (3 + (dt * 3))).Value
                     Cells(9, 3 * dt + 3).Value = 1 / (Cells(11 + numDataT - npts, (3 + (dt * 3))).Value - Cells(10 + npts, (3 + (dt * 3))).Value)
+                End If
+            ElseIf StrComp(strAuto, "autowf", 1) = 0 Then
+                ' point calibration in "autowf" for cutoff data
+                npts = 0
+                maxv = Application.Max(rng)
+                
+                For Each rg In rng
+                    If rg = maxv Then
+                        pstart = rg.Row
+                    End If
+                Next
+                
+                Debug.Print maxv, pstart
+                
+                If Cells(11 + npts, 3).Value < Cells(10 + numDataT - npts, 3).Value Then
+                    Cells(9, 3 * dt + 2).Value = Cells(11 + npts, (3 + (dt * 3))).Value
+                    Cells(9, 3 * dt + 3).Value = 1 / (Cells(pstart, (3 + (dt * 3))).Value - Cells(11 + npts, (3 + (dt * 3))).Value)
+                Else
+                    Cells(9, 3 * dt + 2).Value = Cells(10 + numDataT - npts, (3 + (dt * 3))).Value
+                    Cells(9, 3 * dt + 3).Value = 1 / (Cells(pstart, (3 + (dt * 3))).Value - Cells(10 + numDataT - npts, (3 + (dt * 3))).Value)
+                End If
+            ElseIf StrComp(strAuto, "automax", 1) = 0 Then
+                ' point calibration in "automax" for cutoff data
+                npts = 0
+                maxv = Application.Max(rng)
+                
+                For Each rg In rng
+                    If rg = maxv Then
+                        pstart = rg.Row
+                    End If
+                Next
+                
+                Debug.Print maxv, pstart
+                
+                If StrComp(LCase(Cells(10, 3 * dt + 1).Value), "pe", 1) = 0 Then 'XAS mode
+                    Cells(9, 3 * dt + 2).Value = Cells(11 + npts, (3 + (dt * 3))).Value
+                    Cells(9, 3 * dt + 3).Value = 1 / (Cells(pstart, (3 + (dt * 3))).Value - Cells(11 + npts, (3 + (dt * 3))).Value)
+                Else    ' PES mode
+                    Cells(9, 3 * dt + 2).Value = Cells(10 + numDataT - npts, (3 + (dt * 3))).Value
+                    Cells(9, 3 * dt + 3).Value = 1 / (Cells(pstart, (3 + (dt * 3))).Value - Cells(10 + numDataT - npts, (3 + (dt * 3))).Value)
                 End If
             Else
                 npts = 0
