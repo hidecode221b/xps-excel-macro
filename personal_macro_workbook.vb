@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.20p"                             ' Version of this code.
+    ver = "8.22p"                             ' Version of this code.
     direc = "D:\DATA\hideki\XPS\"            ' database file directory, D means folder undet the d drive .
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
@@ -2218,7 +2218,7 @@ End Sub
 
 Sub FitRatioAnalysis()
     Dim C1 As Variant, C2 As Variant, C3 As Variant, peakNum As Integer, fitNum As Integer, bookNum As Integer
-    Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, ncmp As Integer, ncomp As Integer
+    Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, ncmp As Integer, ncomp As Integer, rng As Range
     
     strSheetAnaName = "Ana_" + strSheetDataName
     strSheetFitName = "Rto_" + strSheetDataName
@@ -2244,6 +2244,18 @@ Sub FitRatioAnalysis()
             TimeCheck = MsgBox("Stop a comparison because you select too many files: " & UBound(OpenFileName) & " over the total limit: " & para / 3, vbExclamation)
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+        ElseIf UBound(OpenFileName) > 1 Then
+            ' http://www.cpearson.com/excel/SortingArrays.aspx
+            ' put the array values on the worksheet
+            Set rng = sheetFit.Range("A1").Resize(UBound(OpenFileName) - LBound(OpenFileName) + 1, 1)
+            rng = Application.Transpose(OpenFileName)
+            ' sort the range
+            rng.Sort key1:=rng, order1:=xlAscending, MatchCase:=False
+            
+            ' load the worksheet values back into the array
+            For q = 1 To rng.Rows.Count
+                OpenFileName(q) = rng(q, 1)
+            Next q
         End If
         
         strAna = "FitRatioAnalysis"
@@ -2500,10 +2512,10 @@ End Sub
 
 Sub FitAnalysis()
     Dim C1 As Variant, C2 As Variant, C3 As Variant, peakNum As Integer, fitNum As Integer, bookNum As Integer, imax As Integer
-    Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, ncmp As Integer, ncomp As Integer
+    Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, ncmp As Integer, ncomp As Integer, rng As Range
     
     peakNum = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Cells(8 + sftfit2, 2).Value
-    C1 = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Range(Cells(1, 5), Cells(12 + sftfit2, 4 + peakNum))
+    C1 = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Range(Cells(1, 5), Cells(19 + sftfit2, 4 + peakNum))
     C2 = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Range(Cells(1, 1), Cells(1, 3))
             
     strSheetAnaName = "Ana_" + strSheetDataName
@@ -2532,6 +2544,17 @@ Sub FitAnalysis()
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         ElseIf UBound(OpenFileName) > 1 Then
+            ' http://www.cpearson.com/excel/SortingArrays.aspx
+            ' put the array values on the worksheet
+            Set rng = sheetFit.Range("A1").Resize(UBound(OpenFileName) - LBound(OpenFileName) + 1, 1)
+            rng = Application.Transpose(OpenFileName)
+            ' sort the range
+            rng.Sort key1:=rng, order1:=xlAscending, MatchCase:=False
+            
+            ' load the worksheet values back into the array
+            For q = 1 To rng.Rows.Count
+                OpenFileName(q) = rng(q, 1)
+            Next q
         End If
         
         strAna = "FitAnalysis"
@@ -2577,14 +2600,14 @@ Sub FitAnalysis()
             C3(3 + (spacer + fitNum) * 2, iCol + 9 + peakNum) = C1(1, iCol + 1) ' Peak #3 for ratio
             C3(3 + (spacer + fitNum) * 3, iCol + 9 + peakNum) = C1(1, iCol + 1) ' Peak #4 for ratio
             
-            If C1(10 + sftfit2, iCol + 1) > 0 Then
+            If C1(16 + sftfit2, iCol + 1) > 0 Then
+                C3(4 + (spacer + fitNum), iCol + 5) = C1(16 + sftfit2, iCol + 1)      ' T.I.Area
+                C3(4 + (spacer + fitNum) * 2, iCol + 5) = C1(17 + sftfit2, iCol + 1)  ' S.I.Area
+                C3(4 + (spacer + fitNum) * 3, iCol + 5) = C1(18 + sftfit2, iCol + 1)  ' N.I.Area
+            Else
                 C3(4 + (spacer + fitNum), iCol + 5) = C1(10 + sftfit2, iCol + 1)      ' P.Area
                 C3(4 + (spacer + fitNum) * 2, iCol + 5) = C1(11 + sftfit2, iCol + 1)  ' S.Area
                 C3(4 + (spacer + fitNum) * 3, iCol + 5) = C1(12 + sftfit2, iCol + 1)  ' N.Area
-            Else
-                C3(4 + (spacer + fitNum), iCol + 5) = 0      ' P.Area
-                C3(4 + (spacer + fitNum) * 2, iCol + 5) = 0  ' S.Area
-                C3(4 + (spacer + fitNum) * 3, iCol + 5) = 0  ' N.Area
             End If
 
             C3(3 + (spacer + fitNum) * 4, iCol + 5) = C1(1, iCol + 1)     ' Peak #5
