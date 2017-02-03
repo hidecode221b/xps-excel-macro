@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.22p"                             ' Version of this code.
+    ver = "8.23p"                             ' Version of this code.
     direc = "D:\DATA\hideki\XPS\"            ' database file directory, D means folder undet the d drive .
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
@@ -800,7 +800,7 @@ SkipGraph2:
 End Sub
 
 Sub ElemXPS()
-    Dim xpsoffset As Integer, aesoffset As Integer, asf As String, oriXPSFactors As Integer
+    Dim xpsoffset As Integer, aesoffset As Integer, asf As String, oriXPSFactors As Integer, rtoe As Single
     Dim Fname As Variant, Record As Variant, C1 As Variant, C2 As Variant, C3 As Variant, Elem As String
     
     xpsoffset = 0
@@ -888,7 +888,7 @@ CheckElemAgain:
     End If
     
     C1 = C2
-    ReDim C2(1 To iRow, 1 To 10)
+    ReDim C2(1 To iRow, 1 To 11)
     k = 0
     C3 = Split(ElemD, ",")
     
@@ -938,6 +938,26 @@ CheckElemAgain:
     k = 0
     For n = 0 To UBound(C3)
         Elem = C3(n)
+        For p = 1 To Len(Elem)
+            If IsNumeric(mid$(Elem, p, 1)) Then
+                If IsNumeric(mid$(Elem, p, Len(Elem))) Then
+                    rtoe = mid$(Elem, p, Len(Elem))
+                Else
+                    If StrComp(testMacro, "debug", 1) = 0 Then  ' debugAll code needs this
+                        Call GetOut
+                        strErrX = "skip"
+                        Exit Sub
+                    Else
+                        TimeCheck = MsgBox(Elem + " : No such an element in database!", vbExclamation, "Input error")
+                        GoTo CheckElemAgain
+                    End If
+                End If
+                Elem = mid$(Elem, 1, p - 1)
+                Exit For
+            Else
+                rtoe = 1
+            End If
+        Next
         j = 1 + k
         For q = 1 To (iRow)
             If C1(q, 1) = Elem Then
@@ -945,12 +965,14 @@ CheckElemAgain:
                 C2(j, 2) = C1(q, 2)   ' orbit
                 C2(j, 3) = C1(q, 3)   ' BE
                 C2(j, 7) = C1(q, 6 - xpsoffset) ' RSF
+                C2(j, 11) = rtoe                ' atomic ratio
                 j = j + 1
             ElseIf LCase(Elem) = "all" And q > 1 Then
                 C2(j, 1) = C1(q, 1)   ' Elem
                 C2(j, 2) = C1(q, 2)   ' orbit
                 C2(j, 3) = C1(q, 3)   ' BE
                 C2(j, 7) = C1(q, 6 - xpsoffset) ' RSF
+                C2(j, 11) = rtoe                ' atomic ratio
                 j = j + 1
             End If
         Next
@@ -1088,13 +1110,13 @@ SkipElem:
     End If
     
     For n = 1 To numXPSFactors
-        C2(n, 8) = dblMin + (C2(n, 7) * ((dblMax - dblMin) / (maxXPSFactor)))
+        C2(n, 8) = dblMin + (C2(n, 11) * C2(n, 7) * ((dblMax - dblMin) / (maxXPSFactor)))
         If C2(n, 7) = 0 Then
             C2(n, 8) = vbNullString
         End If
     Next
     
-    Range(Cells(51, para + 10), Cells((numXPSFactors + 50), para + 19)) = C2
+    Range(Cells(51, para + 10), Cells((numXPSFactors + 50), para + 20)) = C2
             
     If StrComp(Cells(2, 1).Value, "PE", 1) = 0 Then
         If UBound(highpe) > 0 Then      ' higher order or ghost effects
@@ -1160,12 +1182,32 @@ SkipXPSnumZero:
     End If
     
     C1 = C2
-    ReDim C2(1 To iRow, 1 To 10)
+    ReDim C2(1 To iRow, 1 To 11)
     C3 = Split(ElemD, ",")
     k = 0
     
     For n = 0 To UBound(C3)
         Elem = C3(n)
+        For p = 1 To Len(Elem)
+            If IsNumeric(mid$(Elem, p, 1)) Then
+                If IsNumeric(mid$(Elem, p, Len(Elem))) Then
+                    rtoe = mid$(Elem, p, Len(Elem))
+                Else
+                    If StrComp(testMacro, "debug", 1) = 0 Then  ' debugAll code needs this
+                        Call GetOut
+                        strErrX = "skip"
+                        Exit Sub
+                    Else
+                        TimeCheck = MsgBox(Elem + " : No such an element in database!", vbExclamation, "Input error")
+                        GoTo CheckElemAgain
+                    End If
+                End If
+                Elem = mid$(Elem, 1, p - 1)
+                Exit For
+            Else
+                rtoe = 1
+            End If
+        Next
         j = 1 + k
         For q = 1 To (iRow)
             If C1(q, 1) = Elem Then
@@ -1173,12 +1215,14 @@ SkipXPSnumZero:
                 C2(j, 2) = C1(q, 2)       ' Transition
                 C2(j, 4) = C1(q, 3)       ' KE
                 C2(j, 7) = C1(q, 4 + aesoffset)       ' AES RSF
+                C2(j, 11) = rtoe          ' atomic element ratio                  
                 j = j + 1
             ElseIf LCase(Elem) = "all" And q > 1 Then
                 C2(j, 1) = C1(q, 1)       ' Element
                 C2(j, 2) = C1(q, 2)       ' Transition
                 C2(j, 4) = C1(q, 3)       ' KE
                 C2(j, 7) = C1(q, 4 + aesoffset)       ' AES RSF
+                C2(j, 11) = rtoe          ' atomic element ratio
                 j = j + 1
             End If
         Next
@@ -1200,12 +1244,12 @@ SkipXPSnumZero:
     End If
     
     For n = 1 To numAESFactors
-        C2(n, 8) = dblMin + (C2(n, 7) * ((dblMax - dblMin) / (maxAESFactor)))
+        C2(n, 8) = dblMin + (C2(n, 11) * C2(n, 7) * ((dblMax - dblMin) / (maxAESFactor)))
         C2(n, 2) = C2(n, 1) + C2(n, 2)
-        C2(n, 9) = (C2(n, 7) * ((chkMin) / (maxAESFactor)))
+        C2(n, 9) = (C2(n, 11) * C2(n, 7) * ((chkMin) / (maxAESFactor)))
     Next
     
-    Range(Cells((numXPSFactors + 51), para + 10), Cells((numXPSFactors + numAESFactors + 50), para + 18)) = C2
+    Range(Cells((numXPSFactors + 51), para + 10), Cells((numXPSFactors + numAESFactors + 50), para + 20)) = C2
 End Sub
 
 Sub PlotElem()
@@ -1253,19 +1297,19 @@ Sub PlotElem()
     ElseIf numXPSFactors = 0 And numAESFactors > 0 Then
         Cells((51 + numXPSFactors), para + 15).FormulaR1C1 = "=RC[-2] - R3C2 - R4C2"        ' KE char from KE
         Cells((51 + numXPSFactors), para + 14).FormulaR1C1 = "=R2C2 - RC[-1]"      ' BE char from KE
-        Cells((51 + numXPSFactors), para + 17).FormulaR1C1 = "=R9C3 * ((R41C" & (para + 10) & " + (RC[-1] * (R42C" & (para + 10) & " - R41C" & (para + 10) & ")/R44C" & (para + 10) & ")) - R9C2)"
+        Cells((51 + numXPSFactors), para + 17).FormulaR1C1 = "=R9C3 * ((R41C" & (para + 10) & " + (RC[3] * RC[-1] * (R42C" & (para + 10) & " - R41C" & (para + 10) & ")/R44C" & (para + 10) & ")) - R9C2)"
         Cells((51 + numXPSFactors), para + 18).FormulaR1C1 = "= (RC[-2] * " & (chkMin) & "/R44C" & (para + 10) & ") * R9C3"     ' Sens automatic update
     ElseIf numXPSFactors > 0 And numAESFactors = 0 Then
         Cells(51, para + 15).FormulaR1C1 = "=R2C2 - R3C2 - R4C2 - RC[-3]"     ' KE char from BE
         Cells(51, para + 14).FormulaR1C1 = "=RC[-2]"      ' BE char from BE
-        Cells(51, para + 17).FormulaR1C1 = "=R9C3 * ((R41C" & (para + 10) & " + (RC[-1] * (R42C" & (para + 10) & " - R41C" & (para + 10) & ")/R43C" & (para + 10) & ")) - R9C2)"
+        Cells(51, para + 17).FormulaR1C1 = "=R9C3 * ((R41C" & (para + 10) & " + (RC[3] * RC[-1] * (R42C" & (para + 10) & " - R41C" & (para + 10) & ")/R43C" & (para + 10) & ")) - R9C2)"
     Else
         Cells(51, para + 15).FormulaR1C1 = "=R2C2 - R3C2 - R4C2 - RC[-3]"     ' KE char from BE
         Cells((51 + numXPSFactors), para + 15).FormulaR1C1 = "=RC[-2] - R3C2 - R4C2"        ' KE char from KE
         Cells(51, para + 14).FormulaR1C1 = "=RC[-2]"      ' BE char from BE
         Cells((51 + numXPSFactors), para + 14).FormulaR1C1 = "=R2C2 - RC[-1]"      ' BE char from KE
-        Cells(51, para + 17).FormulaR1C1 = "=R9C3 * ((R41C" & (para + 10) & " + (RC[-1] * (R42C" & (para + 10) & " - R41C" & (para + 10) & ")/R43C" & (para + 10) & ")) - R9C2)"
-        Cells((51 + numXPSFactors), para + 17).FormulaR1C1 = "=R9C3 * ((R41C" & (para + 10) & " + (RC[-1] * (R42C" & (para + 10) & " - R41C" & (para + 10) & ")/R44C" & (para + 10) & ")) - R9C2)"
+        Cells(51, para + 17).FormulaR1C1 = "=R9C3 * ((R41C" & (para + 10) & " + (RC[3] * RC[-1] * (R42C" & (para + 10) & " - R41C" & (para + 10) & ")/R43C" & (para + 10) & ")) - R9C2)"
+        Cells((51 + numXPSFactors), para + 17).FormulaR1C1 = "=R9C3 * ((R41C" & (para + 10) & " + (RC[3] * RC[-1] * (R42C" & (para + 10) & " - R41C" & (para + 10) & ")/R44C" & (para + 10) & ")) - R9C2)"
         Cells((51 + numXPSFactors), para + 18).FormulaR1C1 = "= (RC[-2] * " & (chkMin) & "/R44C" & (para + 10) & ") * R9C3"     ' Sens automatic update
     End If
     
@@ -1291,7 +1335,7 @@ Sub PlotElem()
                 
                 Cells(51 + oriXPSFactors * n, para + 14).FormulaR1C1 = "=R2C2 - R" & (40 + n) & "C" & (para + 14) & " + RC[-2]"     ' BE higher order from BE
                 Cells(51 + oriXPSFactors * n, para + 15).FormulaR1C1 = "=R" & (40 + n) & "C" & (para + 14) & " - R3C2 - R4C2 - RC[-3]"     ' KE char higher order from BE
-                Cells(51 + oriXPSFactors * n, para + 17).FormulaR1C1 = "=R9C3 * (R41C" & (para + 10) & " + (RC[-1] * (R42C" & (para + 10) & " - R41C" & (para + 10) & ")/(R43C" & (para + 10) & " * " & (n + 1) & ")))"
+                Cells(51 + oriXPSFactors * n, para + 17).FormulaR1C1 = "=R9C3 * (R41C" & (para + 10) & " + (RC[3] * RC[-1] * (R42C" & (para + 10) & " - R41C" & (para + 10) & ")/(R43C" & (para + 10) & " * " & (n + 1) & ")))"
                 
                 If (oriXPSFactors > 1) Then
                     Range(Cells(51 + oriXPSFactors * n, para + 14), Cells((50 + oriXPSFactors * (n + 1)), para + 14)).FillDown
@@ -2512,7 +2556,7 @@ End Sub
 
 Sub FitAnalysis()
     Dim C1 As Variant, C2 As Variant, C3 As Variant, peakNum As Integer, fitNum As Integer, bookNum As Integer, imax As Integer
-    Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, ncmp As Integer, ncomp As Integer, rng As Range
+    Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, ncmp As Integer, ncomp As Integer, rng As Range, strSheetCmpName As String
     
     peakNum = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Cells(8 + sftfit2, 2).Value
     C1 = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Range(Cells(1, 5), Cells(19 + sftfit2, 4 + peakNum))
@@ -2521,7 +2565,8 @@ Sub FitAnalysis()
     strSheetAnaName = "Ana_" + strSheetDataName
     strSheetFitName = "Fit_" + strSheetDataName
     strSheetGraphName = "Graph_" + strSheetDataName
-    
+    strSheetCmpName = "Cmp_" + strSheetDataName
+
     If ExistSheet(strSheetAnaName) Then
         Application.DisplayAlerts = False
         Worksheets(strSheetAnaName).Delete
@@ -2793,7 +2838,7 @@ Sub FitAnalysis()
         Next
         
         Cells(1, 1).Select
-        strSheetAnaName = "Cmp_" + strSheetDataName
+        strSheetAnaName = strSheetCmpName
         
         If ExistSheet(strSheetAnaName) Then
             Application.DisplayAlerts = False
@@ -4467,13 +4512,9 @@ ExitIter:
     If StrComp(strl(1), "Pe", 1) = 0 Then
         Cells(2, 4).Value = "PE"
         Range(Cells(3, 5), Cells(3, 55)).ClearContents
-        Range(Cells(12 + sftfit2, 5), Cells(12 + sftfit2, 55)).ClearContents
-        Range(Cells(18 + sftfit2, 5), Cells(18 + sftfit2, 55)).ClearContents
     ElseIf StrComp(strl(1), "Po", 1) = 0 Then
         Cells(2, 4).Value = "Po"
         Range(Cells(3, 5), Cells(3, 55)).ClearContents
-        Range(Cells(12 + sftfit2, 5), Cells(12 + sftfit2, 55)).ClearContents
-        Range(Cells(18 + sftfit2, 5), Cells(18 + sftfit2, 55)).ClearContents
     End If
     
     Call GetOutFit
@@ -5973,6 +6014,7 @@ Sub descriptHidden1()
     Cells(50, para + 17).Value = "Nom"
     Cells(50, para + 18).Value = "aes_dif"
     Cells(50, para + 19).Value = "beta"
+    Cells(50, para + 20).Value = "atm_rto"
 End Sub
 
 Sub descriptHidden2()
@@ -6265,10 +6307,12 @@ Sub descriptInitialFit()
     For q = 1 To j
         Cells(16 + sftfit2, 4 + q) = IntegrationTrapezoid(Range(Cells(21 + sftfit, 1), Cells(20 + sftfit + numData, 1)), Range(Cells(21 + sftfit, 4 + q), Cells(20 + sftfit + numData, 4 + q)))
         Cells(17 + sftfit2, 4 + q).FormulaR1C1 = "= R" & (16 + sftfit2) & "C / (R" & (9 + sftfit2) & "C)"
+        Cells(18 + sftfit2, 4 + q).FormulaR1C1 = "= R" & (16 + sftfit2) & "C / R" & (19 + sftfit2) & "C"
+        
         If strl(1) = "Pe" Or strl(1) = "Po" Then
+            Cells(19 + sftfit2, 4 + q).Value = 1        ' CorrRSF
         Else
             Cells(19 + sftfit2, 4 + q).FormulaR1C1 = "= (R15C101 * (1 - (0.25 * R" & (7 + sftfit2) & "C)*(3 * (cos(3.14*R24C2/180))^2 - 1)) * R" & (9 + sftfit2) & "C * ((R3C)^(R" & (16 + sftfit2) & "C2)) * R" & (14 + sftfit2) & "C2 * (((R" & (17 + sftfit2) & "C2^2)/((R" & (17 + sftfit2) & "C2^2)+((R3C)/(R" & (14 + sftfit2) & "C2))^2))^R" & (18 + sftfit2) & "C2))"
-            Cells(18 + sftfit2, 4 + q).FormulaR1C1 = "= R" & (16 + sftfit2) & "C / R" & (19 + sftfit2) & "C"
         End If
     Next
     
@@ -7910,7 +7954,7 @@ Sub debugAll()      ' multiple file analysis in sequence
             Set shfX = Workbooks(wbX).Sheets("Fit_" + strSheetDataNameX)
             C1 = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Range(Cells(14 + sftfit2, 1), Cells(19 + sftfit2, 2)).Value
         ElseIf debugMode = "debugCopy" Then
-            C1 = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Range(Cells(1, 1), Cells(24 + sftfit2, para + 20))
+            Set shfX = Workbooks(wbX).Sheets("Fit_" + strSheetDataNameX)
         End If
     End If
     
@@ -7967,8 +8011,39 @@ Sub debugAll()      ' multiple file analysis in sequence
         ElseIf modex = -3 Then
             Application.DisplayAlerts = False
             strSheetDataName = strNorm + mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)
-            Sheets("Fit_" + strSheetDataName).Activate
-            Workbooks(ActiveWorkbook.Name).Sheets("Fit_" + strSheetDataName).Range(Cells(1, 1), Cells(24 + sftfit2, para + 20)) = C1
+            If ExistSheet("Fit_" + strSheetDataName) Then
+                shfX.Activate
+                shfX.Range(Cells(1, 1), Cells(24 + sftfit2, para + 20)).Copy
+                
+                Workbooks(strTest).Sheets("Fit_" + strSheetDataName).Activate
+            ElseIf ExistSheet("Graph_" + strSheetDataName) Then
+                testMacro = "debug"     ' This is a trigger to run the debugAll code in sequence
+                Call CLAM2              ' This is a main code. First run makes Graph, Fit, and Check sheets
+                ' Code until here
+                
+                ' Error handling process here
+                If StrComp(strErrX, "skip", 1) = 0 Then
+                    Workbooks(ActiveWorkbook.Name).Close savechanges:=False
+                    Debug.Print "strErrX"
+                    Exit Sub
+                End If
+                ' Error handling process end
+
+                MsgBox ("Fit sheet generated on " & strSheetDataName & ".xlsx, because no Fit sheet was available")
+                Workbooks(ActiveWorkbook.Name).Close savechanges:=False
+                
+                Application.DisplayAlerts = True
+                GoTo SkipOpenDebug
+            End If
+
+            Sheets("Fit_" + strSheetDataName).Paste Destination:=Range(Cells(1, 1), Cells(24 + sftfit2, para + 20))
+            
+            If ActiveSheet.ChartObjects.Count > 3 Then
+                For q = ActiveSheet.ChartObjects.Count To 4 Step -1
+                    ActiveSheet.ChartObjects(q).Delete      ' delete the chart copied from the source, no idea how to remove it!
+                Next
+            End If
+
             testMacro = "debug"     ' This is a trigger to run the debugAll code in sequence
             Call CLAM2              ' This is a main code. First run makes Graph, Fit, and Check sheets
             
