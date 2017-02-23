@@ -2558,6 +2558,8 @@ Sub FitAnalysis()
     Dim C1 As Variant, C2 As Variant, C3 As Variant, peakNum As Integer, fitNum As Integer, bookNum As Integer, imax As Integer
     Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, ncmp As Integer, ncomp As Integer, rng As Range, strSheetCmpName As String
     
+    If Len(strSheetDataName) > 25 Then strSheetDataName = mid$(strSheetDataName, 1, 25)
+
     peakNum = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Cells(8 + sftfit2, 2).Value
     C1 = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Range(Cells(1, 5), Cells(19 + sftfit2, 4 + peakNum))
     C2 = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Range(Cells(1, 1), Cells(1, 3))
@@ -5299,19 +5301,22 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
             j = 1
         End If
         
+        strSheetDataName = mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)
+        If Len(strSheetDataName) > 25 Then strSheetDataName = mid$(strSheetDataName, 1, 25)
+        
         If StrComp(mid$(strAna, 1, 3), "Fit", 1) = 0 Then    ' FitAnalysis, FitComp, FitRatioAnalysis
             If strAna = "FitRatioAnalysis" Then
-                strCpa = "Ana_" + mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)
+                strCpa = "Ana_" + strSheetDataName
             ElseIf mid$(strSheetFitName, 1, 9) = "Fit_Norm_" Then
-                strCpa = "Fit_Norm_" + mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)
+                strCpa = "Fit_Norm_" + strSheetDataName
             Else
-                strCpa = "Fit_" + mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)
+                strCpa = "Fit_" + strSheetDataName
             End If
         ElseIf mid$(strSheetGraphName, 1, 11) = "Graph_Norm_" Then
-            strCpa = "Graph_Norm_" + mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)    ' for Graph_Norm
+            strCpa = "Graph_Norm_" + strSheetDataName    ' for Graph_Norm
             strAna = "Graph_Norm"
         Else
-            strCpa = "Graph_" + mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)    ' for .xlsx
+            strCpa = "Graph_" + strSheetDataName    ' for .xlsx
         End If
         
         Target = mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5) + ".xlsx"
@@ -5448,7 +5453,6 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
             End If
         End If
         
-        strSheetDataName = mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)
         If ExistSheet("Graph_" + strSheetDataName) Then
             Set sheetTarget = Workbooks(Target).Worksheets("Graph_" + strSheetDataName)
         Else
@@ -7961,7 +7965,9 @@ Sub debugAll()      ' multiple file analysis in sequence
     If modex = -1 Then
         ElemX = Workbooks(wbX).Sheets("Graph_" + strSheetDataName).Cells(51, para + 9).Value
     ElseIf modex <= -2 Then
-    ElseIf modex = 1 Then
+    ElseIf Len(ElemX) > 0 Then
+        Debug.Print ElemX, "ElemX", Len(ElemX)
+    Else
         ElemX = Application.InputBox(Title:="Input atomic elements", Prompt:="Example:C,O,Co,etc ... without space!", Default:="C,O,Au", Type:=2)
     End If
     
