@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.23p"                             ' Version of this code.
+    ver = "8.24p"                             ' Version of this code.
     direc = "D:\DATA\hideki\XPS\"            ' database file directory, D means folder undet the d drive .
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
@@ -1592,19 +1592,19 @@ Sub PlotChem()
         Next k
     Next q
     
-    Range(Cells(51, para + 20), Cells((numChemFactors + 50), para + 25)) = C2
-    Cells(51, para + 24).FormulaR1C1 = "=R2C2 - R3C2 - R4C2 - RC[-2]"     ' KE char from BE
+    Range(Cells(51, para + 24), Cells((numChemFactors + 50), para + 29)) = C2
+    Cells(51, para + 28).FormulaR1C1 = "=R2C2 - R3C2 - R4C2 - RC[-2]"     ' KE char from BE
     
     If numChemFactors > 1 Then
-        Range(Cells(51, para + 24), Cells((50 + numChemFactors), para + 24)).FillDown
+        Range(Cells(51, para + 28), Cells((50 + numChemFactors), para + 28)).FillDown
     End If
 
-    Cells(50, para + 20).Value = "Chem"
-    Cells(50, para + 21).Value = "Mater"
-    Cells(50, para + 22).Value = "Shifts"
-    Cells(50, para + 23).Value = "Errors"
-    Cells(50, para + 24).Value = "KEshts"
-    Cells(50, para + 25).Value = "R.Int"
+    Cells(50, para + 24).Value = "Chem"
+    Cells(50, para + 25).Value = "Mater"
+    Cells(50, para + 26).Value = "Shifts"
+    Cells(50, para + 27).Value = "Errors"
+    Cells(50, para + 28).Value = "KEshts"
+    Cells(50, para + 29).Value = "R.Int"
     
 SkipChemLoad:
 
@@ -1743,6 +1743,20 @@ Sub GetCompare()
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         ElseIf UBound(OpenFileName) > 1 Then
+            ' http://www.cpearson.com/excel/SortingArrays.aspx
+            ' put the array values on the worksheet
+            Cells(50, para + 25).Value = "List comps"
+            Set rng = ActiveSheet.Cells(51, para + 25).Resize(UBound(OpenFileName) - LBound(OpenFileName) + 1, 1)
+            rng = Application.Transpose(OpenFileName)
+            ' sort the range
+            rng.Sort key1:=rng, order1:=xlAscending, MatchCase:=False
+            
+            ' load the worksheet values back into the array
+            For q = 1 To rng.Rows.Count
+                OpenFileName(q) = rng(q, 1)
+            Next q
+            
+            Range(Cells(50, para + 25), Cells(50 + UBound(OpenFileName), para + 25)).ClearContents
         End If
         
         Application.Calculation = xlCalculationManual
@@ -2593,7 +2607,7 @@ Sub FitAnalysis()
         ElseIf UBound(OpenFileName) > 1 Then
             ' http://www.cpearson.com/excel/SortingArrays.aspx
             ' put the array values on the worksheet
-            Set rng = sheetFit.Range("A1").Resize(UBound(OpenFileName) - LBound(OpenFileName) + 1, 1)
+            Set rng = sheetFit.Cells(1, 110).Resize(UBound(OpenFileName) - LBound(OpenFileName) + 1, 1)
             rng = Application.Transpose(OpenFileName)
             ' sort the range
             rng.Sort key1:=rng, order1:=xlAscending, MatchCase:=False
@@ -2602,6 +2616,8 @@ Sub FitAnalysis()
             For q = 1 To rng.Rows.Count
                 OpenFileName(q) = rng(q, 1)
             Next q
+            
+            Range(Cells(1, 110), Cells(UBound(OpenFileName), 110)).ClearContents
         End If
         
         strAna = "FitAnalysis"
@@ -7938,7 +7954,27 @@ Sub debugAll()      ' multiple file analysis in sequence
         OpenFileName = Application.GetOpenFilename(FileFilter:="Text Files (*.txt), *.txt,MultiPak Files (*.csv), *.csv", Title:="Please select file(s)", MultiSelect:=True)
     End If
     
-    If IsArray(OpenFileName) = False Then Exit Sub
+    If IsArray(OpenFileName) Then
+        If UBound(OpenFileName) > 1 Then
+            ' http://www.cpearson.com/excel/SortingArrays.aspx
+            ' put the array values on the worksheet
+            Workbooks.Add
+            
+            Set rng = ActiveSheet.Range("A1").Resize(UBound(OpenFileName) - LBound(OpenFileName) + 1, 1)
+            rng = Application.Transpose(OpenFileName)
+            ' sort the range
+            rng.Sort key1:=rng, order1:=xlAscending, MatchCase:=False
+            
+            ' load the worksheet values back into the array
+            For q = 1 To rng.Rows.Count
+                OpenFileName(q) = rng(q, 1)
+            Next q
+            
+            ActiveWorkbook.Close savechanges:=False
+        End If
+    Else
+        Exit Sub
+    End If
     
     If modex <= -1 Then
         wb = ActiveWorkbook.Name
