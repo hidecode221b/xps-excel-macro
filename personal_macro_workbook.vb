@@ -7446,6 +7446,24 @@ Sub FitEquations()
     ActiveSheet.ChartObjects(1).Activate
 End Sub
 
+Sub numMajorUnitsCheck(ByRef startEk As Single, endEk As Single)
+    If Abs(startEk - endEk) >= 500 Then
+        numMajorUnit = 100
+    ElseIf Abs(startEk - endEk) > 100 And Abs(startEk - endEk) < 500 Then
+        numMajorUnit = 50 * windowSize
+    ElseIf Abs(startEk - endEk) <= 100 And Abs(startEk - endEk) > 50 Then
+        numMajorUnit = 4 * windowSize
+    ElseIf Abs(startEk - endEk) <= 50 And Abs(startEk - endEk) > 20 Then
+        numMajorUnit = 2 * windowSize
+    ElseIf Abs(startEk - endEk) <= 20 And Abs(startEk - endEk) > 1 Then
+        numMajorUnit = 1 * windowSize
+    ElseIf Abs(startEk - endEk) <= 1 Then
+        numMajorUnit = 0
+    End If
+    
+    If numData >= 1500 Then numMajorUnit = 0
+End Sub
+
 Sub scalecheck()
     Dim dataIntGraph As Range, chkRef As Object
     
@@ -7461,17 +7479,7 @@ Sub scalecheck()
         startEb = Cells(20 + (numData), 2 - j).Value
         endEb = Cells(20 + (numData), 2 - j).Offset(numData - 1, 0).Value
 
-        If Abs(startEb - endEb) <= 100 And Abs(startEb - endEb) > 50 Then
-            numMajorUnit = 4 * windowSize
-        ElseIf Abs(startEb - endEb) <= 50 And Abs(startEb - endEb) > 20 Then
-            numMajorUnit = 2 * windowSize
-        ElseIf Abs(startEb - endEb) > 100 Then
-            numMajorUnit = 50 * windowSize
-        ElseIf Abs(startEb - endEb) <= 20 And Abs(startEb - endEb) > 1 Then
-            numMajorUnit = 1 * windowSize
-        ElseIf Abs(startEb - endEb) <= 1 Then
-            numMajorUnit = 0
-        End If
+        Call numMajorUnitsCheck(startEb, endEb)
         
         If strl(3) = "Pp" Then numMajorUnit = 5 ' for RGA Qmass
     
