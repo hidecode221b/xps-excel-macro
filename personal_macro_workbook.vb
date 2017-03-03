@@ -7549,7 +7549,9 @@ Sub Initial()
     endR = 0
     g = 0
     cmp = -1
-    
+    numXPSFactors = 0
+    numAESFactors = 0
+
     ReDim Preserve highpe(0)
     ReDim strl(3)
     
