@@ -244,7 +244,7 @@ DeadInTheWater2:
             strSheetGraphName = "Graph_" + strSheetDataName
             Call ExportCmp("")
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-        ElseIf StrComp(LCase(Cells(1, 1).Value), "norm", 1) = 0 Then
+        ElseIf StrComp(LCase(Cells(1, 1).Value), "norm", 1) = 0 Or StrComp(LCase(Cells(1, 1).Value), "diff", 1) = 0 Then
             Call GetNormalize
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         ElseIf StrComp(LCase(mid$(Cells(1, 1).Value, 1, 4)), "auto", 1) = 0 Then
@@ -7669,11 +7669,19 @@ Sub ExcelRenew()
 End Sub
 
 Sub GetNormalize()
-    Dim C1 As Variant, C2 As Variant, C3 As Variant, SourceRangeColor1 As Single, rng As Range, imax As Integer
+    Dim C1 As Variant, C2 As Variant, C3 As Variant
+    Dim SourceRangeColor1 As Single
+    Dim rng As Range
+    Dim imax As Integer
     
-    strSheetAnaName = "Norm_" + strSheetDataName
+    If Cells(1, 1).Value = "norm" Then
+        strSheetAnaName = "Norm_" + strSheetDataName
+    Else
+        strSheetAnaName = "Diff_" + strSheetDataName
+    End If
+    
     strSheetGraphName = "Graph_" + strSheetDataName
-    
+
     If ExistSheet(strSheetAnaName) Then
         Application.DisplayAlerts = False
         Worksheets(strSheetAnaName).Delete
@@ -7687,7 +7695,7 @@ Sub GetNormalize()
     wb = ActiveWorkbook.Name
     sheetGraph.Activate
     
-    If Cells(1, 1).Value = "norm" Then
+    If Cells(1, 1).Value = "norm" Or Cells(1, 1).Value = "diff" Then
         n = 1   ' means data to be generated on third set of data column
         k = 1   ' means data to be normalized on first set of data column
         
@@ -7715,7 +7723,11 @@ Sub GetNormalize()
                 If C1(q, 1) > C2(j, 1) - (endEk / 2) And C1(q, 1) < C2(j, 1) + (endEk / 2) Then
                     C3(p, 1) = C1(q, 1)
                     If C2(j, 2) <> 0 Then
-                        C3(p, 3) = C1(q, 2) / C2(j, 2) ' here is normalized
+                        If Cells(1, 1).Value = "norm" Then
+                            C3(p, 3) = C1(q, 2) / C2(j, 2) ' here is normalized
+                        Else
+                            C3(p, 3) = C1(q, 2) - C2(j, 2) ' difference
+                        End If
                     Else
                         C3(p, 3) = "NaN"
                     End If
@@ -7729,7 +7741,11 @@ Sub GetNormalize()
                     If C1(q, 1) > C2(j, 1) - (stepEk / 2) And C1(q, 1) < C2(j, 1) + (stepEk / 2) Then
                         C3(p, 1) = C1(q, 1)
                         If C2(j, 2) <> 0 Then
-                            C3(p, 3) = C1(q, 2) / C2(j, 2) ' here is normalized
+                            If Cells(1, 1).Value = "norm" Then
+                                C3(p, 3) = C1(q, 2) / C2(j, 2) ' here is normalized
+                            Else
+                                C3(p, 3) = C1(q, 2) - C2(j, 2) ' difference
+                            End If
                         Else
                             C3(p, 3) = "NaN"
                         End If
@@ -7737,41 +7753,63 @@ Sub GetNormalize()
                         Exit For
                     End If
                 Next
-            Else
             End If
         Next
         
         numData = p - 1
         imax = numData + 10
-        
         sheetGraph.Range(Cells(11, (1 + ((n + 1) * 3))), Cells(10 + numData, (3 + ((n + 1) * 3)))) = C3
         
-        strl(1) = "Pe"
-        strl(2) = "Sh"
-        strl(3) = "Ab"
+        If LCase(Cells(10, 1).Value) = "pe" Then
+            strl(1) = "Pe"
+            strl(2) = "Sh"
+            strl(3) = "Ab"
+        Else
+            strl(1) = "Ke"
+            strl(2) = "Be"
+            strl(3) = "In"
+        End If
         
-        strTest = strSheetDataName + "_norm"
+        If Cells(1, 1).Value = "norm" Then
+            strTest = strSheetDataName + "_norm"
+        Else
+            strTest = strSheetDataName + "_diff"
+        End If
+        
         Cells(1, (5 + (n * 3))).Value = strTest
         Cells(8 + (imax), (5 + (n * 3))).Value = strTest
         Cells(9 + (imax), (4 + (n * 3))).Value = strl(1) + strTest
         Cells(9 + (imax), (5 + (n * 3))).Value = strl(2) + strTest
         Cells(9 + (imax), (6 + (n * 3))).Value = strl(3) + strTest
-        Cells(2, ((4 + (n * 3)))).Value = "PE shifts"
-        Cells(2, ((5 + (n * 3)))).Value = 0
-        Cells(2, ((6 + (n * 3)))).Value = "eV"
-        Cells(5, ((4 + (n * 3)))).Value = "Start PE"
-        Cells(6, ((4 + (n * 3)))).Value = "End PE"
-        Cells(7, ((4 + (n * 3)))).Value = "Step PE"
+        
+        If LCase(Cells(10, 1).Value) = "pe" Then
+            Cells(2, ((4 + (n * 3)))).Value = UCase(strl(1)) & " shifts"
+            Cells(2, ((5 + (n * 3)))).Value = 0
+            Cells(2, ((6 + (n * 3)))).Value = "eV"
+            Cells(5, ((4 + (n * 3)))).Value = "Start " & UCase(strl(1))
+            Cells(6, ((4 + (n * 3)))).Value = "End " & UCase(strl(1))
+            Cells(7, ((4 + (n * 3)))).Value = "Step " & UCase(strl(1))
+        Else
+            Cells(2, ((4 + (n * 3)))).Value = UCase(strl(2)) & " shifts"
+            Cells(2, ((5 + (n * 3)))).Value = 0
+            Cells(2, ((6 + (n * 3)))).Value = "eV"
+            Cells(5, ((4 + (n * 3)))).Value = "Start " & UCase(strl(2))
+            Cells(6, ((4 + (n * 3)))).Value = "End " & UCase(strl(2))
+            Cells(7, ((4 + (n * 3)))).Value = "Step " & UCase(strl(2))
+        End If
+        
         Cells(5, ((5 + (n * 3)))).Value = Cells(11, 7).Value
         Cells(6, ((5 + (n * 3)))).Value = Cells(10 + numData, 7).Value
         Cells(7, ((5 + (n * 3)))).Value = Cells(12, 7).Value - Cells(11, 7).Value
         Range(Cells(5, 9), Cells(7, 9)) = "eV"
+
         Cells(9, ((4 + (n * 3)))).Value = "Offset/multp"
         Cells(9, ((5 + (n * 3)))).Value = off
         Cells(9, ((6 + (n * 3)))).Value = multi
-        Cells(10, ((4 + (n * 3)))).Value = "PE"
-        Cells(10, ((5 + (n * 3)))).Value = "+shift"
-        Cells(10, ((6 + (n * 3)))).Value = "Ab"
+        Cells(10, ((4 + (n * 3)))).Value = strl(1)
+        Cells(10, ((5 + (n * 3)))).Value = strl(2)
+        Cells(10, ((6 + (n * 3)))).Value = strl(3)
+        
         Range(Cells(5, (4 + (n * 3))), Cells(7, (4 + (n * 3)))).Interior.ColorIndex = 41
         Range(Cells(5, (5 + (n * 3))), Cells(7, (6 + (n * 3)))).Interior.ColorIndex = 37
         Range(Cells(2, (4 + (n * 3))), Cells(2, (4 + (n * 3)))).Interior.ColorIndex = 3
@@ -7782,6 +7820,7 @@ Sub GetNormalize()
         Cells(11, (5 + (n * 3))).FormulaR1C1 = "=R2C + RC[-1]"
         Cells(10 + (imax), (5 + (n * 3))).FormulaR1C1 = "=R2C + R[-" & (imax - 1) & "]C[-1]"
         Range(Cells(11, (5 + (n * 3))), Cells((imax), (5 + (n * 3)))).FillDown
+        
         Cells(10 + (imax), (4 + (n * 3))).FormulaR1C1 = "=R[-" & (imax - 1) & "]C"
         Range(Cells(10 + (imax), (4 + (n * 3))), Cells((2 * imax) - 1, (4 + (n * 3)))).FillDown
         Range(Cells(10 + (imax), (5 + (n * 3))), Cells((2 * imax) - 1, (5 + (n * 3)))).FillDown
@@ -7792,7 +7831,6 @@ Sub GetNormalize()
         
         ActiveSheet.ChartObjects(1).Activate
         p = ActiveChart.SeriesCollection.Count
-        
         For j = 1 To p
             If ActiveChart.SeriesCollection(j).Name = Cells(1, 5 + (n * 3)).Value Then
                 ActiveChart.SeriesCollection(j).Delete
@@ -7814,15 +7852,19 @@ Sub GetNormalize()
         Range(Cells(9 + (imax), (4 + (n * 3))), Cells(9 + (imax), ((4 + (n * 3))))).Interior.Color = SourceRangeColor1
         Range(Cells(10, (5 + (n * 3))), Cells(10, ((5 + (n * 3))))).Interior.Color = SourceRangeColor1
         Range(Cells(9 + (imax), (5 + (n * 3))), Cells(9 + (imax), ((5 + (n * 3))))).Interior.Color = SourceRangeColor1
+        
         sheetGraph.Range(Cells(11 + numData + 8, (5 + (n * 3))), Cells(11 + (numData * 2) + 8, (6 + (n * 3)))).Copy
         sheetAna.Cells(1, 1 + ((n - 1) * 2)).PasteSpecial Paste:=xlValues
-        sheetAna.Cells(1, 1).Value = "PE/eV"
+
+        If strl(1) = "Pe" Then
+            sheetAna.Cells(1, 1).Value = "PE/eV"
+        Else
+            sheetAna.Cells(1, 1).Value = "BE/eV"
+        End If
         
         sheetGraph.Activate
-        
         If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
     End If
-    
     Application.CutCopyMode = False
     strErr = "skip"
 End Sub
