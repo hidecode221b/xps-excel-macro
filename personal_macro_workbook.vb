@@ -4119,7 +4119,7 @@ Resolve:
                 SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Tougaard
             End If
         Else
-            If StrComp(Cells(1, 3).Value, "ABG", 1) = 0 Then
+            If StrComp(Cells(1, 2).Value, "ABG", 1) = 0 Or StrComp(Cells(1, 3).Value, "ABG", 1) = 0 Then
                 SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j)))  ' active Poly
         
                 For k = 2 To 5
@@ -6369,6 +6369,8 @@ Sub ShirleyBG()
         Cells(3, 2).Value = 0.001
     End If
 
+    If Cells(10, 101).Value < 3 Then Cells(10, 101).Value = 3
+
     Cells(4, 2).Value = Cells(3, 2).Value
     Cells(startR, 98).FormulaR1C1 = "= (2 * RC1 - (R" & startR & "C1 + R" & endR & "C1))/(R" & endR & "C1 - R" & startR & "C1)" ' CT
     Range(Cells(startR, 98), Cells(endR, 98)).FillDown
@@ -6484,7 +6486,11 @@ Sub VictoreenBG()
         End If
     Else
         Cells(8, 1).Value = "Both ends"
-        Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+        If ns <= 0 Then
+            Cells(6 + sftfit2, 2).FormulaR1C1 = "=AVERAGE(R" & startR & "C100:R" & endR & "C100)"
+        Else
+            Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+        End If
     End If
         
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(6, 2))
@@ -6522,6 +6528,8 @@ Sub PolynominalShirleyBG()
     Cells(10, 1).Value = "3rd poly"
     Cells(16, 100).Value = "Polynominal"
     Cells(16, 101).Value = "Shirley"
+
+    If Cells(10, 101).Value < 4 Then Cells(10, 101).Value = 4
     
     If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
         Cells(2, 2).Value = 0.000001
@@ -6668,7 +6676,11 @@ Sub TangentArcBG()
     Range(Cells(startR, 3), Cells(endR, 3)).FillDown
     Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
-    Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    If ns <= 0 Then
+        Cells(6 + sftfit2, 2).FormulaR1C1 = "=AVERAGE(R" & startR & "C100:R" & endR & "C100)"
+    Else
+        Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    End If
 
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7, 2))
     SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=Cells(11 + sftfit2, 2).Value        ' This is a point to control the position of inflection
@@ -6742,7 +6754,11 @@ Sub PolynominalBG()
     End If
     
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
-    Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    If ns <= 0 Then
+        Cells(6 + sftfit2, 2).FormulaR1C1 = "=AVERAGE(R" & startR & "C100:R" & endR & "C100)"
+    Else
+        Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    End If
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(5, 2))
     
     For k = 2 To 5
@@ -6773,6 +6789,7 @@ Sub TougaardBG()
         pnpara = "+1"
     End If
     
+    If Cells(10, 101).Value < 1 Then Cells(10, 101).Value = 1
     Cells(1, 1).Value = "Tougaard"
     Cells(1, 2).Value = "BG"
     Cells(1, 3).Value = vbNullString
@@ -6860,6 +6877,7 @@ Sub PolynominalTougaardBG()
         pnpara = "+1"
     End If
     
+    If Cells(10, 101).Value < 1 Then Cells(10, 101).Value = 1
     Cells(1, 1).Value = "Polynominal"
     Cells(1, 2).Value = "Tougaard"
     Cells(1, 3).Value = "ABG"   ' active only
