@@ -5333,6 +5333,7 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
             strAna = "Graph_Norm"
         Else
             strCpa = "Graph_" + strSheetDataName    ' for .xlsx
+            strAna = "Graph"
         End If
         
         Target = mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5) + ".xlsx"
@@ -5469,7 +5470,9 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
             End If
         End If
         
-        If ExistSheet("Graph_" + strSheetDataName) Then
+        If strAna = "Graph_Norm" Then
+            Set sheetTarget = Workbooks(Target).Worksheets("Graph_Norm_" + strSheetDataName)
+        ElseIf strAna = "Graph" Then
             Set sheetTarget = Workbooks(Target).Worksheets("Graph_" + strSheetDataName)
         Else
             Set sheetTarget = Workbooks(Target).ActiveSheet
@@ -6369,14 +6372,12 @@ Sub ShirleyBG()
         Cells(3, 2).Value = 0.001
     End If
 
-    If Cells(10, 101).Value < 3 Then Cells(10, 101).Value = 3
-
     Cells(4, 2).Value = Cells(3, 2).Value
     Cells(startR, 98).FormulaR1C1 = "= (2 * RC1 - (R" & startR & "C1 + R" & endR & "C1))/(R" & endR & "C1 - R" & startR & "C1)" ' CT
     Range(Cells(startR, 98), Cells(endR, 98)).FillDown
 
     If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
-        If Cells(startR, 1).Value = Cells(6, 101).Value Then
+        If Cells(startR, 1).Value = Cells(21 + sftfit, 1).Value Then
             Cells(startR - 1, 3).FormulaR1C1 = "=AVERAGE(R[1]C2:R[" & (ns) & "]C2)"
             Cells(startR, 3).FormulaR1C1 = "=AVERAGE(R[1]C2:R[" & (ns) & "]C2)"
             Cells(startR - 1, 3).Value = Cells(startR - 1, 3).Value
@@ -6396,7 +6397,7 @@ Sub ShirleyBG()
             Cells(k, 3).FormulaR1C1 = "=R" & (startR) & "C + R4C2 * SUM(R[-1]C99:R" & (startR) & "C99)"
         Next
     Else        ' for BE
-        If Cells(endR, 1).Value = Cells(7, 101).Value Then
+        If Cells(endR, 1).Value = Cells(Cells(5, 101).Value + 20 + sftfit, 1).Value Then
             Cells(endR + 1, 3).FormulaR1C1 = "=AVERAGE(R[-1]C2:R[" & (-ns) & "]C2)"
             Cells(endR, 3).FormulaR1C1 = "=AVERAGE(R[-1]C2:R[" & (-ns) & "]C2)"
             Cells(endR + 1, 3).Value = Cells(endR + 1, 3).Value
@@ -6423,7 +6424,11 @@ Sub ShirleyBG()
 
     Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV     ' added abs to solve sonvergence if negative data
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
-    Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    If ns <= 0 Then
+        Cells(6 + sftfit2, 2).FormulaR1C1 = "=AVERAGE(R" & startR & "C100:R" & endR & "C100)"
+    Else
+        Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    End If
     
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Cells(4, 2)
     SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=1 ' max
@@ -6528,8 +6533,6 @@ Sub PolynominalShirleyBG()
     Cells(10, 1).Value = "3rd poly"
     Cells(16, 100).Value = "Polynominal"
     Cells(16, 101).Value = "Shirley"
-
-    If Cells(10, 101).Value < 4 Then Cells(10, 101).Value = 4
     
     If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
         Cells(2, 2).Value = 0.000001
@@ -6566,7 +6569,7 @@ Sub PolynominalShirleyBG()
     Range(Cells(startR, 98), Cells(endR, 98)).FillDown
     
     If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
-        If Cells(startR, 1).Value = Cells(6, 101).Value Then
+        If Cells(startR, 1).Value = Cells(21 + sftfit, 1).Value Then
             Cells(startR - 1, 3).FormulaR1C1 = "=AVERAGE(R[1]C2:R[" & (ns) & "]C2)"
             Cells(startR, 3).FormulaR1C1 = "=AVERAGE(R[1]C2:R[" & (ns) & "]C2)"
             Cells(startR - 1, 3).Value = Cells(startR - 1, 3).Value
@@ -6589,7 +6592,7 @@ Sub PolynominalShirleyBG()
             Next
         End If
     Else        ' for BE
-        If Cells(endR, 1).Value = Cells(7, 101).Value Then
+        If Cells(endR, 1).Value = Cells(Cells(5, 101).Value + 20 + sftfit, 1).Value Then
             Cells(endR + 1, 3).FormulaR1C1 = "=AVERAGE(R[-1]C2:R[" & (-ns) & "]C2)"
             Cells(endR, 3).FormulaR1C1 = "=AVERAGE(R[-1]C2:R[" & (-ns) & "]C2)"
             Cells(endR + 1, 3).Value = Cells(endR + 1, 3).Value
@@ -6619,7 +6622,11 @@ Sub PolynominalShirleyBG()
     
     Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
-    Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    If ns <= 0 Then
+        Cells(6 + sftfit2, 2).FormulaR1C1 = "=AVERAGE(R" & startR & "C100:R" & endR & "C100)"
+    Else
+        Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    End If
     
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(4, 2), Cells(10, 2))
     SolverAdd CellRef:=Cells(6, 2), Relation:=1, FormulaText:=1 ' max ratio
@@ -6789,7 +6796,6 @@ Sub TougaardBG()
         pnpara = "+1"
     End If
     
-    If Cells(10, 101).Value < 1 Then Cells(10, 101).Value = 1
     Cells(1, 1).Value = "Tougaard"
     Cells(1, 2).Value = "BG"
     Cells(1, 3).Value = vbNullString
@@ -6817,27 +6823,44 @@ Sub TougaardBG()
     stepEk = Cells(21 + sftfit, 1).Value - Cells(22 + sftfit, 1).Value
     
     If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
-        Cells(startR, 3).FormulaR1C1 = "=SUM(RC2:R[" & (ns - 1) & "]C2)/ " & ns & ""
-        Cells(startR, 99).Value = Cells(startR, 3).Value
+        If ns < 2 Then
+            Cells(startR, 3).Value = Cells(startR, 2).Value
+            Cells(startR, 99).Value = Cells(startR, 3).Value
+        Else
+            Cells(startR, 3).FormulaR1C1 = "=Average(RC2:R[" & (ns - 1) & "]C2)"
+            Cells(startR, 99).Value = Cells(startR, 3).Value
+        End If
         
-        For k = startR To endR - 1 Step 1
+        For k = startR - 1 To endR - 1 Step 1
             Cells(k + 1, 99).FormulaR1C1 = "= ((RC2 * R2C2 * (" & ((startR - k + 1) * stepEk) & " ))/((R3C2 + " & p & " * (" & ((startR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((startR - k + 1) * stepEk) & " )^2)))"
             Cells(k + 1, 3).FormulaR1C1 = "=R5C2 * (R6C2 + SUM(R[-1]C99:R" & (startR) & "C99))"
         Next
     Else
-        Cells(endR, 3).FormulaR1C1 = "=SUM(RC2:R[" & (-ns + 1) & "]C2)/ " & ns & ""
-        Cells(endR, 99) = Cells(endR, 3).Value
+        If ns < 2 Then
+            Cells(endR, 3).Value = Cells(endR, 2).Value
+            Cells(endR, 99).Value = Cells(endR, 3).Value
+        Else
+            Cells(endR, 3).FormulaR1C1 = "=Average(RC2:R[" & (ns - 1) & "]C2)"
+            Cells(endR, 99).Value = Cells(startR, 3).Value
+        End If
         
-        For k = endR To startR + 1 Step -1
+        For k = endR + 1 To startR + 1 Step -1
             Cells(k - 1, 99).FormulaR1C1 = "= ((RC2 * R2C2 * (" & ((endR - k + 1) * stepEk) & " ))/((R3C2 + " & p & " * (" & ((endR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((endR - k + 1) * stepEk) & " )^2)))"
             Cells(k - 1, 3).FormulaR1C1 = "=R5C2 * (R6C2 + SUM(R[1]C99:R" & (endR) & "C99))"
         Next
     End If
     
+    Cells(20 + sftfit, 99).Value = "Toug"
+
     Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
     
-    Cells(6 + sftfit2, 2).FormulaR1C1 = "= (Average(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + Average(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    If ns <= 0 Then
+        Cells(1, 2).Value = "ABG"
+        Cells(6 + sftfit2, 2).FormulaR1C1 = "=AVERAGE(R" & startR & "C100:R" & endR & "C100)"
+    Else
+        Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    End If
     
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(6, 2))
     SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=1, FormulaText:=5000
@@ -6925,16 +6948,26 @@ Sub PolynominalTougaardBG()
     stepEk = Cells(21 + sftfit, 1).Value - Cells(22 + sftfit, 1).Value
     
     If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
-        Cells(startR, 3).FormulaR1C1 = "=SUM(RC2:R[" & (ns - 1) & "]C2)/ " & ns & ""
-        Cells(startR, 99).Value = 0
-        
+        If ns < 2 Then
+            Cells(startR, 3).Value = Cells(startR, 2).Value
+            Cells(startR, 99).Value = 0
+        Else
+            Cells(startR, 3).FormulaR1C1 = "=Average(RC2:R[" & (ns - 1) & "]C2)"
+            Cells(startR, 99).Value = 0
+        End If
+
         For k = startR To endR - 1 Step 1
             Cells(k + 1, 99).FormulaR1C1 = "= ((RC2 * R2C2 * (" & ((startR - k + 1) * stepEk) & " ))/((R3C2 + " & p & " * (" & ((startR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((startR - k + 1) * stepEk) & " )^2)))"
             Cells(k + 1, 3).FormulaR1C1 = "=R7C2 * (R" & startR & "C + SUM(R[1]C99:R" & (startR) & "C99)) + ((1-R7C2) * (R6C2 + (R8C2 * (RC98) + (R9C2 * (RC98)^2) + (R10C2 * (RC98)^3))))"
         Next
     Else
-        Cells(endR, 3).FormulaR1C1 = "=SUM(RC2:R[" & (-ns + 1) & "]C2)/ " & ns & ""
-        Cells(endR, 99) = 0
+        If ns < 2 Then
+            Cells(endR, 3).Value = Cells(endR, 2).Value
+            Cells(endR, 99).Value = 0
+        Else
+            Cells(endR, 3).FormulaR1C1 = "=Average(RC2:R[" & (ns - 1) & "]C2)"
+            Cells(endR, 99).Value = 0
+        End If
         
         For k = endR To startR + 1 Step -1
             Cells(k - 1, 99).FormulaR1C1 = "= ((RC2 * R2C2 * (" & ((endR - k + 1) * stepEk) & " ))/((R3C2 + " & p & " * (" & ((endR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((endR - k + 1) * stepEk) & " )^2)))"
@@ -6944,7 +6977,11 @@ Sub PolynominalTougaardBG()
     
     Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
-    Cells(6 + sftfit2, 2).FormulaR1C1 = "= (Average(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + Average(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    If ns <= 0 Then
+        Cells(6 + sftfit2, 2).FormulaR1C1 = "=AVERAGE(R" & startR & "C100:R" & endR & "C100)"
+    Else
+        Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    End If
     
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(10, 2))
     SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=1, FormulaText:=5000
