@@ -1696,7 +1696,7 @@ SkipChemLoad:
 End Sub
 
 Sub GetCompare()
-    Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, ncmp As Integer
+    Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, ncmp As Integer, rng As Range
     
     If StrComp(TimeCheck, "yes", 1) = 0 Then TimeCheck = vbNullString
     Worksheets(strSheetGraphName).Activate
