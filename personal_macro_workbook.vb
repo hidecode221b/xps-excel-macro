@@ -543,8 +543,9 @@ Sub TargetDataAnalysis()
 End Sub
 
 Sub PlotCLAM2()
-    Dim C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant, imax As Integer, SourceRangeColor1 As Long, SourceRangeColor2 As Long
+    Dim C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant, imax As Integer, sig As Integer, SourceRangeColor1 As Long, SourceRangeColor2 As Long
     
+    sig = 1
     imax = numData + 10
     If ExistSheet(strSheetGraphName) Then
         Application.DisplayAlerts = False
@@ -616,9 +617,10 @@ Sub PlotCLAM2()
             C3(n, 1) = (C2(n, 1) / C4(n, 1))
         Next
     Else
+        If WorksheetFunction.Average(dataIntData) < 0 Then sig = -1
         For n = 1 To numData
             If IsNumeric(C2(n, 1)) = False Then Exit For
-            C3(n, 1) = C2(n, 1) * 1
+            C3(n, 1) = C2(n, 1) * sig * 1
         Next
     End If
 
@@ -1771,7 +1773,7 @@ Sub GetCompare()
             Cells(45, para + 10).Value = ncmp   ' total number of data compared over cmp
         End If
     Else
-        TimeCheck = MsgBox("Stop a comparison; no file selected.", vbExclamation)
+        TimeCheck = "stop"
         Cells(1, 4 + (cmp * 3)).Value = vbNullString
         Call GetOut
         If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
@@ -2561,7 +2563,7 @@ Sub FitRatioAnalysis()
         
         sheetFit.Activate
     Else
-        TimeCheck = MsgBox("Stop a comparison; no file selected.", vbExclamation)
+        TimeCheck = "stop"
     End If
     
 SkipFitRatioAnalysis:
@@ -3046,7 +3048,7 @@ Sub FitAnalysis()
         
         sheetAna.Activate
     Else
-        TimeCheck = MsgBox("Stop a comparison; no file selected.", vbExclamation)
+        TimeCheck = "stop"
     End If
     
     Call GetOut
@@ -3129,6 +3131,7 @@ Sub FitInitial()
     
     If StrComp(strAna, "ana", 1) = 0 Or StrComp(strl(1), "Pe", 1) = 0 Or StrComp(strl(1), "Po", 1) = 0 Then
         Worksheets(strSheetGraphName).Activate
+        Set sheetGraph = Worksheets(strSheetGraphName)
         numData = Cells(41, para + 12).Value '((Cells(6, 2).Value - Cells(5, 2).Value) / Cells(7, 2).Value) + 1
         Set dataBGraph = Range(Cells(20 + numData, 2), Cells(20 + numData, 2).Offset(numData - 1, 1))
         Set dataKeGraph = Range(Cells(20, 1), Cells(20 + numData, 1).Offset(numData - 1, 0))
