@@ -5333,10 +5333,8 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
             End If
         ElseIf mid$(strSheetGraphName, 1, 11) = "Graph_Norm_" Then
             strCpa = "Graph_Norm_" + strSheetDataName    ' for Graph_Norm
-            strAna = "Graph_Norm"
         Else
             strCpa = "Graph_" + strSheetDataName    ' for .xlsx
-            strAna = "Graph"
         End If
         
         Target = mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5) + ".xlsx"
@@ -5456,55 +5454,74 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
             End If
         End If
 
-        If StrComp(mid$(strAna, 1, 3), "Fit", 1) = 0 Then
-            If strAna = "FitRatioAnalysis" Then
-                If StrComp(Cells(1, para + 1).Value, "Parameters", 1) = 0 Then
-                Else
-                    For iCol = 1 To 500
-                        If Cells(1, iCol).Value = "Parameters" Then
-                            Exit For
-                        ElseIf iCol = 500 Then
-                            MsgBox "Ana sheet has no parameters to be compared."
-                            End
-                        End If
-                    Next
-                    para = iCol
-                End If
+        If StrComp(mid$(strCpa, 1, 6), "Graph_", 1) = 0 Then
+            If StrComp(mid$(strCpa, 1, 11), "Graph_Norm_", 1) = 0 Then
+                Set sheetTarget = Workbooks(Target).Worksheets("Graph_Norm_" + strSheetDataName)
+                Debug.Print "Graph_Norm_" + strSheetDataName
+            Else
+                Set sheetTarget = Workbooks(Target).Worksheets("Graph_" + strSheetDataName)
+                Debug.Print "Graph_" + strSheetDataName
+            End If
+            
+            If StrComp(sheetTarget.Cells(40, para + 9).Value, "Ver.", 1) = 0 Then
+                iCol = para
+            Else
+                For iCol = 1 To 500
+                Debug.Print sheetTarget.Cells(40, iCol + 9).Value, iCol
+                    If StrComp(sheetTarget.Cells(40, iCol + 9).Value, "Ver.", 1) = 0 Then
+                        Exit For
+                    ElseIf iCol = 500 Then
+                        MsgBox "Graph sheet has no parameters to be compared."
+                        End
+                    End If
+                Next
+            End If
+            
+            If mid$(sheetTarget.Cells(40, iCol + 10).Value, 1, 4) <= 8.05 And StrComp(mid$(strAna, 1, 3), "Fit", 1) = 0 Then
+                MsgBox "Macro code used in some data comparison is obsolete!"
+                End
+            ElseIf mid$(sheetTarget.Cells(40, iCol + 10).Value, 1, 4) >= 6.56 Then
+                numData = sheetTarget.Cells(41, iCol + 12).Value
+            Else
+                MsgBox "Macro code used in some data comparison is obsolete!"
+                End
+            End If
+            
+            strl(4) = sheetTarget.Cells(10, 1).Value       'check whether BE/eV or KE/eV. If BE/eV, only BE graph available
+        ElseIf StrComp(mid$(strCpa, 1, 4), "Fit_", 1) = 0 Then
+            If StrComp(mid$(strCpa, 1, 9), "Fit_Norm_", 1) = 0 Then
+                Set sheetTarget = Workbooks(Target).Worksheets("Fit_Norm_" + strSheetDataName)
+                Debug.Print "Fit_Norm_" + strSheetDataName
+            Else
+                Set sheetTarget = Workbooks(Target).Worksheets("Fit_" + strSheetDataName)
+                Debug.Print "Fit_" + strSheetDataName
+            End If
+            
+            If StrComp(sheetTarget.Cells(19, 100).Value, "Ver.", 1) = 0 Then
+                iCol = para
+            Else
+                MsgBox "Fit sheet has no parameters to be compared."
+                End
+            End If
+            
+            numData = sheetTarget.Cells(5, 101).Value
+            
+        ElseIf StrComp(mid$(strCpa, 1, 9), "Ana_", 1) = 0 Then
+            Debug.Print "Ana_" + strSheetDataName
+            
+            If StrComp(Cells(1, para + 1).Value, "Parameters", 1) = 0 Then
+            Else
+                For iCol = 1 To 500
+                    If Cells(1, iCol).Value = "Parameters" Then
+                        Exit For
+                    ElseIf iCol = 500 Then
+                        MsgBox "Ana sheet has no parameters to be compared."
+                        End
+                    End If
+                Next
+                para = iCol
             End If
         End If
-        
-        If strAna = "Graph_Norm" Then
-            Set sheetTarget = Workbooks(Target).Worksheets("Graph_Norm_" + strSheetDataName)
-        ElseIf strAna = "Graph" Then
-            Set sheetTarget = Workbooks(Target).Worksheets("Graph_" + strSheetDataName)
-        Else
-            Set sheetTarget = Workbooks(Target).ActiveSheet
-        End If
-        
-        If StrComp(sheetTarget.Cells(40, para + 9).Value, "Ver.", 1) = 0 Then
-            iCol = para
-        Else
-            For iCol = 1 To 500
-                If StrComp(sheetTarget.Cells(40, iCol + 9).Value, "Ver.", 1) = 0 Then
-                    Exit For
-                ElseIf iCol = 500 Then
-                    MsgBox "Graph sheet has no parameters to be compared."
-                    End
-                End If
-            Next
-        End If
-        
-        If mid$(sheetTarget.Cells(40, iCol + 10).Value, 1, 4) <= 8.05 And StrComp(mid$(strAna, 1, 3), "Fit", 1) = 0 Then
-            MsgBox "Macro code used in some data comparison is obsolete!"
-            End
-        ElseIf mid$(sheetTarget.Cells(40, iCol + 10).Value, 1, 4) >= 6.56 Then
-            numData = sheetTarget.Cells(41, iCol + 12).Value
-        Else
-            MsgBox "Macro code used in some data comparison is obsolete!"
-            End
-        End If
-        
-        strl(4) = Cells(10, 1).Value       'check whether BE/eV or KE/eV. If BE/eV, only BE graph available
         
         If strAna = "FitAnalysis" Then
             peakNum = Workbooks(Target).Sheets(strCpa).Cells(8 + sftfit2, 2).Value
