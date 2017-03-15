@@ -65,7 +65,7 @@ Sub SheetNameAnalysis()
             Application.DisplayAlerts = False
             Workbooks.Add
             Call UDsamples
-            ActiveWorkbook.SaveAs Filename:=direc & "UD.xlsx", FileFormat:=51
+            ActiveWorkbook.SaveAs fileName:=direc & "UD.xlsx", FileFormat:=51
             ActiveWorkbook.Close
             Application.DisplayAlerts = True
         End If
@@ -84,7 +84,7 @@ Sub SheetNameAnalysis()
                 
                 Workbooks.Add
                 Call UDsamples
-                ActiveWorkbook.SaveAs Filename:=direc & "UD.xlsx", FileFormat:=51
+                ActiveWorkbook.SaveAs fileName:=direc & "UD.xlsx", FileFormat:=51
                 ActiveWorkbook.Close
             Else
                 End 'Call GetOut
@@ -104,7 +104,7 @@ DeadInTheWater1:
                 
                 Workbooks.Add
                 Call UDsamples
-                ActiveWorkbook.SaveAs Filename:=direc & "UD.xlsx", FileFormat:=51
+                ActiveWorkbook.SaveAs fileName:=direc & "UD.xlsx", FileFormat:=51
                 ActiveWorkbook.Close
             Else
                 End 'Call GetOut
@@ -456,7 +456,7 @@ DeadInTheWater2:
             Application.Dialogs(xlDialogSaveAs).Show
         Else
             On Error GoTo Error1
-            ActiveWorkbook.SaveAs Filename:=ActiveWorkbook.Path + "\" + wb, FileFormat:=51
+            ActiveWorkbook.SaveAs fileName:=ActiveWorkbook.Path + "\" + wb, FileFormat:=51
         End If
         Application.DisplayAlerts = True
     
@@ -474,7 +474,7 @@ Error2:
 Error1:
     Err.Clear
     wb = mid$(ActiveWorkbook.Name, 1, InStr(ActiveWorkbook.Name, ".") - 1) + "_bk.xlsx"
-    ActiveWorkbook.SaveAs Filename:=ActiveWorkbook.Path + "\" + wb, FileFormat:=51
+    ActiveWorkbook.SaveAs fileName:=ActiveWorkbook.Path + "\" + wb, FileFormat:=51
 End Sub
 
 Sub TargetDataAnalysis()
@@ -526,15 +526,15 @@ Sub TargetDataAnalysis()
         If cmp >= 0 Then
             Call GetCompare
         Else
-            Call FormatData
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-            Call PlotCLAM2
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-            Call ElemXPS
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-            Call PlotElem
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-            Call FitCurve
+'            Call FormatData
+'            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+'            Call PlotCLAM2
+'            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+'            Call ElemXPS
+'            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+'            Call PlotElem
+'            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+'            Call FitCurve
         End If
 
         If StrComp(TimeCheck, "yes", 1) = 0 Then TimeCheck = "yes2"
@@ -803,7 +803,7 @@ End Sub
 
 Sub ElemXPS()
     Dim xpsoffset As Integer, aesoffset As Integer, asf As String, oriXPSFactors As Integer, rtoe As Single
-    Dim Fname As Variant, Record As Variant, C1 As Variant, C2 As Variant, C3 As Variant, Elem As String
+    Dim fname As Variant, Record As Variant, C1 As Variant, C2 As Variant, C3 As Variant, Elem As String
     
     xpsoffset = 0
     
@@ -832,20 +832,20 @@ CheckElemAgain:
     k = 0
     q = 0
     
-    Fname = direc + "UD.xlsx"
+    fname = direc + "UD.xlsx"
     xpsoffset = 2
     strCasa = "User Defined"
     
     If Not WorkbookOpen("UD.xlsx") Then
         graphexist = 0
-        Workbooks.Open Fname
+        Workbooks.Open fname
         Workbooks("UD.xlsx").Activate
         If Err.Number > 0 Then
-            MsgBox "Error in " & Fname, vbOKOnly, "Error code: " & Err.Number
+            MsgBox "Error in " & fname, vbOKOnly, "Error code: " & Err.Number
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         ElseIf StrComp(ActiveWorkbook.Name, "UD.xlsx", 1) <> 0 Then
-            MsgBox "Error in " & Fname
+            MsgBox "Error in " & fname
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         End If
@@ -1011,18 +1011,18 @@ CheckElemAgain:
             GoTo SkipElem
         End If
         
-        Fname = direc + "webCross\" + LCase(strTest) + ".txt"
+        fname = direc + "webCross\" + LCase(strTest) + ".txt"
         
-        If Dir(Fname) = vbNullString Then
-            TimeCheck = MsgBox("File Not Found in " + Fname + "!", vbExclamation, "Database error")
+        If Dir(fname) = vbNullString Then
+            TimeCheck = MsgBox("File Not Found in " + fname + "!", vbExclamation, "Database error")
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         End If
         
-        If Fname = False Then Exit Sub
+        If fname = False Then Exit Sub
         
         fileNum = FreeFile(0)
-        Open Fname For Input As #fileNum
+        Open fname For Input As #fileNum
         iRow = 1
         q = 0
         
@@ -1138,19 +1138,19 @@ SkipXPSnumZero:
 
     aesoffset = 0
     
-    Fname = direc + "UD.xlsx"
+    fname = direc + "UD.xlsx"
     strAES = "User Defined"
   
     If Not WorkbookOpen("UD.xlsx") Then
         graphexist = 0
-        Workbooks.Open Fname
+        Workbooks.Open fname
         Workbooks("UD.xlsx").Activate
         If Err.Number > 0 Then
-            MsgBox "Error in " & Fname, vbOKOnly, "Error code: " & Err.Number
+            MsgBox "Error in " & fname, vbOKOnly, "Error code: " & Err.Number
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         ElseIf StrComp(ActiveWorkbook.Name, "UD.xlsx", 1) <> 0 Then
-            MsgBox "Error in " & Fname
+            MsgBox "Error in " & fname
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         End If
@@ -1217,7 +1217,7 @@ SkipXPSnumZero:
                 C2(j, 2) = C1(q, 2)       ' Transition
                 C2(j, 4) = C1(q, 3)       ' KE
                 C2(j, 7) = C1(q, 4 + aesoffset)       ' AES RSF
-                C2(j, 11) = rtoe          ' atomic element ratio                  
+                C2(j, 11) = rtoe          ' atomic element ratio
                 j = j + 1
             ElseIf LCase(Elem) = "all" And q > 1 Then
                 C2(j, 1) = C1(q, 1)       ' Element
@@ -1487,7 +1487,7 @@ AESmode2:
 End Sub
 
 Sub PlotChem()
-    Dim Fname As Variant, Record As Variant, C1 As Variant, C2 As Variant, C3 As Variant, rngElemBeC As Range, pts As Points, pt As Point
+    Dim fname As Variant, Record As Variant, C1 As Variant, C2 As Variant, C3 As Variant, rngElemBeC As Range, pts As Points, pt As Point
     
     If Dir(direc + "Chem\") = vbNullString Then
         Set sheetGraph = Worksheets("Graph_" + strSheetDataName)
@@ -1535,18 +1535,18 @@ Sub PlotChem()
     For n = 0 To UBound(C3)
         strTest = C3(n)
         q = 0
-        Fname = direc + "Chem\" + strTest + "_ch"
+        fname = direc + "Chem\" + strTest + "_ch"
         
-        If Dir(Fname) = vbNullString Then
-            TimeCheck = MsgBox("File Not Found in " + Fname + "!", vbExclamation, "Database error")
+        If Dir(fname) = vbNullString Then
+            TimeCheck = MsgBox("File Not Found in " + fname + "!", vbExclamation, "Database error")
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         End If
         
-        If Fname = False Then Exit Sub
+        If fname = False Then Exit Sub
         
         fileNum = FreeFile(0)
-        Open Fname For Input As fileNum
+        Open fname For Input As fileNum
 
         Do
             Line Input #fileNum, Record
@@ -1571,7 +1571,7 @@ Sub PlotChem()
     C1 = Range(Cells(51, para + 10), Cells(50 + numXPSFactors, para + 11))
     
     If numChemFactors = 0 Then
-        TimeCheck = MsgBox("No data in " + Fname + "!", vbExclamation, "Database error")
+        TimeCheck = MsgBox("No data in " + fname + "!", vbExclamation, "Database error")
         Call GetOut
         If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
     End If
@@ -1843,7 +1843,7 @@ Sub GetOut()
         Application.Dialogs(xlDialogSaveAs).Show
     Else
         On Error GoTo Error1
-        ActiveWorkbook.SaveAs Filename:=ActiveWorkbook.Path + "\" + wb, FileFormat:=51
+        ActiveWorkbook.SaveAs fileName:=ActiveWorkbook.Path + "\" + wb, FileFormat:=51
     End If
     
     Application.DisplayAlerts = True
@@ -1853,7 +1853,7 @@ Sub GetOut()
 Error1:
     MsgBox Error(Err)
     wb = mid$(ActiveWorkbook.Name, 1, InStr(ActiveWorkbook.Name, ".") - 1) + "_bk.xlsx"
-    ActiveWorkbook.SaveAs Filename:=ActiveWorkbook.Path + "\" + wb, FileFormat:=51
+    ActiveWorkbook.SaveAs fileName:=ActiveWorkbook.Path + "\" + wb, FileFormat:=51
     Err.Clear
     strErr = "skip"
     Resume Next
@@ -5213,7 +5213,7 @@ Sub KeBL()
     
             Worksheets.Add().Name = "Sort_" & strSheetDataName
             Range(Cells(2, 1), Cells(numData + 1, 3)) = C1
-            Range(Cells(2, 1), Cells(numData + 1, 3)).Sort Key1:=Cells(2, 1), Order1:=xlDescending
+            Range(Cells(2, 1), Cells(numData + 1, 3)).Sort key1:=Cells(2, 1), order1:=xlDescending
             Set dataData = Range(Cells(2, 1), Cells(numData + 1, 2))
             Set dataKeData = Range(Cells(2, 1), Cells(numData + 1, 1))
             Set dataIntData = dataKeData.Offset(, 1)
@@ -5236,7 +5236,7 @@ Sub KeBL()
     
             Worksheets.Add().Name = "Sort_" & strSheetDataName
             Range(Cells(2, 1), Cells(numData + 1, 3)) = C1
-            Range(Cells(2, 1), Cells(numData + 1, 3)).Sort Key1:=Cells(2, 1), Order1:=xlAscending
+            Range(Cells(2, 1), Cells(numData + 1, 3)).Sort key1:=Cells(2, 1), order1:=xlAscending
             Set dataData = Range(Cells(2, 1), Cells(numData + 1, 2))
             Set dataKeData = Range(Cells(2, 1), Cells(numData + 1, 1))
             Set dataIntData = dataKeData.Offset(, 1)
@@ -7633,7 +7633,7 @@ Sub Initial()
         End
     End If
 
-    If InStr(ActiveWorkbook.Name, ".txt") > 0  And InstanceCount > 1 Then
+    If InStr(ActiveWorkbook.Name, ".txt") > 0 And InstanceCount > 1 Then
         Call ExcelRenew ' regenerate xlsx file from text opened with different insstance
     ElseIf StrComp(ActiveSheet.Name, "renew", 1) = 0 Then
         testMacro = "debug"
@@ -7680,7 +7680,7 @@ Sub ExcelRenew()
     fname = xlApp.ActiveWorkbook.Path + "\" + wb
     xlApp.ActiveSheet.Name = "renew"
     xlApp.ActiveWorkbook.SaveAs fileName:=fname, FileFormat:=51
-    xlApp.ActiveWorkbook.Close savechanges:=False
+    xlApp.ActiveWorkbook.Close SaveChanges:=False
     xlApp.Quit
     xlApp.Visible = False
     
@@ -8080,7 +8080,7 @@ Sub debugAll()      ' multiple file analysis in sequence
                 OpenFileName(q) = rng(q, 1)
             Next q
             
-            ActiveWorkbook.Close savechanges:=False
+            ActiveWorkbook.Close SaveChanges:=False
         End If
     Else
         Exit Sub
@@ -8175,14 +8175,14 @@ Sub debugAll()      ' multiple file analysis in sequence
                 
                 ' Error handling process here
                 If StrComp(strErrX, "skip", 1) = 0 Then
-                    Workbooks(ActiveWorkbook.Name).Close savechanges:=False
+                    Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
                     Debug.Print "strErrX"
                     Exit Sub
                 End If
                 ' Error handling process end
 
                 MsgBox ("Fit sheet generated on " & strSheetDataName & ".xlsx, because no Fit sheet was available")
-                Workbooks(ActiveWorkbook.Name).Close savechanges:=False
+                Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
                 
                 Application.DisplayAlerts = True
                 GoTo SkipOpenDebug
@@ -8200,12 +8200,12 @@ Sub debugAll()      ' multiple file analysis in sequence
             Call CLAM2              ' This is a main code. First run makes Graph, Fit, and Check sheets
             
             If StrComp(strErrX, "skip", 1) = 0 Then
-                Workbooks(ActiveWorkbook.Name).Close savechanges:=False
+                Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
                 Debug.Print "strErrX"
                 Exit Sub
             End If
 
-            Workbooks(ActiveWorkbook.Name).Close savechanges:=True
+            Workbooks(ActiveWorkbook.Name).Close SaveChanges:=True
             Application.DisplayAlerts = True
             GoTo SkipOpenDebug
         End If
@@ -8491,6 +8491,8 @@ Sub SolverInstall2()
     
     Application.Run "Solver.xlam!Solver.Solver2.Auto_open"    ' initialize Solver
 End Sub
+
+
 
 
 
