@@ -2880,9 +2880,6 @@ Sub FitAnalysis()
         sheetAna.Range(Cells(10, 3), Cells(10 + numData, 3)) = C2
         
         sheetGraph.Activate
-        dblMin = Cells(41, para + 10).Value
-        dblMax = Cells(42, para + 10).Value
-        multi = Cells(9, 3).Value
 
         If IsEmpty(Cells(51, para + 10)) = False Then
             If Cells(42, para + 12) >= (Cells(43, para + 12) + Cells(42, para + 12)) Then
@@ -2891,8 +2888,9 @@ Sub FitAnalysis()
                 sheetGraph.Range(Cells(40, para + 9), Cells((50 + Cells(43, para + 12).Value + Cells(42, para + 12).Value), para + 30)).Copy Destination:=sheetAna.Cells(40, para + 9)
             End If
             
-            sheetAna.Cells(41, para + 10).Value = dblMin * multi
-            sheetAna.Cells(42, para + 10).Value = dblMax * multi
+            sheetAna.Activate
+            sheetAna.Cells(41, para + 10).Value = Application.Min(sheetAna.Range(Cells(11, 3), Cells(10 + numData, 3)))
+            sheetAna.Cells(42, para + 10).Value = Application.Max(sheetAna.Range(Cells(11, 3), Cells(10 + numData, 3)))
             sheetAna.Cells(45, para + 10).Value = fitNum
         End If
         
