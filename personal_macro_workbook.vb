@@ -444,7 +444,7 @@ DeadInTheWater2:
         TimeCheck = MsgBox("Data sheet " & strSheetDataName & " is not found.", vbExclamation)
         End
     End If
-    
+
     Set sheetData = Worksheets(strSheetDataName)
     Worksheets(strSheetDataName).Activate
     
@@ -526,15 +526,15 @@ Sub TargetDataAnalysis()
         If cmp >= 0 Then
             Call GetCompare
         Else
-'            Call FormatData
-'            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-'            Call PlotCLAM2
-'            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-'            Call ElemXPS
-'            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-'            Call PlotElem
-'            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-'            Call FitCurve
+            Call FormatData
+            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            Call PlotCLAM2
+            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            Call ElemXPS
+            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            Call PlotElem
+            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            Call FitCurve
         End If
 
         If StrComp(TimeCheck, "yes", 1) = 0 Then TimeCheck = "yes2"
@@ -5043,6 +5043,7 @@ Sub FormatData()   ' this is a template for data loading.
     
     If StrComp(strTest, "CLAM2", 1) = 0 Then        ' XPS mode
         strTest = "KE/eV"
+        peX = CInt(mid$(Cells(8, 1).Value, 19, (Len(Cells(8, 1).Value) - 18 - 2)))
     ElseIf StrComp(strTest, "Photo", 1) = 0 Then    ' XAS mode
         strTest = "PE/eV"
     Else
@@ -5051,14 +5052,12 @@ Sub FormatData()   ' this is a template for data loading.
     
     If graphexist = 0 And strTest = "KE/eV" Then
         ' if parameters are already specified in text, read from text. AlKa: 1486.6, MgKa: 1253.6 eV
-        If StrComp(testMacro, "debug", 1) = 0 Then
-            If peX = 0 Then
-                peX = Application.InputBox(Title:="Manual input mode", Prompt:="Input a photon energy [eV] or cancel to switch AES mode", Default:=600, Type:=1)
-            End If
-            pe = peX
-        Else
-            pe = Application.InputBox(Title:="Manual input mode", Prompt:="Input a photon energy [eV] or cancel to switch AES mode", Default:=600, Type:=1)
+        
+        If peX = 0 Then
+            peX = Application.InputBox(Title:="Manual input mode", Prompt:="Input a photon energy [eV] or cancel to switch AES mode", Default:=600, Type:=1)
         End If
+        
+        pe = peX
             
         If pe <= 0 Then
             strTest = "AE/eV"
@@ -8506,6 +8505,8 @@ Sub SolverInstall2()
     
     Application.Run "Solver.xlam!Solver.Solver2.Auto_open"    ' initialize Solver
 End Sub
+
+
 
 
 
