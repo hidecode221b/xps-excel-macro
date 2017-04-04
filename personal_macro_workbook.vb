@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.25p"                             ' Version of this code.
+    ver = "8.26p"                             ' Version of this code.
     direc = "D:\DATA\hideki\XPS\"            ' database file directory, D means folder undet the d drive .
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
@@ -95,7 +95,9 @@ DeadInTheWater1:
         Else
             TimeCheck = MsgBox("Database Not Found in " + direc + "!" + vbCrLf + "Would you like to continue and create directory?", 4, "Database error")
             
-            If TimeCheck = 6 Then
+            If FSO.DriveExists(mid$(direc, 1, 2)) = False Then
+                End 'Call GetOut
+            ElseIf TimeCheck = 6 Then
                 C1 = Split(direc, "\")
                 For q = 1 To UBound(C1) - 1
                     C1(q) = C1(q - 1) & "\" & C1(q)
@@ -311,6 +313,11 @@ DeadInTheWater2:
             Results = vbNullString
             Call CombineLegend
             End
+        ElseIf StrComp(LCase(mid$(Cells(1, 1).Value, 1, 4)), "auto", 1) = 0 Then
+            strSheetGraphName = "Cmp_" + strSheetDataName
+            ncomp = Cells(45, para + 10).Value
+            Call GetAutoScale
+            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         Else
             strSheetAnaName = "Exc_" + strSheetDataName
             strSheetGraphName = "Cmp_" + strSheetDataName
@@ -1861,7 +1868,7 @@ End Sub
 
 Sub GetAutoScale()
     Dim numDataT As Integer, npts As Integer, pstart As Integer, pend As Integer, jc As Integer, dt As Integer, rng As Range, rg As Range
-    Dim iniRow1 As Single, iniRow2 As Single, endRow1 As Single, endRow2 As Single, strAuto As String, maxv As Single, calv As Single
+    Dim iniRow1 As Single, iniRow2 As Single, endRow1 As Single, endRow2 As Single, strAuto As String, maxv As Single, calv As Single, rngx As Range
     
     strAuto = LCase(Cells(1, 1).Value)
     
@@ -1870,7 +1877,11 @@ Sub GetAutoScale()
     npts = 0
     
     For dt = 0 To ncomp
-        Set rng = Range(Cells(11, (3 + (dt * 3))), Cells(11, (3 + (dt * 3))).End(xlDown))
+        Set rngx = Range(Cells(11, (1 + (dt * 3))), Cells(11, (1 + (dt * 3))).End(xlDown))
+        numDataT = Application.CountA(rngx)
+        
+        Set rng = Range(Cells(11, (3 + (dt * 3))), Cells(10 + numDataT, (3 + (dt * 3))))
+        
         numDataT = Application.CountA(rng)
         If Len(strAuto) > 4 Then
             If StrComp(mid$(strAuto, 5, 1), "(", 1) = 0 And StrComp(mid$(strAuto, Len(strAuto), 1), ")", 1) = 0 Then
@@ -1946,14 +1957,14 @@ Sub GetAutoScale()
                         Cells(9, 3 * dt + 2).Value = 0
                     Else
                         For jc = 0 To numDataT - 1
-                            If iniRow1 <= Cells(12 + numDataT + 8 + jc, 3 * dt + 2).Value Then
+                            If iniRow1 <= Cells(12 + numDataT + 8 + jc, 3 * dt + 2).Value And IsEmpty(Cells(11 + jc, 3 * dt + 3).Value) = False Then
                                 pstart = jc + 1
                                 Exit For
                             End If
                         Next
                         
                         For jc = 0 To numDataT - 1
-                            If endRow1 <= Cells(12 + numDataT + 8 + jc, 3 * dt + 2).Value Then
+                            If endRow1 <= Cells(12 + numDataT + 8 + jc, 3 * dt + 2).Value And IsEmpty(Cells(11 + jc, 3 * dt + 3).Value) = False Then
                                 pend = jc + 1
                                 Exit For
                             End If
@@ -1969,14 +1980,14 @@ Sub GetAutoScale()
                         Cells(9, 3 * dt + 3).Value = 1
                     Else
                         For jc = 0 To numDataT - 1
-                            If iniRow2 >= Cells(11 + (numDataT * 2) + 8 - jc, 3 * dt + 2).Value Then
+                            If iniRow2 >= Cells(11 + (numDataT * 2) + 8 - jc, 3 * dt + 2).Value And IsEmpty(Cells(11 + jc, 3 * dt + 3).Value) = False Then
                                 pend = jc + 1
                                 Exit For
                             End If
                         Next
                         
                         For jc = 0 To numDataT - 1
-                            If endRow2 >= Cells(11 + (numDataT * 2) + 8 - jc, 3 * dt + 2).Value Then
+                            If endRow2 >= Cells(11 + (numDataT * 2) + 8 - jc, 3 * dt + 2).Value And IsEmpty(Cells(11 + jc, 3 * dt + 3).Value) = False Then
                                 pstart = jc + 1
                                 Exit For
                             End If
@@ -1992,7 +2003,7 @@ Sub GetAutoScale()
                         Cells(9, 3 * dt + 2).Value = 0
                     Else
                         For jc = 0 To numDataT - 1
-                            If iniRow1 <= Cells(11 + (numDataT * 2) + 8 - jc, 3 * dt + 2).Value Then
+                            If iniRow1 <= Cells(11 + (numDataT * 2) + 8 - jc, 3 * dt + 2).Value And IsEmpty(Cells(11 + jc, 3 * dt + 3).Value) = False Then
                                 pstart = jc + 1
                                 Exit For
                             
@@ -2000,7 +2011,7 @@ Sub GetAutoScale()
                         Next
                         
                         For jc = 0 To numDataT - 1
-                            If endRow1 <= Cells(11 + (numDataT * 2) + 8 - jc, 3 * dt + 2).Value Then
+                            If endRow1 <= Cells(11 + (numDataT * 2) + 8 - jc, 3 * dt + 2).Value And IsEmpty(Cells(11 + jc, 3 * dt + 3).Value) = False Then
                                 pend = jc + 1
                                 Exit For
                             End If
@@ -2016,14 +2027,14 @@ Sub GetAutoScale()
                         Cells(9, 3 * dt + 3).Value = 1
                     Else
                         For jc = 0 To numDataT - 1
-                            If iniRow2 >= Cells(12 + numDataT + 8 + jc, 3 * dt + 2).Value Then
+                            If iniRow2 >= Cells(12 + numDataT + 8 + jc, 3 * dt + 2).Value And IsEmpty(Cells(11 + jc, 3 * dt + 3).Value) = False Then
                                 pend = jc + 1
                                 Exit For
                             End If
                         Next
                         
                         For jc = 0 To numDataT - 1
-                            If endRow2 >= Cells(12 + numDataT + 8 + jc, 3 * dt + 2).Value Then
+                            If endRow2 >= Cells(12 + numDataT + 8 + jc, 3 * dt + 2).Value And IsEmpty(Cells(11 + jc, 3 * dt + 3).Value) = False Then
                                 pstart = jc + 1
                                 Exit For
                             End If
@@ -2083,7 +2094,14 @@ Sub GetAutoScale()
                     calv = 0
                 End If
 
-                Cells(4, 3 * dt + 2).Value = calv  ' reset char value as a constant
+                If Cells(2, 1).Value = "PE shifts" Then
+                    dc = -2
+                Else
+                    dc = 0
+                End If
+                
+                Cells(4 + dc, 3 * dt + 2).Value = calv ' reset char value as a constant
+                
             ElseIf IsNumeric(mid$(strAuto, 5, Len(strAuto) - 4)) = True Then
                 npts = mid$(strAuto, 5, Len(strAuto) - 4)
                 If npts >= 0 And npts < numDataT / 2 Then
@@ -2166,13 +2184,18 @@ Sub GetAutoScale()
     Next
     
     Cells(40, para + 11).Value = strAuto
-    Cells(1, 1).Value = "Grating"
-    
-    If ncomp > 0 Then
-        strErr = "skip"
+    If StrComp(mid$(ActiveSheet.Name, 1, 4), "Cmp_", 1) = 0 Then
+        Cells(1, 1).Value = vbNullString
+        End
     Else
-        off = 0
-        multi = 1
+        Cells(1, 1).Value = "Grating"
+        
+        If ncomp > 0 Then
+            strErr = "skip"
+        Else
+            off = 0
+            multi = 1
+        End If
     End If
 End Sub
 
@@ -3696,9 +3719,9 @@ Sub FitRange(ByRef strCpa As String)
     char = Cells(14, 101).Value
     ns = Cells(10, 101).Value
     
-    If StrComp(Worksheets(strSheetGraphName).Cells(10, 3).Value, "Ab", 1) = 0 And StrComp(Worksheets(strSheetGraphName).Cells(10, 1).Value, "Pe", 1) = 0 Then
+    If StrComp(LCase(Worksheets(strSheetGraphName).Cells(10, 3).Value), "ab", 1) = 0 And StrComp(LCase(Worksheets(strSheetGraphName).Cells(10, 1).Value), "pe", 1) = 0 Then
         strl(1) = "Pe"
-    ElseIf StrComp(Worksheets(strSheetGraphName).Cells(10, 1).Value, "Po", 1) = 0 Then
+    ElseIf StrComp(LCase(Worksheets(strSheetGraphName).Cells(10, 1).Value), "po", 1) = 0 Then
         strl(1) = "Po"
     End If
     
@@ -3841,7 +3864,8 @@ Sub FitRange(ByRef strCpa As String)
     Set sheetGraph = Worksheets(strSheetGraphName)
     Set sheetFit = Worksheets(strSheetFitName)
     
-    C1 = Range(Cells(21 + sftfit, 1), Cells((numData + 20 + sftfit), 1))
+    sheetFit.Activate
+    C1 = sheetFit.Range(Cells(21 + sftfit, 1), Cells((numData + 20 + sftfit), 1))
 
     k = 0
     j = 0
@@ -3857,6 +3881,17 @@ Sub FitRange(ByRef strCpa As String)
                 endR = n + 20 + sftfit
             End If
         Next
+        
+        If startR < 1 Or CStr(startR) = vbNullString Then
+            startR = 21 + sftfit
+            Cells(11 + sftfit2, 2).Value = Cells(21 + sftfit, 1).Value
+        End If
+        
+        If endR > numData + 20 + sftfit Or endR < startR Or CStr(endR) = vbNullString Then
+            endR = numData + 20 + sftfit
+            Cells(12 + sftfit2, 2).Value = Cells(numData + 20 + sftfit, 1).Value
+        End If
+        
     Else
         For n = 1 To numData - 1
             If Cells(12 + sftfit2, 2) <= C1(n, 1) And Cells(12 + sftfit2, 2) > C1((n + 1), 1) Then
@@ -3868,16 +3903,17 @@ Sub FitRange(ByRef strCpa As String)
                 endR = n + 20 + sftfit
             End If
         Next
-    End If
+        
+        If startR < 1 Or CStr(startR) = vbNullString Then
+            startR = 21 + sftfit
+            Cells(12 + sftfit2, 2).Value = Cells(21 + sftfit, 1).Value
+        End If
+        
+        If endR > numData + 20 + sftfit Or endR < startR Or CStr(endR) = vbNullString Then
+            endR = numData + 20 + sftfit
+            Cells(11 + sftfit2, 2).Value = Cells(numData + 20 + sftfit, 1).Value
+        End If
     
-    If startR < 1 Or CStr(startR) = vbNullString Then
-        startR = 21 + sftfit
-        Cells(12 + sftfit2, 2).Value = Cells(21 + sftfit, 1).Value
-    End If
-    
-    If endR > numData + 20 + sftfit Or endR < startR Or CStr(endR) = vbNullString Then
-        endR = numData + 20 + sftfit
-        Cells(11 + sftfit2, 2).Value = Cells(numData + 20 + sftfit, 1).Value
     End If
     
     numDataN = endR - startR + 1
@@ -3940,6 +3976,77 @@ Sub FitRange(ByRef strCpa As String)
             rng.Value = vbNullString
         End If
     Next
+End Sub
+
+Sub FormulaCheck()
+    Dim numbra1 As Integer, numbra2 As Integer, numbran1 As Integer, numbran2 As Integer, cnt As Integer
+    
+    cnt = 0
+    
+recheckformua1:
+
+    numbra1 = 0
+    numbra2 = 0
+    
+    For n = 5 To (4 + j)
+        If Not Cells(14 + sftfit2, n) = vbNullString Then
+            If InStr(1, Cells(14 + sftfit2, n), "(", 1) > 0 Then
+                numbra1 = numbra1 + 1
+                numbran1 = n
+            ElseIf InStr(1, Cells(14 + sftfit2, n), ")", 1) > 0 Then
+                numbra2 = numbra2 + 1
+                numbran2 = n
+            End If
+        End If
+    Next
+    
+    If numbra1 <> numbra2 Then
+        If numbra1 > numbra2 Then
+            Debug.Print "non match (>)"
+            Cells(14 + sftfit2, numbran1) = vbNullString
+        ElseIf numbra1 < numbra2 Then
+            Debug.Print "non match (<)"
+            Cells(14 + sftfit2, numbran2) = vbNullString
+        End If
+        
+        cnt = cnt + 1
+        If cnt < 10 Then GoTo recheckformua1
+    Else
+        Debug.Print "match (=)"
+    End If
+    
+recheckformua2:
+
+    numbra1 = 0
+    numbra2 = 0
+    
+    For n = 5 To (4 + j)
+        If Not Cells(15 + sftfit2, n) = vbNullString Then
+            If InStr(1, Cells(15 + sftfit2, n), "[", 1) > 0 Then
+                numbra1 = numbra1 + 1
+                numbran1 = n
+            ElseIf InStr(1, Cells(15 + sftfit2, n), "]", 1) > 0 Then
+                numbra2 = numbra2 + 1
+                numbran2 = n
+            End If
+        End If
+    Next
+    
+    If numbra1 <> numbra2 Then
+        If numbra1 > numbra2 Then
+            Debug.Print "non match [>]"
+            Cells(15 + sftfit2, numbran1) = vbNullString
+        ElseIf numbra1 < numbra2 Then
+            Debug.Print "non match [<]"
+            Cells(15 + sftfit2, numbran2) = vbNullString
+        End If
+        
+        cnt = cnt + 1
+        If cnt < 10 Then GoTo recheckformua2
+    Else
+        Debug.Print "match [=]"
+    End If
+        
 End Sub
 
 Sub FitCurve()
@@ -4035,6 +4142,7 @@ Sub FitCurve()
     Call FitEquations
     
     j = Cells(8 + sftfit2, 2).Value 'npa
+    Call FormulaCheck
     ActiveSheet.Calculate
     
 AsymIteration:
@@ -7694,7 +7802,7 @@ Sub ExcelRenew()
     fname = xlApp.ActiveWorkbook.Path + "\" + wb
     xlApp.ActiveSheet.Name = "renew"
     xlApp.ActiveWorkbook.SaveAs fileName:=fname, FileFormat:=51
-    xlApp.ActiveWorkbook.Close SaveChanges:=False
+    xlApp.ActiveWorkbook.Close savechanges:=False
     xlApp.Quit
     xlApp.Visible = False
     
@@ -8043,6 +8151,7 @@ End Sub
 Sub debugAll()      ' multiple file analysis in sequence
     Dim be4all() As Variant, am4all() As Variant, fw4all() As Variant, wbX As String, shgX As Worksheet, shfX As Worksheet, strSheetDataNameX As String, numpeakX As Integer
     Dim Target As Variant, C1 As Variant, C2 As Variant, OpenFileName As Variant, debugMode As String, seriesnum As Integer, SourceRangeColor1 As Long, rng As Range, strNorm As String
+    Dim debugcp As Integer, shf As Worksheet
     
     If mid$(testMacro, 1, 5) = "debug" Then
         modex = -1
@@ -8094,7 +8203,7 @@ Sub debugAll()      ' multiple file analysis in sequence
                 OpenFileName(q) = rng(q, 1)
             Next q
             
-            ActiveWorkbook.Close SaveChanges:=False
+            ActiveWorkbook.Close savechanges:=False
         End If
     Else
         Exit Sub
@@ -8171,56 +8280,60 @@ Sub debugAll()      ' multiple file analysis in sequence
                 Cells(18 + sftfit2, 4 + q).FormulaR1C1 = "= R21C / R24C"
                 Cells(19 + sftfit2, 4 + q).FormulaR1C1 = "= (R15C101 * (1 - (0.25 * R12C)*(3 * (cos(3.14*R24C2/180))^2 - 1)) * R14C * ((R3C)^(R21C2)) * R19C2 * (((R22C2^2)/((R22C2^2)+((R3C)/(R19C2))^2))^R23C2))"
             Next
-            Workbooks(ActiveWorkbook.Name).Close SaveChanges:=True
+            Workbooks(ActiveWorkbook.Name).Close savechanges:=True
             Application.DisplayAlerts = True
             GoTo SkipOpenDebug
         ElseIf modex = -3 Then
             Application.DisplayAlerts = False
             strSheetDataName = strNorm + mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)
-            If ExistSheet("Fit_" + strSheetDataName) Then
-                shfX.Activate
-                shfX.Range(Cells(1, 1), Cells(24 + sftfit2, para + 20)).Copy
-                
-                Workbooks(strTest).Sheets("Fit_" + strSheetDataName).Activate
-            ElseIf ExistSheet("Graph_" + strSheetDataName) Then
+            If Len(strSheetDataName) > 25 Then strSheetDataName = mid$(strSheetDataName, 1, 25)
+            Debug.Print strSheetDataName
+            
+            Set shf = Workbooks(strTest).Sheets("Fit_" + strSheetDataName)
+            shf.Activate
+            
+            If shf.Cells(8, 101).Value = 0 Then
                 testMacro = "debug"     ' This is a trigger to run the debugAll code in sequence
                 Call CLAM2              ' This is a main code. First run makes Graph, Fit, and Check sheets
                 ' Code until here
-                
+    
                 ' Error handling process here
                 If StrComp(strErrX, "skip", 1) = 0 Then
-                    Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
+                    Workbooks(ActiveWorkbook.Name).Close savechanges:=False
                     Debug.Print "strErrX"
                     Exit Sub
                 End If
-                ' Error handling process end
-
-                MsgBox ("Fit sheet generated on " & strSheetDataName & ".xlsx, because no Fit sheet was available")
-                Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
-                
-                Application.DisplayAlerts = True
-                GoTo SkipOpenDebug
+                'Error handling process end
             End If
-
-            Sheets("Fit_" + strSheetDataName).Paste Destination:=Range(Cells(1, 1), Cells(24 + sftfit2, para + 20))
+            
+            shfX.Activate
+            debugcp = shfX.Cells(8 + sftfit2, 2).Value
+            shfX.Range(Cells(1, 1), Cells(24 + sftfit2, 4 + debugcp)).Copy
+            
+            shf.Activate
+            shf.Paste Destination:=shf.Range(Cells(1, 1), Cells(24 + sftfit2, 4 + debugcp))
             
             If ActiveSheet.ChartObjects.Count > 3 Then
                 For q = ActiveSheet.ChartObjects.Count To 4 Step -1
                     ActiveSheet.ChartObjects(q).Delete      ' delete the chart copied from the source, no idea how to remove it!
                 Next
             End If
-
+            
             testMacro = "debug"     ' This is a trigger to run the debugAll code in sequence
             Call CLAM2              ' This is a main code. First run makes Graph, Fit, and Check sheets
+            ' Code until here
             
+            ' Error handling process here
             If StrComp(strErrX, "skip", 1) = 0 Then
-                Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
+                Workbooks(ActiveWorkbook.Name).Close savechanges:=False
                 Debug.Print "strErrX"
                 Exit Sub
             End If
-
-            Workbooks(ActiveWorkbook.Name).Close SaveChanges:=True
+            ' Error handling process end
+            
+            Workbooks(ActiveWorkbook.Name).Close savechanges:=True
             Application.DisplayAlerts = True
+            Set shf = Nothing
             GoTo SkipOpenDebug
         End If
         
@@ -8282,12 +8395,12 @@ Sub debugAll()      ' multiple file analysis in sequence
             Call CLAM2
 
             If StrComp(strErrX, "skip", 1) = 0 Then
-                Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
+                Workbooks(ActiveWorkbook.Name).Close savechanges:=False
                 Exit Sub
             End If
             
             If debugMode = "debugGraphn" Then
-                Workbooks(ActiveWorkbook.Name).Close SaveChanges:=True
+                Workbooks(ActiveWorkbook.Name).Close savechanges:=True
                 GoTo SkipOpenDebug
             ElseIf debugMode = "debugFit" Or debugMode = "debugShift" Then
                 testMacro = "debug"     ' This is a trigger to run the debugAll code in sequence
@@ -8296,7 +8409,7 @@ Sub debugAll()      ' multiple file analysis in sequence
                 Call CLAM2
 
                 If StrComp(strErrX, "skip", 1) = 0 Then
-                    Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
+                    Workbooks(ActiveWorkbook.Name).Close savechanges:=False
                     Exit Sub
                 End If
                 
@@ -8352,14 +8465,14 @@ Sub debugAll()      ' multiple file analysis in sequence
                 End If
                 
                 If StrComp(strErrX, "skip", 1) = 0 Then
-                    Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
+                    Workbooks(ActiveWorkbook.Name).Close savechanges:=False
                     Exit Sub
                 End If
             End If
         End If
         
         On Error GoTo SkipOpenDebug
-        Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
+        Workbooks(ActiveWorkbook.Name).Close savechanges:=False
 SkipOpenDebug:
         idebug = idebug + 1
     Next Target
@@ -8505,6 +8618,8 @@ Sub SolverInstall2()
     
     Application.Run "Solver.xlam!Solver.Solver2.Auto_open"    ' initialize Solver
 End Sub
+
+
 
 
 
