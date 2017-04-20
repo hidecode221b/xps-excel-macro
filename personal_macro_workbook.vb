@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.26p"                             ' Version of this code.
+    ver = "8.27p"                             ' Version of this code.
     direc = "D:\DATA\hideki\XPS\"            ' database file directory, D means folder undet the d drive .
     
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
@@ -75,6 +75,7 @@ Sub SheetNameAnalysis()
             If TimeCheck = 6 Then
                 testMacro = "debug"
                 ElemX = ""
+                On Error GoTo DeadInTheWater1
                 C1 = Split(direc, "\")
                 
                 For q = 1 To UBound(C1) - 1
@@ -98,6 +99,7 @@ DeadInTheWater1:
             If FSO.DriveExists(mid$(direc, 1, 2)) = False Then
                 End 'Call GetOut
             ElseIf TimeCheck = 6 Then
+                On Error GoTo DeadInTheWater2
                 C1 = Split(direc, "\")
                 For q = 1 To UBound(C1) - 1
                     C1(q) = C1(q - 1) & "\" & C1(q)
@@ -3830,8 +3832,8 @@ Sub FitRange(ByRef strCpa As String)
             
             Cells(6, 101).Value = startEb
             Cells(7, 101).Value = endEb
-            Cells(11, 100).Value = "majorUnit"
-            Cells(11, 101).Value = numMajorUnit
+            Cells(10, 102).Value = "majorUnit"
+            Cells(10, 103).Value = numMajorUnit
             If Abs(startEb - endEb) / Abs(Cells(22 + sftfit, 1).Value - Cells(21 + sftfit, 1).Value) < 30 Then
                 Cells(10, 101).Value = 3     ' Average # points for Solver around startR and endR points
             ElseIf Abs(startEb - endEb) / Abs(Cells(22 + sftfit, 1).Value - Cells(21 + sftfit, 1).Value) < 60 Then
@@ -3936,7 +3938,7 @@ Sub FitRange(ByRef strCpa As String)
                 With myChartOBJ.Chart.Axes(xlCategory, xlPrimary)
                     .MinimumScale = Cells(7, 101).Value
                     .MaximumScale = Cells(6, 101).Value
-                    .MajorUnit = Cells(11, 101).Value
+                    .MajorUnit = Cells(10, 103).Value
                 End With
                 With myChartOBJ.Chart.Axes(xlValue)
                     .MinimumScale = dblMin
@@ -3946,7 +3948,7 @@ Sub FitRange(ByRef strCpa As String)
                 With myChartOBJ.Chart.Axes(xlCategory, xlPrimary)
                     .MinimumScale = Cells(7, 101).Value
                     .MaximumScale = Cells(6, 101).Value
-                    .MajorUnit = Cells(11, 101).Value
+                    .MajorUnit = Cells(10, 103).Value
                 End With
                 Exit For
             End If
