@@ -8,8 +8,8 @@ Option Explicit
     Dim idebug As Integer, spacer As Integer, sftfit As Integer, sftfit2 As Integer, cmp As Integer, scanNum As Integer
     
     Dim wb As String, ver As String, TimeCheck As String, strAna As String, direc As String, ElemD As String, Results As String, testMacro As String
-    Dim strSheetDataName As String, strSheetGraphName As String, strSheetFitName As String, strSheetAnaName As String
-    Dim strTest As String, strLabel As String, strCasa As String, strAES As String, strErr As String, strErrX As String, ElemX As String
+    Dim strSheetDataName As String, strSheetGraphName As String, strSheetFitName As String, strSheetAnaName As String, strBG1 As String, strBG2 As String
+    Dim strMode As String, strLabel As String, strCasa As String, strAES As String, strErr As String, strErrX As String, ElemX As String
     
     Dim sheetData As Worksheet, sheetGraph As Worksheet, sheetFit As Worksheet, sheetAna As Worksheet
     Dim dataData As Range, dataKeData As Range, dataIntData As Range, dataBGraph As Range, dataKGraph, dataKeGraph As Range, dataBeGraph As Range
@@ -48,7 +48,7 @@ Sub CLAM2()
 End Sub
 
 Sub SheetNameAnalysis()
-    Dim FSO As Object, dt As Integer, C1 As Variant, rng As Range, sh As String, flag As Boolean
+    Dim FSO As Object, dt As Integer, C1 As Variant, rng As Range, sh As String, flag As Boolean, strTest As String
     
     If mid$(direc, Len(direc), 1) <> "\" Then direc = direc & "\"
     direc = Replace(direc, "/", "\")
@@ -392,9 +392,9 @@ DeadInTheWater2:
             End
         Else
             If InStr(1, sh, "Fit_BE") > 0 Then
-                strTest = "Do fit range"
+                strMode = "Do fit range"
             Else
-                strTest = "Do fit"
+                strMode = "Do fit"
             End If
             Call FitCurve
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
@@ -487,15 +487,15 @@ Error1:
 End Sub
 
 Sub TargetDataAnalysis()
-    strTest = Cells(1, 1).Value
+    strMode = Cells(1, 1).Value
 
-    If InStr(strTest, "E/eV") > 0 Then          ' Manually imported data analsysis
+    If InStr(strMode, "E/eV") > 0 Then          ' Manually imported data analsysis
         Do
-            If InStr(strTest, "'") > 0 Then     ' remove "'" generated in Igor produced text
-                q = InStr(strTest, "'")
-                strTest = Left$(strTest, q - 1) + mid$(strTest, q + 1)
+            If InStr(strMode, "'") > 0 Then     ' remove "'" generated in Igor produced text
+                q = InStr(strMode, "'")
+                strMode = Left$(strMode, q - 1) + mid$(strMode, q + 1)
             Else
-                Cells(1, 1).Value = strTest
+                Cells(1, 1).Value = strMode
                 Exit Do
             End If
         Loop
@@ -516,7 +516,7 @@ Sub TargetDataAnalysis()
             
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
             
-            If StrComp(strTest, "GE/eV", 1) = 0 Then        ' Grating scan with fixed gap
+            If StrComp(strMode, "GE/eV", 1) = 0 Then        ' Grating scan with fixed gap
                 Call EngBL
                 Call descriptHidden1
                 Call GetOut
@@ -531,7 +531,7 @@ Sub TargetDataAnalysis()
             End If
         End If
     Else
-        strTest = mid$(Cells(2, 1).Value, 1, 5)
+        strMode = mid$(Cells(2, 1).Value, 1, 5)
         If cmp >= 0 Then
             Call GetCompare
         Else
@@ -552,7 +552,7 @@ Sub TargetDataAnalysis()
 End Sub
 
 Sub PlotCLAM2()
-    Dim C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant, imax As Integer, sig As Integer, SourceRangeColor1 As Long, SourceRangeColor2 As Long
+    Dim C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant, imax As Integer, sig As Integer, SourceRangeColor1 As Long, SourceRangeColor2 As Long, strTest As String
     
     sig = 1
     imax = numData + 10
@@ -581,7 +581,7 @@ Sub PlotCLAM2()
     C2 = dataIntData     ' U second column
     C3 = dataKeGraph.Offset(, 2)    ' dataIntGraph    ' A
     
-    If StrComp(strTest, "AE/eV", 1) = 0 Then
+    If StrComp(strMode, "AE/eV", 1) = 0 Then
         C4 = Range(Cells(1, para + 1), Cells(1, para + 5))
         For n = 1 To numData
             startR = n - 1
@@ -603,7 +603,7 @@ Sub PlotCLAM2()
             C3(n, 1) = (C4(1, 3) * C4(1, 4) - C4(1, 2) * C4(1, 5)) / (C4(1, 1) * C4(1, 3) - C4(1, 2) * C4(1, 2))
             Range(Cells(11, 2), Cells((numData + 10), 2)) = C2
         Next
-    ElseIf InStr(strTest, "E/eV") > 0 Then
+    ElseIf InStr(strMode, "E/eV") > 0 Then
         If StrComp(Cells(1, 3).Value, "Ip", 1) = 0 Or StrComp(Cells(1, 3).Value, "Ie", 1) = 0 Then
             C4 = dataKeData.Offset(, 2)
         Else
@@ -638,7 +638,7 @@ Sub PlotCLAM2()
     Call descriptGraph
     Call scalecheck
     
-    If strTest = "ME/eV" Then Call SheetCheckGenerator      ' Check Sheet for "ME/eV"
+    If strMode = "ME/eV" Then Call SheetCheckGenerator      ' Check Sheet for "ME/eV"
 
     If numMajorUnit > 0 Then
         If startEk > 0 Then
@@ -738,7 +738,7 @@ SkipGraph2:
                 .Crosses = xlMinimum
             Else
                 .HasTitle = True
-                If InStr(strTest, "E/eV") > 0 Then
+                If InStr(strMode, "E/eV") > 0 Then
                     If sheetData.Cells(1, 2).Value = "AlKa" Then
                         .AxisTitle.Text = "K counts per sec."
                     Else
@@ -812,7 +812,7 @@ End Sub
 
 Sub ElemXPS()
     Dim xpsoffset As Integer, aesoffset As Integer, asf As String, oriXPSFactors As Integer, rtoe As Single
-    Dim fname As Variant, Record As Variant, C1 As Variant, C2 As Variant, C3 As Variant, Elem As String
+    Dim fname As Variant, Record As Variant, C1 As Variant, C2 As Variant, C3 As Variant, Elem As String, strTest As String
     
     xpsoffset = 0
     
@@ -1496,7 +1496,7 @@ AESmode2:
 End Sub
 
 Sub PlotChem()
-    Dim fname As Variant, Record As Variant, C1 As Variant, C2 As Variant, C3 As Variant, rngElemBeC As Range, pts As Points, pt As Point
+    Dim fname As Variant, Record As Variant, C1 As Variant, C2 As Variant, C3 As Variant, rngElemBeC As Range, pts As Points, pt As Point, strTest As String
     
     If Dir(direc + "Chem\") = vbNullString Then
         Set sheetGraph = Worksheets("Graph_" + strSheetDataName)
@@ -2246,7 +2246,7 @@ Sub ExportCmp(ByRef strXas As String)
 End Sub
 
 Sub Convert2Txt(ByRef strXas As String)
-    Dim numDataT As Integer, numDataF As Integer, ElemT As String, rng As Range, strCpa As String
+    Dim numDataT As Integer, numDataF As Integer, ElemT As String, rng As Range, strCpa As String, strTest As String
     
     Set rng = [1:1]
     iCol = Application.CountA(rng)
@@ -2597,7 +2597,7 @@ End Sub
 
 Sub FitAnalysis()
     Dim C1 As Variant, C2 As Variant, C3 As Variant, peakNum As Integer, fitNum As Integer, bookNum As Integer, imax As Integer
-    Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, ncmp As Integer, ncomp As Integer, rng As Range, strSheetCmpName As String
+    Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, ncmp As Integer, ncomp As Integer, rng As Range, strSheetCmpName As String, strTest As String
     
     If Len(strSheetDataName) > 25 Then strSheetDataName = mid$(strSheetDataName, 1, 25)
 
@@ -3688,7 +3688,7 @@ Sub FitRange(ByRef strCpa As String)
     
     strSheetGraphName = "Graph_" + strSheetDataName
 
-    If StrComp(mid$(strTest, 8, 5), "range", 1) = 0 Then
+    If StrComp(mid$(strMode, 8, 5), "range", 1) = 0 Then
         strSheetFitName = ActiveSheet.Name
     Else
         strSheetFitName = "Fit_" + strSheetDataName
@@ -3955,10 +3955,10 @@ Sub FitRange(ByRef strCpa As String)
         Next
     End If
     
-    strTest = LCase(mid$(Cells(1, 1).Value, 1, 1))
-    strLabel = LCase(mid$(Cells(1, 2).Value, 1, 1))
+    strBG1 = LCase(mid$(Cells(1, 1).Value, 1, 1))
+    strBG2 = LCase(mid$(Cells(1, 2).Value, 1, 1))
     
-    If strTest = LCase(mid$(Cells(16, 100).Value, 1, 1)) And strLabel = LCase(mid$(Cells(16, 101).Value, 1, 1)) Then
+    If strBG1 = LCase(mid$(Cells(16, 100).Value, 1, 1)) And strBG2 = LCase(mid$(Cells(16, 101).Value, 1, 1)) Then
         If Cells(8, 101).Value = 0 Then
             strCpa = "initial"
         Else
@@ -4056,7 +4056,7 @@ Sub FitCurve()
     
     Dim ls As Single, ratio1 As Single, imax As Integer, rng As Range, strCpa As String
     
-    If StrComp(mid$(strTest, 1, 6), "Do fit", 1) = 0 Then
+    If StrComp(mid$(strMode, 1, 6), "Do fit", 1) = 0 Then
     Else
         Call FitInitial
         Exit Sub
@@ -4072,7 +4072,7 @@ Sub FitCurve()
     If strErrX = "skip" Then Exit Sub
     Call SolverSetup
     
-    If StrComp(strTest, "t", 1) <> 0 And StrComp(strLabel, "t", 1) <> 0 And StrComp(strTest, "e", 1) <> 0 Then
+    If StrComp(strBG1, "t", 1) <> 0 And StrComp(strBG2, "t", 1) <> 0 And StrComp(strBG1, "e", 1) <> 0 Then
         Range("DG31").CurrentRegion.ClearContents
         Range("DE31").CurrentRegion.ClearContents
     End If
@@ -4081,21 +4081,21 @@ Sub FitCurve()
         Call FitEF
         Call GetOutFit
         Exit Sub
-    ElseIf StrComp(strTest, "p", 1) = 0 Then
-        If StrComp(strLabel, "s", 1) = 0 Then
+    ElseIf StrComp(strBG1, "p", 1) = 0 Then
+        If StrComp(strBG2, "s", 1) = 0 Then
             Call PolynominalShirleyBG
-        ElseIf StrComp(strLabel, "t", 1) = 0 Then
+        ElseIf StrComp(strBG2, "t", 1) = 0 Then
             Call PolynominalTougaardBG
         Else
             Call PolynominalBG
         End If
-    ElseIf StrComp(strTest, "a", 1) = 0 Then
+    ElseIf StrComp(strBG1, "a", 1) = 0 Then
         Call TangentArcBG
-    ElseIf StrComp(strTest, "t", 1) = 0 Then
+    ElseIf StrComp(strBG1, "t", 1) = 0 Then
         Call TougaardBG
-    ElseIf StrComp(strTest, "v", 1) = 0 Then
+    ElseIf StrComp(strBG1, "v", 1) = 0 Then
         Call VictoreenBG
-    ElseIf StrComp(strTest, "e", 1) = 0 Then
+    ElseIf StrComp(strBG1, "e", 1) = 0 Then
         Call FitEF
         Call GetOutFit
         Exit Sub
@@ -4826,32 +4826,32 @@ Sub GetOutFit()
     If Not Cells(1, 1).Value = "EF" And Cells(8, 101).Value > 0 Then
         Call descriptInitialFit
     ElseIf Cells(1, 1).Value = "EF" Then
-        strTest = "e"
+        strBG1 = "e"
     End If
     
-    If StrComp(strTest, "p", 1) = 0 Then
-        If StrComp(strLabel, "s", 1) = 0 Then
+    If StrComp(strBG1, "p", 1) = 0 Then
+        If StrComp(strBG2, "s", 1) = 0 Then
             Cells(5, 2).Value = fileNum
             Cells(5, 1).Value = "Iteration"
             Cells(5, 2).Font.Bold = "False"
-        ElseIf StrComp(strLabel, "t", 1) = 0 Then
+        ElseIf StrComp(strBG2, "t", 1) = 0 Then
         Else
             Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
             Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
             Cells(5, 1).Value = "a3"
         End If
-    ElseIf StrComp(strTest, "a", 1) = 0 Or StrComp(strTest, "r", 1) = 0 Then
+    ElseIf StrComp(strBG1, "a", 1) = 0 Or StrComp(strBG1, "r", 1) = 0 Then
         Range(Cells(8, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
         Range(Cells(8, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
         Cells(6, 1).Value = "Slope"
         Cells(7, 1).Value = "ratio L:A"
-    ElseIf StrComp(strTest, "t", 1) = 0 Then
+    ElseIf StrComp(strBG1, "t", 1) = 0 Then
         'Cells(5, 2).Value = fileNum
         Cells(5, 1).Value = "Norm"
         Cells(5, 2).Font.Bold = "False"
         Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
         Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
-    ElseIf StrComp(strTest, "v", 1) = 0 Then
+    ElseIf StrComp(strBG1, "v", 1) = 0 Then
         If Cells(8, 2).Value = vbNullString Then
             Cells(8, 1).Value = "No edge"
         ElseIf Cells(8, 2).Value < Cells(12 + sftfit2, 2).Value And Cells(8, 2).Value > Cells(11 + sftfit2, 2).Value Then
@@ -4861,7 +4861,7 @@ Sub GetOutFit()
         End If
         Range(Cells(10, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
         Range(Cells(10, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
-    ElseIf StrComp(strTest, "e", 1) = 0 Then
+    ElseIf StrComp(strBG1, "e", 1) = 0 Then
         Cells(8, 1).Value = "Norm (FD)"
         Cells(6, 1).Value = "Poly2nd"
         Cells(7, 1).Value = "Poly3rd"
@@ -4907,7 +4907,7 @@ Sub GetOutFit()
 End Sub
 
 Sub EngBL()
-    Dim C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant, imax As Integer, SourceRangeColor1 As Long
+    Dim C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant, imax As Integer, SourceRangeColor1 As Long, strTest As String
     
     If ExistSheet(strSheetGraphName) Then
         Application.DisplayAlerts = False
@@ -4931,7 +4931,7 @@ Sub EngBL()
         End If
     End If
     
-    If StrComp(strTest, "GE/eV", 1) = 0 Then
+    If StrComp(strMode, "GE/eV", 1) = 0 Then
         C1 = dataKeData                                      ' PE
         C2 = dataKeData.Offset(, 1)                          ' Ip
         If StrComp(Cells(1, 3).Value, "Ie", 1) = 0 Then
@@ -5151,16 +5151,16 @@ End Sub
 Sub FormatData()   ' this is a template for data loading.
     Dim iniRow As Integer, endRow As Integer, totalDataPoints As Integer, eneCol As Single, speCol As Single, cnt As Integer, msgap As Integer
     
-    If StrComp(strTest, "CLAM2", 1) = 0 Then        ' XPS mode
-        strTest = "KE/eV"
+    If StrComp(strMode, "CLAM2", 1) = 0 Then        ' XPS mode
+        strMode = "KE/eV"
         peX = CInt(mid$(Cells(8, 1).Value, 19, (Len(Cells(8, 1).Value) - 18 - 2)))
-    ElseIf StrComp(strTest, "Photo", 1) = 0 Then    ' XAS mode
-        strTest = "PE/eV"
+    ElseIf StrComp(strMode, "Photo", 1) = 0 Then    ' XAS mode
+        strMode = "PE/eV"
     Else
         
     End If
     
-    If graphexist = 0 And strTest = "KE/eV" Then
+    If graphexist = 0 And strMode = "KE/eV" Then
         ' if parameters are already specified in text, read from text. AlKa: 1486.6, MgKa: 1253.6 eV
         
         If peX = 0 Then
@@ -5170,7 +5170,7 @@ Sub FormatData()   ' this is a template for data loading.
         pe = peX
             
         If pe <= 0 Then
-            strTest = "AE/eV"
+            strMode = "AE/eV"
         End If
         
         wf = 4
@@ -5186,7 +5186,7 @@ Sub FormatData()   ' this is a template for data loading.
         g = 1200        ' grating line density
     End If
     
-    If strTest = "KE/eV" Then
+    If strMode = "KE/eV" Then
         ' Data position specified here by row and column in text data
         eneCol = 1  ' kinetic energy column
         speCol = 7  ' photoelectron spectral column
@@ -5195,7 +5195,7 @@ Sub FormatData()   ' this is a template for data loading.
         endRow = Cells(iniRow, speCol).End(xlDown).Row
         numData = endRow - iniRow + 1
         msgap = 3   ' gap between multple scanned data
-    ElseIf strTest = "PE/eV" Then
+    ElseIf strMode = "PE/eV" Then
         If Cells(7, 7).Value = "If/Ip" Then
             eneCol = 1  ' photon energy column
             speCol = 7  ' TFY spectral column
@@ -5252,7 +5252,7 @@ Sub KeBL()
         If Cells(1, 2).Value = "AlKa" Then
             pe = 1486.6
             multi = 0.001
-        ElseIf strTest = "KE/eV" Or strTest = "BE/eV" Then
+        ElseIf strMode = "KE/eV" Or strMode = "BE/eV" Then
             If StrComp(testMacro, "debug", 1) = 0 Then
                 If peX = 0 Then
                     peX = Application.InputBox(Title:="Manual input mode", Prompt:="Input a photon energy [eV] or cancel to switch AES mode", Default:=650, Type:=1)
@@ -5266,14 +5266,14 @@ Sub KeBL()
             
             If pe <= 0 Then
                 Cells(1, 1).Value = "AE/eV"
-                strTest = "AE/eV"
+                strMode = "AE/eV"
             End If
             multi = 1
         End If
         
-        If strTest = "BE/eV" Then
+        If strMode = "BE/eV" Then
             wf = 4
-        ElseIf strTest = "QE/eV" Then
+        ElseIf strMode = "QE/eV" Then
             wf = 1
         Else
             wf = 4
@@ -5308,7 +5308,7 @@ Sub KeBL()
     Set dataKeData = Range(Cells(2, 1), Cells(numData + 1, 1))
     Set dataIntData = dataKeData.Offset(, 1)
     
-    If strTest = "BE/eV" Then
+    If strMode = "BE/eV" Then
         If startEk < endEk Then
             C1 = Range(Cells(2, 1), Cells(numData + 1, 3))
             
@@ -5327,11 +5327,11 @@ Sub KeBL()
             startEk = Cells(2, 1).Value
             endEk = Cells(numData + 1, 1).Value
             stepEk = Cells(3, 1).Value - Cells(2, 1).Value
-            Cells(1, 1).Value = strTest & "/sort"
+            Cells(1, 1).Value = strMode & "/sort"
             Cells(1, 2).Value = "Y/sort"
             Cells(1, 3).Value = "Ie/sort"
         End If
-    ElseIf InStr(strTest, "E/eV") > 0 Then
+    ElseIf InStr(strMode, "E/eV") > 0 Then
         If startEk > endEk Then
             C1 = Range(Cells(2, 1), Cells(numData + 1, 3))
             
@@ -5350,7 +5350,7 @@ Sub KeBL()
             startEk = Cells(2, 1).Value
             endEk = Cells(numData + 1, 1).Value
             stepEk = Cells(3, 1).Value - Cells(2, 1).Value
-            Cells(1, 1).Value = strTest & "/sort"
+            Cells(1, 1).Value = strMode & "/sort"
             Cells(1, 2).Value = "Y/sort"
             Cells(1, 3).Value = "Ie/sort"
         End If
@@ -5382,7 +5382,7 @@ Sub offsetmultiple()
 End Sub
 
 Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, sBG As Variant, cmp As Integer, ncmp As Integer, ncomp)
-    Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long, strCpa As String, sheetTarget As Worksheet, strNorm As String
+    Dim SourceRangeColor1 As Long, SourceRangeColor2 As Long, strCpa As String, sheetTarget As Worksheet, strNorm As String, strTest As String
     Dim Target As Variant, C1 As Variant, C2 As Variant, C3 As Variant, C4 As Variant, imax As Integer, NumSheets As Integer, peakNum As Integer, fitNum As Integer
     
     If strAna = "FitRatioAnalysis" Then
@@ -5978,7 +5978,7 @@ Sub descriptGraph()
     ReDim strl(3)
     imax = numData + 10
     
-    If strTest = "PE/eV" Or strTest = "GE/eV" Then
+    If strMode = "PE/eV" Or strMode = "GE/eV" Then
         Cells(2, 2).Value = pe
         Cells(2, 1).Value = "PE shifts"
         Cells(5, 1).Value = "Start PE"
@@ -5996,7 +5996,7 @@ Sub descriptGraph()
         strl(1) = "Pe"
         strl(2) = "Sh"
         strl(3) = "Ab"
-    ElseIf strTest = "QE/eV" Then
+    ElseIf strMode = "QE/eV" Then
         Cells(2, 2).Value = pe
         Cells(2, 1).Value = "x offset"
         Cells(3, 2).Value = wf
@@ -6015,7 +6015,7 @@ Sub descriptGraph()
         strl(1) = "Po"
         strl(2) = "Pn"
         strl(3) = "Pp"
-    ElseIf strTest = "BE/eV" Then
+    ElseIf strMode = "BE/eV" Then
         Cells(2, 2).Value = pe
         Cells(2, 1).Value = "PE"
         Cells(3, 1).Value = "WF"
@@ -6035,7 +6035,7 @@ Sub descriptGraph()
         strl(2) = "Be"
         strl(3) = "In"
         
-    ElseIf strTest = "AE/eV" Then
+    ElseIf strMode = "AE/eV" Then
         Cells(2, 2).Value = pe
         Cells(2, 1).Value = "KE shifts"
         Cells(3, 2).Value = wf
@@ -6066,7 +6066,7 @@ Sub descriptGraph()
         strl(1) = "Ke"
         strl(2) = "Ae"
         strl(3) = "De"
-    ElseIf strTest = "ME/eV" Then
+    ElseIf strMode = "ME/eV" Then
         Cells(2, 2).Value = pe
         Cells(2, 1).Value = "Shifts"
         Cells(5, 1).Value = "Start"
@@ -6107,7 +6107,7 @@ Sub descriptGraph()
         Set dataKeGraph = Range(Cells(10 + (imax), 1), Cells(10 + (imax), 1).Offset(numData - 1, 0))
         Set dataBeGraph = dataKeGraph.Offset(, 1)
     Else
-        If strTest = "BE/eV" Then
+        If strMode = "BE/eV" Then
             Range(Cells(11, 1), Cells((10 + numData), 1)).FillDown
         Else
             Range(Cells(11, 2), Cells((10 + numData), 2)).FillDown
@@ -6124,7 +6124,7 @@ Sub descriptGraph()
         Set dataKeGraph = Range(Cells(10 + (imax), 1), Cells(10 + (imax), 1).Offset(numData - 1, 0))
         Set dataBeGraph = dataKeGraph.Offset(, 1)
         
-        If strTest = "BE/eV" Then
+        If strMode = "BE/eV" Then
             startEk = Cells(11, 1).Value
             endEk = Cells(10 + numData, 1).Value
         End If
@@ -7836,7 +7836,7 @@ Sub GetNormalize()
     Dim C1 As Variant, C2 As Variant, C3 As Variant
     Dim SourceRangeColor1 As Single
     Dim rng As Range
-    Dim imax As Integer
+    Dim imax As Integer, strTest As String
     
     If Cells(1, 1).Value = "norm" Then
         strSheetAnaName = "Norm_" + strSheetDataName
@@ -8153,7 +8153,7 @@ End Sub
 Sub debugAll()      ' multiple file analysis in sequence
     Dim be4all() As Variant, am4all() As Variant, fw4all() As Variant, wbX As String, shgX As Worksheet, shfX As Worksheet, strSheetDataNameX As String, numpeakX As Integer
     Dim Target As Variant, C1 As Variant, C2 As Variant, OpenFileName As Variant, debugMode As String, seriesnum As Integer, SourceRangeColor1 As Long, rng As Range, strNorm As String
-    Dim debugcp As Integer, shf As Worksheet
+    Dim debugcp As Integer, shf As Worksheet, strTest As String
     
     If mid$(testMacro, 1, 5) = "debug" Then
         modex = -1
@@ -8620,6 +8620,8 @@ Sub SolverInstall2()
     
     Application.Run "Solver.xlam!Solver.Solver2.Auto_open"    ' initialize Solver
 End Sub
+
+
 
 
 
