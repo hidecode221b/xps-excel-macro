@@ -7249,7 +7249,9 @@ SkipBarPlotEF:
 End Sub
 
 Sub ProfileAnalyzer()
-    Dim coef0 As Integer, coef1, coef2, coef3, coef4, coef5
+    Dim coef0 As Integer, coef1, coef2, coef3, coef4, coef5, strShape As String
+    
+    strShape = Cells(11, (4 + n)).Value
     
     If IsNumeric(Cells(7, (4 + n)).Value) Then
         If Cells(7, (4 + n)).Value = 0 Then
@@ -7294,17 +7296,23 @@ Sub ProfileAnalyzer()
         coef5 = 0
     End If
     
+    If coef1 = 2 And (strShape = "G" Or strShape = "SGL") Then
+        strShape = "SGL"
+        Cells(9, 103).Value = "Sum"
+        coef4 = 1      ' "sum"
+        coef5 = 0
+    End If
     coef0 = (1000 * coef5 + 100 * coef1 + 10 * coef2 + coef3) * coef4
     
-    If Cells(11, (4 + n)).Value = "G" And coef0 <> 0 Then
+    If strShape = "G" And coef0 <> 0 Then
         Cells(7, (4 + n)).Value = "Gauss"
         Cells(7, (4 + n)).Font.Italic = "False"
         Cells(7, (4 + n)).Font.Underline = xlUnderlineStyleNone
-    ElseIf Cells(11, (4 + n)).Value = "L" And Abs(coef0) <> 100 Then
+    ElseIf strShape = "L" And Abs(coef0) <> 100 Then
         Cells(7, (4 + n)).Value = "Lorentz"
         Cells(7, (4 + n)).Font.Italic = "False"
         Cells(7, (4 + n)).Font.Underline = xlUnderlineStyleNone
-    ElseIf Cells(11, (4 + n)).Value = "SGL" And coef0 <> 200 Then
+    ElseIf strShape = "SGL" And coef0 <> 200 Then
         If Not 0 < Cells(7, (4 + n)).Value < 1 Or IsNumeric(Cells(7, (4 + n)).Value) = False Then Cells(7, (4 + n)).Value = 0.2
         Cells(7, (4 + n)).Font.Italic = "False"
         If coef0 > 1000 Then
@@ -7313,12 +7321,12 @@ Sub ProfileAnalyzer()
             Cells(9, 103).Value = "Sum"
         End If
         Cells(7, (4 + n)).Font.Underline = xlUnderlineStyleNone
-    ElseIf Cells(11, (4 + n)).Value = "TSGL" And coef0 <> 1201 Then
+    ElseIf strShape = "TSGL" And coef0 <> 1201 Then
         If Not 0 < Cells(7, (4 + n)).Value < 1 Or IsNumeric(Cells(7, (4 + n)).Value) = False Then Cells(7, (4 + n)).Value = 0.2
         Cells(7, (4 + n)).Font.Italic = "False"
         Cells(9, 103).Value = "MultiPak"
         Cells(7, (4 + n)).Font.Underline = xlUnderlineStyleSingle
-    ElseIf Cells(11, (4 + n)).Value = "GL" And coef0 <> 1200 Then
+    ElseIf strShape = "GL" And coef0 <> 1200 Then
         If Not 0 < Cells(7, (4 + n)).Value < 1 Or IsNumeric(Cells(7, (4 + n)).Value) = False Then Cells(7, (4 + n)).Value = 0.2
         Cells(7, (4 + n)).Font.Italic = "False"
         Cells(9, 103).Value = "MultiPak"
