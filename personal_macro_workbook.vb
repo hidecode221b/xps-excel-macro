@@ -1,11 +1,11 @@
 Option Explicit
     
-    Dim highpe() As Variant, ratio() As Variant, bediff() As Variant, strl() As Variant
+    Dim highpe() As Variant, ratio() As Variant, bediff() As Variant, strl() As Variant, backSlash As String, wbpath As String, numRun As Integer
     
     Dim j As Integer, k As Integer, q As Integer, p As Integer, n As Integer, iRow As Integer, iCol As Integer, ns As Integer, fileNum As Integer
     Dim startR As Integer, endR As Integer, g As Integer, cae As Integer, ncomp As Integer, numXPSFactors As Integer, numAESFactors As Integer
     Dim numMajorUnit As Integer, modex As Integer, para As Integer, graphexist As Integer, numData As Integer, numChemFactors As Integer
-    Dim idebug As Integer, spacer As Integer, sftfit As Integer, sftfit2 As Integer, cmp As Integer, scanNum As Integer
+    Dim idebug As Integer, spacer As Integer, sftfit As Integer, sftfit2 As Integer, cmp As Integer, scanNum As Integer, numGrant As Integer
     
     Dim wb As String, ver As String, TimeCheck As String, strAna As String, direc As String, ElemD As String, Results As String, testMacro As String
     Dim strSheetDataName As String, strSheetGraphName As String, strSheetFitName As String, strSheetAnaName As String, strBG1 As String, strBG2 As String
@@ -20,9 +20,15 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.27p"                             ' Version of this code.
-    direc = "D:\DATA\hideki\XPS\"            ' database file directory, D means folder undet the d drive .
-    
+    ver = "8.28p"                             ' Version of this code.
+    backSlash = Application.PathSeparator ' Mac = "/", Win = "\"
+    If backSlash = "/" Then    ' location of directory for database
+        direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
+        'direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Documents" + backSlash + "XPS" + backSlash
+    Else
+        direc = "E:" + backSlash + "Data" + backSlash + "Hideki" + backSlash + "XPS" + backSlash
+        ' "E:\Data\Hideki\XPS\"
+    End If
     windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
     windowRatio = 4 / 3     ' window width / height, "2/1" for eyes or "4/3" for ppt
     ElemD = "C,O"           ' Default elements to be shown up in the element analysis.
@@ -49,12 +55,14 @@ End Sub
 
 Sub SheetNameAnalysis()
     Dim FSO As Object, dt As Integer, C1 As Variant, rng As Range, sh As String, flag As Boolean, strTest As String
-    
-    If mid$(direc, Len(direc), 1) <> "\" Then direc = direc & "\"
-    direc = Replace(direc, "/", "\")
+
+    If mid$(direc, Len(direc), 1) <> backSlash Then direc = direc & backSlash
+    direc = Replace(direc, "/", backSlash)
     direc = Replace(direc, "*", "")
-    Set FSO = CreateObject("Scripting.FileSystemObject")
     
+    If backSlash = "/" Then GoTo DeadInTheWater3
+
+    Set FSO = CreateObject("Scripting.FileSystemObject")
     If FSO.DriveExists(mid$(direc, 1, 2)) = False Then
         TimeCheck = MsgBox("Drive Not Found in " + mid$(direc, 1, 2) + " !" + vbCrLf + "Change a drive in direc", 0, "Database error")
         End
@@ -65,7 +73,7 @@ Sub SheetNameAnalysis()
             Application.DisplayAlerts = False
             Workbooks.Add
             Call UDsamples
-            ActiveWorkbook.SaveAs fileName:=direc & "UD.xlsx", FileFormat:=51
+            ActiveWorkbook.SaveAs fileName:=direc & "UD.xlsx", FileFormat:=xlOpenXMLWorkbook
             ActiveWorkbook.Close
             Application.DisplayAlerts = True
         End If
@@ -108,7 +116,7 @@ DeadInTheWater1:
                 
                 Workbooks.Add
                 Call UDsamples
-                ActiveWorkbook.SaveAs fileName:=direc & "UD.xlsx", FileFormat:=51
+                ActiveWorkbook.SaveAs fileName:=direc & "UD.xlsx", FileFormat:=xlOpenXMLWorkbook
                 ActiveWorkbook.Close
             Else
                 End 'Call GetOut
@@ -119,7 +127,9 @@ DeadInTheWater2:
         End If
     End If
     Set FSO = Nothing
-    
+DeadInTheWater3:
+
+
     If StrComp(testMacro, "debug", 1) = 0 Then
         TimeCheck = 0
     End If
@@ -130,6 +140,7 @@ DeadInTheWater2:
     Application.Calculation = xlCalculationAutomatic    ' revised for Office 2010
     graphexist = 0
     sh = ActiveSheet.Name
+    wbpath = ActiveWorkbook.Path
     
     If InStr(1, sh, "Graph_") > 0 Then
         If InStr(1, sh, "Graph_Norm_") > 0 Then
@@ -465,7 +476,11 @@ DeadInTheWater2:
             Application.Dialogs(xlDialogSaveAs).Show
         Else
             On Error GoTo Error1
-            ActiveWorkbook.SaveAs fileName:=ActiveWorkbook.Path + "\" + wb, FileFormat:=51
+'            If backSlash = "/" And numRun = 1 Then
+'                filePermissionCandidates = Array(wbpath, ActiveWorkbook.FullName, wbpath & backSlash & wb)
+'                fileAccessGranted = GrantAccessToMultipleFiles(filePermissionCandidates)
+'            End If
+            ActiveWorkbook.SaveAs fileName:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
         End If
         Application.DisplayAlerts = True
     
@@ -482,8 +497,6 @@ Error2:
     Exit Sub
 Error1:
     Err.Clear
-    wb = mid$(ActiveWorkbook.Name, 1, InStr(ActiveWorkbook.Name, ".") - 1) + "_bk.xlsx"
-    ActiveWorkbook.SaveAs fileName:=ActiveWorkbook.Path + "\" + wb, FileFormat:=51
 End Sub
 
 Sub TargetDataAnalysis()
@@ -812,7 +825,7 @@ End Sub
 
 Sub ElemXPS()
     Dim xpsoffset As Integer, aesoffset As Integer, asf As String, oriXPSFactors As Integer, rtoe As Single
-    Dim fname As Variant, Record As Variant, C1 As Variant, C2 As Variant, C3 As Variant, Elem As String, strTest As String
+    Dim Fname As Variant, Record As Variant, C1 As Variant, C2 As Variant, C3 As Variant, Elem As String, strTest As String
     
     xpsoffset = 0
     
@@ -841,20 +854,20 @@ CheckElemAgain:
     k = 0
     q = 0
     
-    fname = direc + "UD.xlsx"
+    Fname = direc + "UD.xlsx"
     xpsoffset = 2
     strCasa = "User Defined"
     
     If Not WorkbookOpen("UD.xlsx") Then
         graphexist = 0
-        Workbooks.Open fname
+        Workbooks.Open Fname
         Workbooks("UD.xlsx").Activate
         If Err.Number > 0 Then
-            MsgBox "Error in " & fname, vbOKOnly, "Error code: " & Err.Number
+            MsgBox "Error in " & Fname, vbOKOnly, "Error code: " & Err.Number
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         ElseIf StrComp(ActiveWorkbook.Name, "UD.xlsx", 1) <> 0 Then
-            MsgBox "Error in " & fname
+            MsgBox "Error in " & Fname
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         End If
@@ -862,7 +875,7 @@ CheckElemAgain:
         Workbooks("UD.xlsx").Activate
         graphexist = 1
     End If
-    
+
     If ExistSheet("XPS") Then
         Workbooks("UD.xlsx").Sheets("XPS").Activate
         iRow = ActiveSheet.UsedRange.Rows.Count
@@ -1015,23 +1028,23 @@ CheckElemAgain:
         strTest = C2(n, 1) + Left$(C2(n, 2), 2)
         C3(n, 1) = strTest
         
-        If Dir(direc + "webCross\") = vbNullString Then
+        If Dir(direc + "webCross" + backSlash) = vbNullString Then
             q = 0
             GoTo SkipElem
         End If
         
-        fname = direc + "webCross\" + LCase(strTest) + ".txt"
+        Fname = direc + "webCross" + backSlash + LCase(strTest) + ".txt"
         
-        If Dir(fname) = vbNullString Then
-            TimeCheck = MsgBox("File Not Found in " + fname + "!", vbExclamation, "Database error")
+        If Dir(Fname) = vbNullString Then
+            TimeCheck = MsgBox("File Not Found in " + Fname + "!", vbExclamation, "Database error")
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         End If
         
-        If fname = False Then Exit Sub
+        If Fname = False Then Exit Sub
         
         fileNum = FreeFile(0)
-        Open fname For Input As #fileNum
+        Open Fname For Input As #fileNum
         iRow = 1
         q = 0
         
@@ -1147,19 +1160,19 @@ SkipXPSnumZero:
 
     aesoffset = 0
     
-    fname = direc + "UD.xlsx"
+    Fname = direc + "UD.xlsx"
     strAES = "User Defined"
   
     If Not WorkbookOpen("UD.xlsx") Then
         graphexist = 0
-        Workbooks.Open fname
+        Workbooks.Open Fname
         Workbooks("UD.xlsx").Activate
         If Err.Number > 0 Then
-            MsgBox "Error in " & fname, vbOKOnly, "Error code: " & Err.Number
+            MsgBox "Error in " & Fname, vbOKOnly, "Error code: " & Err.Number
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         ElseIf StrComp(ActiveWorkbook.Name, "UD.xlsx", 1) <> 0 Then
-            MsgBox "Error in " & fname
+            MsgBox "Error in " & Fname
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         End If
@@ -1496,9 +1509,9 @@ AESmode2:
 End Sub
 
 Sub PlotChem()
-    Dim fname As Variant, Record As Variant, C1 As Variant, C2 As Variant, C3 As Variant, rngElemBeC As Range, pts As Points, pt As Point, strTest As String
+    Dim Fname As Variant, Record As Variant, C1 As Variant, C2 As Variant, C3 As Variant, rngElemBeC As Range, pts As Points, pt As Point, strTest As String
     
-    If Dir(direc + "Chem\") = vbNullString Then
+    If Dir(direc + "Chem" + backSlash) = vbNullString Then
         Set sheetGraph = Worksheets("Graph_" + strSheetDataName)
         sheetGraph.Activate
         If LCase(Cells(10, 1).Value) = "pe" Then
@@ -1544,18 +1557,18 @@ Sub PlotChem()
     For n = 0 To UBound(C3)
         strTest = C3(n)
         q = 0
-        fname = direc + "Chem\" + strTest + "_ch"
+        Fname = direc + "Chem" + backSlash + strTest + "_ch"
         
-        If Dir(fname) = vbNullString Then
-            TimeCheck = MsgBox("File Not Found in " + fname + "!", vbExclamation, "Database error")
+        If Dir(Fname) = vbNullString Then
+            TimeCheck = MsgBox("File Not Found in " + Fname + "!", vbExclamation, "Database error")
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         End If
         
-        If fname = False Then Exit Sub
+        If Fname = False Then Exit Sub
         
         fileNum = FreeFile(0)
-        Open fname For Input As fileNum
+        Open Fname For Input As fileNum
 
         Do
             Line Input #fileNum, Record
@@ -1580,7 +1593,7 @@ Sub PlotChem()
     C1 = Range(Cells(51, para + 10), Cells(50 + numXPSFactors, para + 11))
     
     If numChemFactors = 0 Then
-        TimeCheck = MsgBox("No data in " + fname + "!", vbExclamation, "Database error")
+        TimeCheck = MsgBox("No data in " + Fname + "!", vbExclamation, "Database error")
         Call GetOut
         If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
     End If
@@ -1742,10 +1755,13 @@ Sub GetCompare()
         Results = Results & "4" ' XPS mode without chemical shifts plots Data, XPS, and AES factors.
     End If
             
-    ChDrive mid$(ActiveWorkbook.Path, 1, 1)
-    ChDir ActiveWorkbook.Path
-
-    OpenFileName = Application.GetOpenFilename(FileFilter:="Excel Files (*.xlsx), *.xlsx", Title:="Please select a file", MultiSelect:=True)
+    If backSlash = "/" Then
+        OpenFileName = Select_File_Or_Files_Mac("xlsx")
+    Else
+        ChDrive mid$(ActiveWorkbook.Path, 1, 1)
+        ChDir ActiveWorkbook.Path
+        OpenFileName = Application.GetOpenFilename(FileFilter:="Excel Files (*.xlsx), *.xlsx", Title:="Please select a file", MultiSelect:=True)
+    End If
     
     If IsArray(OpenFileName) Then
         If UBound(OpenFileName) + cmp > CInt(para / 3) Then
@@ -1753,7 +1769,7 @@ Sub GetCompare()
             Cells(1, 4 + (cmp * 3)).Value = vbNullString
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-        ElseIf UBound(OpenFileName) > 1 Then
+        ElseIf UBound(OpenFileName) > 1 And backSlash = "\" Then
             ' http://www.cpearson.com/excel/SortingArrays.aspx
             ' put the array values on the worksheet
             Cells(50, para + 25).Value = "List comps"
@@ -1852,7 +1868,7 @@ Sub GetOut()
         Application.Dialogs(xlDialogSaveAs).Show
     Else
         On Error GoTo Error1
-        ActiveWorkbook.SaveAs fileName:=ActiveWorkbook.Path + "\" + wb, FileFormat:=51
+        ActiveWorkbook.SaveAs fileName:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
     End If
     
     Application.DisplayAlerts = True
@@ -1862,14 +1878,14 @@ Sub GetOut()
 Error1:
     MsgBox Error(Err)
     wb = mid$(ActiveWorkbook.Name, 1, InStr(ActiveWorkbook.Name, ".") - 1) + "_bk.xlsx"
-    ActiveWorkbook.SaveAs fileName:=ActiveWorkbook.Path + "\" + wb, FileFormat:=51
+    ActiveWorkbook.SaveAs fileName:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
     Err.Clear
     strErr = "skip"
     Resume Next
 End Sub
 
 Sub GetAutoScale()
-    Dim numDataT As Integer, npts As Integer, pstart As Integer, pend As Integer, jc As Integer, dt As Integer, rng As Range, rg As Range
+    Dim numDataT As Integer, npts As Integer, pstart As Integer, pend As Integer, jc As Integer, dt As Integer, dc As Integer, rng As Range, rg As Range
     Dim iniRow1 As Single, iniRow2 As Single, endRow1 As Single, endRow2 As Single, strAuto As String, maxv As Single, calv As Single, rngx As Range
     
     strAuto = LCase(Cells(1, 1).Value)
@@ -2270,7 +2286,7 @@ Sub Convert2Txt(ByRef strXas As String)
             strLabel = sheetAna.Cells(1, 2 + (q * 2)).Value
         End If
         
-        strTest = strCpa & "\" & strLabel & ".txt"
+        strTest = strCpa & backSlash & strLabel & ".txt"
         Set rng = sheetAna.Range(Cells(1, 2 + (q * 2)), Cells(1, (2 + (q * 2))).End(xlDown))
         numDataT = Application.CountA(rng)
         
@@ -2319,17 +2335,21 @@ Sub FitRatioAnalysis()
     Set sheetAna = Worksheets(strSheetAnaName)
     Set sheetFit = Worksheets(strSheetFitName)
     Set sheetGraph = Worksheets(strSheetGraphName)
-    ChDrive mid$(ActiveWorkbook.Path, 1, 1)
-    ChDir ActiveWorkbook.Path
     
-    OpenFileName = Application.GetOpenFilename(FileFilter:="Excel Files (*.xlsx), *.xlsx", Title:="Please select a file", MultiSelect:=True)
+    If backSlash = "/" Then
+        OpenFileName = Select_File_Or_Files_Mac("xlsx")
+    Else
+        ChDrive mid$(ActiveWorkbook.Path, 1, 1)
+        ChDir ActiveWorkbook.Path
+        OpenFileName = Application.GetOpenFilename(FileFilter:="Excel Files (*.xlsx), *.xlsx", Title:="Please select a file", MultiSelect:=True)
+    End If
     
     If IsArray(OpenFileName) Then
         If UBound(OpenFileName) > para / 3 Then
             TimeCheck = MsgBox("Stop a comparison because you select too many files: " & UBound(OpenFileName) & " over the total limit: " & para / 3, vbExclamation)
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-        ElseIf UBound(OpenFileName) > 1 Then
+        ElseIf UBound(OpenFileName) > 1 And backSlash = "\" Then
             ' http://www.cpearson.com/excel/SortingArrays.aspx
             ' put the array values on the worksheet
             Set rng = sheetFit.Range("A1").Resize(UBound(OpenFileName) - LBound(OpenFileName) + 1, 1)
@@ -2621,17 +2641,20 @@ Sub FitAnalysis()
     Set sheetFit = Worksheets(strSheetFitName)
     Set sheetGraph = Worksheets(strSheetGraphName)
 
-    ChDrive mid$(ActiveWorkbook.Path, 1, 1)
-    ChDir ActiveWorkbook.Path
-
-    OpenFileName = Application.GetOpenFilename(FileFilter:="Excel Files (*.xlsx), *.xlsx", Title:="Please select a file", MultiSelect:=True)
+    If backSlash = "/" Then
+        OpenFileName = Select_File_Or_Files_Mac("xlsx")
+    Else
+        ChDrive mid$(ActiveWorkbook.Path, 1, 1)
+        ChDir ActiveWorkbook.Path
+        OpenFileName = Application.GetOpenFilename(FileFilter:="Excel Files (*.xlsx), *.xlsx", Title:="Please select a file", MultiSelect:=True)
+    End If
     
     If IsArray(OpenFileName) Then
         If UBound(OpenFileName) > para / 3 Then
             TimeCheck = MsgBox("Stop a comparison because you select too many files: " & UBound(OpenFileName) & " over the total limit: " & para / 3, vbExclamation)
             Call GetOut
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-        ElseIf UBound(OpenFileName) > 1 Then
+        ElseIf UBound(OpenFileName) > 1 And backSlash = "\" Then
             ' http://www.cpearson.com/excel/SortingArrays.aspx
             ' put the array values on the worksheet
             Set rng = sheetFit.Cells(1, 110).Resize(UBound(OpenFileName) - LBound(OpenFileName) + 1, 1)
@@ -5408,7 +5431,7 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
             GoTo SkipOpen
         End If
         
-        strTest = mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\"))
+        strTest = mid$(Target, InStrRev(Target, backSlash) + 1, Len(Target) - InStrRev(Target, backSlash))
         
         If Not WorkbookOpen(strTest) Then
             Workbooks.Open Target
@@ -5427,7 +5450,7 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
             j = 1
         End If
         
-        strSheetDataName = mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)
+        strSheetDataName = mid$(Target, InStrRev(Target, backSlash) + 1, Len(Target) - InStrRev(Target, backSlash) - 5)
         If Len(strSheetDataName) > 25 Then strSheetDataName = mid$(strSheetDataName, 1, 25)
         
         If StrComp(mid$(strAna, 1, 3), "Fit", 1) = 0 Then    ' FitAnalysis, FitComp, FitRatioAnalysis
@@ -5444,7 +5467,7 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
             strCpa = "Graph_" + strSheetDataName    ' for .xlsx
         End If
         
-        Target = mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5) + ".xlsx"
+        Target = mid$(Target, InStrRev(Target, backSlash) + 1, Len(Target) - InStrRev(Target, backSlash) - 5) + ".xlsx"
         
         If ExistSheet(strCpa) Then
             Workbooks(Target).Sheets(strCpa).Activate
@@ -7733,6 +7756,7 @@ Sub scalecheck()
 End Sub
 
 Sub Initial()
+    numRun = numRun + 1
     strLabel = ""
     strAna = ""
     strCasa = ""
@@ -7752,7 +7776,9 @@ Sub Initial()
 
     ReDim Preserve highpe(0)
     ReDim strl(3)
-    
+    Debug.Print numRun
+    'If numRun = 1 And backSlash = "/" Then Call requestFileAccess
+
     On Error Resume Next
     If ActiveWorkbook.Charts.Count > 0 Then
         Application.DisplayAlerts = False
@@ -7764,13 +7790,15 @@ Sub Initial()
         If Err.Number = 91 Then Call debugAll       ' if no workbook is open, go to debugAll process!
         End
     End If
-
-    If InStr(ActiveWorkbook.Name, ".txt") > 0 And InstanceCount > 1 Then
-        Call ExcelRenew ' regenerate xlsx file from text opened with different insstance
-    ElseIf StrComp(ActiveSheet.Name, "renew", 1) = 0 Then
-        testMacro = "debug"
-        ElemX = ElemD
-        ActiveSheet.Name = ActiveWorkbook.Name
+    
+    If backSlash <> "/" Then
+        If InStr(ActiveWorkbook.Name, ".txt") > 0 And InstanceCount > 1 Then
+            Call ExcelRenew ' regenerate xlsx file from text opened with different insstance
+        ElseIf StrComp(ActiveSheet.Name, "renew", 1) = 0 Then
+            testMacro = "debug"
+            ElemX = ElemD
+            ActiveSheet.Name = ActiveWorkbook.Name
+        End If
     End If
     
     With Application.AddIns
@@ -7802,17 +7830,17 @@ Function InstanceCount() As Integer
 End Function
 
 Sub ExcelRenew()
-    Dim xlApp As Object, nxlApp As Object, wb As String, fname As String
+    Dim xlApp As Object, nxlApp As Object, wb As String, Fname As String
 
     Application.DisplayAlerts = False
     On Error Resume Next
     
     Set xlApp = GetObject(ActiveWorkbook.FullName).Application
     wb = mid$(xlApp.ActiveWorkbook.Name, 1, Len(xlApp.ActiveWorkbook.Name) - 4) + ".xlsx"
-    fname = xlApp.ActiveWorkbook.Path + "\" + wb
+    Fname = xlApp.ActiveWorkbook.Path + backSlash + wb
     xlApp.ActiveSheet.Name = "renew"
-    xlApp.ActiveWorkbook.SaveAs fileName:=fname, FileFormat:=51
-    xlApp.ActiveWorkbook.Close savechanges:=False
+    xlApp.ActiveWorkbook.SaveAs fileName:=Fname, FileFormat:=xlOpenXMLWorkbook
+    xlApp.ActiveWorkbook.Close SaveChanges:=False
     xlApp.Quit
     xlApp.Visible = False
     
@@ -7828,7 +7856,7 @@ Sub ExcelRenew()
     With nxlApp
         .Applocation.Visible = True
         .UserControl = True
-        .Workbooks.Open fname
+        .Workbooks.Open Fname
         .Run ("PERSONAL.XLSB!CLAM2")
     End With
     
@@ -8186,19 +8214,28 @@ Sub debugAll()      ' multiple file analysis in sequence
     
     strErrX = ""
     
-    If modex <= -1 Then
-        ChDrive mid$(ActiveWorkbook.Path, 1, 1)
-        ChDir ActiveWorkbook.Path
-    End If
-    
     If modex <= -2 Then
-        OpenFileName = Application.GetOpenFilename(FileFilter:="Text Files (*.xlsx), *.xlsx", Title:="Please select file(s)", MultiSelect:=True)
+        If backSlash = "/" Then
+            OpenFileName = Select_File_Or_Files_Mac("xlsx")
+        Else
+            ChDrive mid$(ActiveWorkbook.Path, 1, 1)
+            ChDir ActiveWorkbook.Path
+            OpenFileName = Application.GetOpenFilename(FileFilter:="Excel Files (*.xlsx), *.xlsx", Title:="Please select a file", MultiSelect:=True)
+        End If
     Else
-        OpenFileName = Application.GetOpenFilename(FileFilter:="Text Files (*.txt), *.txt,MultiPak Files (*.csv), *.csv", Title:="Please select file(s)", MultiSelect:=True)
+        If backSlash = "/" Then
+            OpenFileName = Select_File_Or_Files_Mac("csv")
+        Else
+            If modex <= -1 Then
+                ChDrive mid$(ActiveWorkbook.Path, 1, 1)
+                ChDir ActiveWorkbook.Path
+            End If
+            OpenFileName = Application.GetOpenFilename(FileFilter:="Text Files (*.txt), *.txt,MultiPak Files (*.csv), *.csv", Title:="Please select a file", MultiSelect:=True)
+        End If
     End If
     
     If IsArray(OpenFileName) Then
-        If UBound(OpenFileName) > 1 Then
+        If UBound(OpenFileName) > 1 And backSlash = "\" Then
             ' http://www.cpearson.com/excel/SortingArrays.aspx
             ' put the array values on the worksheet
             Workbooks.Add
@@ -8213,7 +8250,7 @@ Sub debugAll()      ' multiple file analysis in sequence
                 OpenFileName(q) = rng(q, 1)
             Next q
             
-            ActiveWorkbook.Close savechanges:=False
+            ActiveWorkbook.Close SaveChanges:=False
         End If
     Else
         Exit Sub
@@ -8267,7 +8304,7 @@ Sub debugAll()      ' multiple file analysis in sequence
             If StrComp(Target, ActiveWorkbook.FullName, 1) = 0 Or StrComp(mid$(Target, 1, Len(Target) - 4), mid$(ActiveWorkbook.FullName, 1, Len(ActiveWorkbook.FullName) - 5), 1) = 0 Then GoTo SkipOpenDebug
         End If
         
-        strTest = mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\"))
+        strTest = mid$(Target, InStrRev(Target, backSlash) + 1, Len(Target) - InStrRev(Target, backSlash))
         
         If Not WorkbookOpen(strTest) Then
             Workbooks.Open Target
@@ -8278,7 +8315,7 @@ Sub debugAll()      ' multiple file analysis in sequence
         
         If modex = -2 Then
             Application.DisplayAlerts = False
-            strSheetDataName = strNorm + mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)
+            strSheetDataName = strNorm + mid$(Target, InStrRev(Target, backSlash) + 1, Len(Target) - InStrRev(Target, backSlash) - 5)
             Workbooks(ActiveWorkbook.Name).Sheets("Fit_" + strSheetDataName).Range(Cells(14 + sftfit2, 1), Cells(19 + sftfit2, 2)) = C1
             Workbooks(ActiveWorkbook.Name).Sheets("Fit_" + strSheetDataName).Cells(19 + sftfit2, 4) = "Corr. RSF"
             j = Workbooks(ActiveWorkbook.Name).Sheets("Fit_" + strSheetDataName).Cells(8 + sftfit2, 2).Value
@@ -8290,12 +8327,12 @@ Sub debugAll()      ' multiple file analysis in sequence
                 Cells(18 + sftfit2, 4 + q).FormulaR1C1 = "= R21C / R24C"
                 Cells(19 + sftfit2, 4 + q).FormulaR1C1 = "= (R15C101 * (1 - (0.25 * R12C)*(3 * (cos(3.14*R24C2/180))^2 - 1)) * R14C * ((R3C)^(R21C2)) * R19C2 * (((R22C2^2)/((R22C2^2)+((R3C)/(R19C2))^2))^R23C2))"
             Next
-            Workbooks(ActiveWorkbook.Name).Close savechanges:=True
+            Workbooks(ActiveWorkbook.Name).Close SaveChanges:=True
             Application.DisplayAlerts = True
             GoTo SkipOpenDebug
         ElseIf modex = -3 Then
             Application.DisplayAlerts = False
-            strSheetDataName = strNorm + mid$(Target, InStrRev(Target, "\") + 1, Len(Target) - InStrRev(Target, "\") - 5)
+            strSheetDataName = strNorm + mid$(Target, InStrRev(Target, backSlash) + 1, Len(Target) - InStrRev(Target, backSlash) - 5)
             If Len(strSheetDataName) > 25 Then strSheetDataName = mid$(strSheetDataName, 1, 25)
             Debug.Print strSheetDataName
             
@@ -8309,7 +8346,7 @@ Sub debugAll()      ' multiple file analysis in sequence
     
                 ' Error handling process here
                 If StrComp(strErrX, "skip", 1) = 0 Then
-                    Workbooks(ActiveWorkbook.Name).Close savechanges:=False
+                    Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
                     Debug.Print "strErrX"
                     Exit Sub
                 End If
@@ -8335,13 +8372,13 @@ Sub debugAll()      ' multiple file analysis in sequence
             
             ' Error handling process here
             If StrComp(strErrX, "skip", 1) = 0 Then
-                Workbooks(ActiveWorkbook.Name).Close savechanges:=False
+                Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
                 Debug.Print "strErrX"
                 Exit Sub
             End If
             ' Error handling process end
             
-            Workbooks(ActiveWorkbook.Name).Close savechanges:=True
+            Workbooks(ActiveWorkbook.Name).Close SaveChanges:=True
             Application.DisplayAlerts = True
             Set shf = Nothing
             GoTo SkipOpenDebug
@@ -8405,12 +8442,12 @@ Sub debugAll()      ' multiple file analysis in sequence
             Call CLAM2
 
             If StrComp(strErrX, "skip", 1) = 0 Then
-                Workbooks(ActiveWorkbook.Name).Close savechanges:=False
+                Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
                 Exit Sub
             End If
             
             If debugMode = "debugGraphn" Then
-                Workbooks(ActiveWorkbook.Name).Close savechanges:=True
+                Workbooks(ActiveWorkbook.Name).Close SaveChanges:=True
                 GoTo SkipOpenDebug
             ElseIf debugMode = "debugFit" Or debugMode = "debugShift" Then
                 testMacro = "debug"     ' This is a trigger to run the debugAll code in sequence
@@ -8419,7 +8456,7 @@ Sub debugAll()      ' multiple file analysis in sequence
                 Call CLAM2
 
                 If StrComp(strErrX, "skip", 1) = 0 Then
-                    Workbooks(ActiveWorkbook.Name).Close savechanges:=False
+                    Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
                     Exit Sub
                 End If
                 
@@ -8475,14 +8512,14 @@ Sub debugAll()      ' multiple file analysis in sequence
                 End If
                 
                 If StrComp(strErrX, "skip", 1) = 0 Then
-                    Workbooks(ActiveWorkbook.Name).Close savechanges:=False
+                    Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
                     Exit Sub
                 End If
             End If
         End If
         
         On Error GoTo SkipOpenDebug
-        Workbooks(ActiveWorkbook.Name).Close savechanges:=False
+        Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
 SkipOpenDebug:
         idebug = idebug + 1
     Next Target
@@ -8629,20 +8666,82 @@ Sub SolverInstall2()
     Application.Run "Solver.xlam!Solver.Solver2.Auto_open"    ' initialize Solver
 End Sub
 
+Sub requestFileAccess()
+    Dim fileAccessGranted As Boolean, filePermissionCandidates, p As Integer, strt As String
+    'Create an array with file paths for the permissions that are needed.
+    Workbooks.Open fileName:=direc & "file_list.xlsx"
+    numGrant = Cells(5, 5).End(xlDown).Row - 4
+    'filePermissionCandidates = Application.Transpose(Range(Cells(5, 5), Cells(numGrant + 4, 5)).Value)
+    strt = vbNullString
+    For p = 1 To numGrant
+        strt = strt & "," & Cells(4 + p, 5).Value
+    Next p
+    filePermissionCandidates = Array(strt)
+    'Request access from user.
+    fileAccessGranted = GrantAccessToMultipleFiles(filePermissionCandidates)
+    ActiveWorkbook.Close SaveChanges:=False
+    'Returns true if access is granted; otherwise, false.
+    'MsgBox "Access granted on " & numGrant & " files.", vbInformation
+End Sub
 
+Function Select_File_Or_Files_Mac(ext As String) As Variant
+    'Select files in Mac Excel with the format that you want
+    'Working in Mac Excel 2011 and 2016
+    'Ron de Bruin, 20 March 2016
+    Dim MyPath As String, MyScript As String, MyFiles As String, MySplit As Variant
+    Dim Fname As String, OneFile As Boolean, FileFormat As String
 
+    'In this example you can only select xlsx files
+    'See my webpage how to use other and more formats.
+    If ext = "xlsx" Then
+        FileFormat = "{""org.openxmlformats.spreadsheetml.sheet""}"
+    ElseIf ext = "csv" Then
+        FileFormat = "{""public.plain-text"","" public.comma-separated-values-text""}"
+    End If
 
+    ' Set to True if you only want to be able to select one file
+    ' And to False to be able to select one or more files
+    OneFile = False
 
+    On Error Resume Next
+    MyPath = MacScript("return (path to desktop folder) as String")
+    'Or use A full path with as separator the :
+    'MyPath = "HarddriveName:Users:<UserName>:Desktop:YourFolder:"
 
+    'Building the applescript string, do not change this
+    'This is Mac Excel 2016
+    If OneFile = True Then
+        MyScript = _
+            "set theFile to (choose file of type" & _
+            " " & FileFormat & " " & _
+            "with prompt ""Please select a file"" default location alias """ & _
+            MyPath & """ without multiple selections allowed) as string" & vbNewLine & _
+            "return posix path of theFile"
+    Else
+        MyScript = _
+            "set theFiles to (choose file of type" & _
+            " " & FileFormat & " " & _
+            "with prompt ""Please select a file or files"" default location alias """ & _
+            MyPath & """ with multiple selections allowed)" & vbNewLine & _
+            "set thePOSIXFiles to {}" & vbNewLine & _
+            "repeat with aFile in theFiles" & vbNewLine & _
+            "set end of thePOSIXFiles to POSIX path of aFile" & vbNewLine & _
+            "end repeat" & vbNewLine & _
+            "set {TID, text item delimiters} to {text item delimiters, ASCII character 10}" & vbNewLine & _
+            "set thePOSIXFiles to thePOSIXFiles as text" & vbNewLine & _
+            "set text item delimiters to TID" & vbNewLine & _
+            "return thePOSIXFiles"
+    End If
 
+    MyFiles = MacScript(MyScript)
+    On Error GoTo 0
 
-
-
-
-
-
-
-
+    'If you select one or more files MyFiles is not empty
+    'We can do things with the file paths now like I show you below
+    If MyFiles <> "" Then
+        Select_File_Or_Files_Mac = Split(MyFiles, Chr(10))
+    End If
+End Function
 
 
 
