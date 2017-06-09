@@ -453,8 +453,8 @@ DeadInTheWater3:
             strSheetDataName = strTest
         End If
         
-        strCasa = "SC CXRO"  ' default database for XPS  "VG Avt"
-        strAES = "Mrocz"   ' default database for AES  "VG qnt"
+        strCasa = "User Defined"  ' default database for XPS  "VG Avt"/"SC CXRO"
+        strAES = "User Defined"   ' default database for AES  "VG qnt"/"Mrocz"
     End If
     
     strSheetGraphName = "Graph_" + strSheetDataName
