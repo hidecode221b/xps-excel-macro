@@ -433,12 +433,11 @@ DeadInTheWater3:
         End
     Else
         If InStr(ActiveWorkbook.Name, ".") < 1 Then
-            TimeCheck = MsgBox("Save the file with the extention: xlsx and try it again!", vbExclamation)
-            End 'Call GetOut
-        Else
-            strTest = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1)
-            strTest = mid$(strTest, 1, 25)
+            Application.Dialogs(xlDialogSaveAs).Show
         End If
+		
+		strTest = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1)
+		strTest = mid$(strTest, 1, 25)
         
         flag = False
         For Each sheetData In Worksheets
