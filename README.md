@@ -1,4 +1,4 @@
-# Excel XPS analysis code "Ctrl+Q"
+# Excel XPS and NEXAFS analysis code "Ctrl+Q"
 
 ## Abstract
 I have developed the XPS and XAS data analysis code for the synchrotron radiation (SR) soft x-ray beamline users to calibrate the energy and intensity in photons and electrons and analyze the peak composition and shape in the background subtracted profile. The code works in the Visual Basic Applications (VBA) on the Windows Microsoft Excel 2007 or later version utilizing the Solver Excel add-in for least square fit optimisation. Excel 2016 on Mac is also supported partly. Users easily handle and share the XPS and XAS data on their laptop computers for efficient usage of beamtime, and analyze it into the publications. According to the peak energy database specified in the code, users identify the atomic elements and its chemical shifts in the XPS and XAS spectra measured at the synchrotron beamline. The relative sensitivity factor and photo ionization cross section database are used to calibrate the peak intensity measured at the synchrotron-based XPS as well as standalone XPS system. The curve fit function sequencially evaluates the atomic or chemical ratios of the elements in your XPS data among the samples. 
@@ -54,7 +54,7 @@ Ctrl+Q has been used for many users during the experiment and post-data processi
 
 Details of advanced function available in the code will be described in the future.
 
-###References for database
+### References for database
 Database files are available only in PC at the beamline because the software is only licensed in PC at the beamline. You can also purchase the complete packages including databases or advanced functions from the link below.
 
 - https://sites.google.com/site/xpsdataanalysispackage/
@@ -90,10 +90,10 @@ Photoionization cross section online database files should be downloaded and pla
 - https://vuo.elettra.eu/services/elements/WebElements.html
 
 "Atomic Calculation of Photoionization Cross-Sections and Asymmetry Parameters"
-J.J. Yeh, Gordon and Breach Science Publishers, Langhorne, PE (USA), 1993.
+J. J. Yeh, Gordon and Breach Science Publishers, Langhorne, PE (USA), 1993.
 
 "Atomic subshell photoionization cross sections and asymmetry parameters: 1 <= Z <= 103"
-J.J. Yeh and I.Lindau, Atomic Data and Nuclear Data Tables, 32, 1-155 (1985).
+J. J. Yeh and I. Lindau, Atomic Data and Nuclear Data Tables, 32, 1-155 (1985).
 - http://dx.doi.org/10.1016/0092-640X(85)90016-6
 
 Note that database are supposed to be revised and updated locally based on the experiment.
