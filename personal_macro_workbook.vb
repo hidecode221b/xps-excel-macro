@@ -838,6 +838,7 @@ CheckElemAgain:
     
     If ElemD <> "False" Then
         If ElemD = "" Then  ' when you click "OK" without any element in box
+			Call descriptHidden2
             Call FitCurve
             strErr = "skip"
             Exit Sub
