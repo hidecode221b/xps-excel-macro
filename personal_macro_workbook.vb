@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.28p"                             ' Version of this code.
+    ver = "8.30p"                             ' Version of this code.
     backSlash = Application.PathSeparator ' Mac = "/", Win = "\"
     If backSlash = "/" Then    ' location of directory for database
         direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
@@ -3179,7 +3179,7 @@ Sub FitInitial()
         Set sheetGraph = Worksheets(strSheetGraphName)
         numData = Cells(41, para + 12).Value '((Cells(6, 2).Value - Cells(5, 2).Value) / Cells(7, 2).Value) + 1
         Set dataBGraph = Range(Cells(20 + numData, 2), Cells(20 + numData, 2).Offset(numData - 1, 1))
-        Set dataKeGraph = Range(Cells(20, 1), Cells(20 + numData, 1).Offset(numData - 1, 0))
+        Set dataKeGraph = Range(Cells(20 + numData, 1), Cells(20 + numData, 1).Offset(numData - 1, 0))
 
         Call scalecheck
         If StrComp(strl(1), "Pe", 1) = 0 Or StrComp(strl(1), "Po", 1) = 0 Then
@@ -7679,7 +7679,11 @@ End Sub
 Sub scalecheck()
     Dim dataIntGraph As Range, chkRef As Object
     
-    Set dataIntGraph = dataKeGraph.Offset(, 2)
+    If StrComp(mid$(ActiveSheet.Name, 1, 4), "Fit_", 1) = 0 Then
+        Set dataIntGraph = dataKeGraph.Offset(, 1)
+    Else
+        Set dataIntGraph = dataKeGraph.Offset(, 2)
+    End If
     
     With Application
         If strl(3) = "De" Then
