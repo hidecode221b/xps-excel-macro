@@ -4229,6 +4229,7 @@ Resolve:
                 
                 SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=1 ' max A
                 SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=0 ' min
+				Cells(16, 101).Value = "ABG"
             Else
                 SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' active Shirley
             End If
@@ -4249,6 +4250,7 @@ Resolve:
                         SolverAdd CellRef:=Cells(7, 2), Relation:=3, FormulaText:=0 ' min
                     End If
                 Next
+				Cells(16, 101).Value = "ABG"
             Else
                 SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Tougaard
             End If
@@ -4261,6 +4263,7 @@ Resolve:
                         SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
                     End If
                 Next
+				Cells(16, 101).Value = "ABG"
             Else
                 SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j)))  ' static poly
             End If
