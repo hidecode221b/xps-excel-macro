@@ -9,7 +9,7 @@ Option Explicit
     
     Dim wb As String, ver As String, TimeCheck As String, strAna As String, direc As String, ElemD As String, Results As String, testMacro As String
     Dim strSheetDataName As String, strSheetGraphName As String, strSheetFitName As String, strSheetAnaName As String, strBG1 As String, strBG2 As String
-    Dim strMode As String, strLabel As String, strCasa As String, strAES As String, strErr As String, strErrX As String, ElemX As String
+    Dim strMode As String, strLabel As String, strCasa As String, strAES As String, strErr As String, strErrX As String, ElemX As String, strBG3 As String
     
     Dim sheetData As Worksheet, sheetGraph As Worksheet, sheetFit As Worksheet, sheetAna As Worksheet
     Dim dataData As Range, dataKeData As Range, dataIntData As Range, dataBGraph As Range, dataKGraph, dataKeGraph As Range, dataBeGraph As Range
@@ -4229,7 +4229,6 @@ Resolve:
                 
                 SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=1 ' max A
                 SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=0 ' min
-				Cells(16, 101).Value = "ABG"
             Else
                 SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' active Shirley
             End If
@@ -4250,7 +4249,6 @@ Resolve:
                         SolverAdd CellRef:=Cells(7, 2), Relation:=3, FormulaText:=0 ' min
                     End If
                 Next
-				Cells(16, 101).Value = "ABG"
             Else
                 SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Tougaard
             End If
@@ -4263,7 +4261,6 @@ Resolve:
                         SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
                     End If
                 Next
-				Cells(16, 101).Value = "ABG"
             Else
                 SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j)))  ' static poly
             End If
@@ -6304,10 +6301,11 @@ Sub descriptFit()
     Cells(13, 100).Value = "wf"
     Cells(14, 100).Value = "char"
     Cells(15, 100).Value = "nom. factor"
-    Cells(16, 100).Value = "Shirley"
+	Cells(16, 100).Value = vbNullString
     Cells(17, 100).Value = "Iteration limit"
     Cells(18, 100).Value = "Average data"
     Cells(19, 100).Value = "Ver."
+	Cells(20, 100).Value = "BG type"
     Cells(8, 100).Value = "fit done"
     Cells(9, 100).Value = "#peak before"
     Cells(10, 100).Value = "Avg points"
@@ -6324,6 +6322,7 @@ Sub descriptFit()
     Cells(16, 101).Value = "BG"
     Cells(17, 101).Value = 10       ' limit of iteration
     Cells(18, 101).FormulaR1C1 = "=Average(R31C2:R" & (30 + numData) & "C2)"
+	Cells(20, 101).Value = "BG"
     Cells(8, 101).Value = 0         ' trigger to change the number of peaks
     Cells(2, 102).Value = "max FWHM1 limit"
     Cells(3, 102).Value = "min FWHM1 limit"
@@ -6515,8 +6514,9 @@ Sub ShirleyBG()
     Cells(3, 1).Value = "Initial A"
     Cells(4, 1).Value = "Final A"
     Cells(5, 1).Value = "Iteration"
-    Cells(16, 100).Value = "Shirley"
-    Cells(16, 101).Value = "BG"
+    Cells(20, 101).Value = "Shirley"
+    Cells(20, 102).Value = Cells(1, 2).Value
+    Cells(20, 103).Value = vbNullString
     
     If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
         Cells(2, 2).Value = 0.000001
@@ -6602,8 +6602,9 @@ Sub VictoreenBG()
     Cells(7, 1).Value = "Edge"
     Cells(8, 1).Value = "Pre-edge"
     Cells(9, 1).Value = "Post-edge"
-    Cells(16, 100).Value = "Victoreen"
-    Cells(16, 101).Value = "BG"
+    Cells(20, 101).Value = "Victoreen"
+    Cells(20, 102).Value = Cells(1, 3).Value
+    Cells(20, 103).Value = vbNullString
     
     For k = 2 To 6
         If Cells(k, 2).Font.Bold = "True" Then
@@ -6684,8 +6685,9 @@ Sub PolynominalShirleyBG()
     Cells(8, 1).Value = "1st poly"
     Cells(9, 1).Value = "2nd poly"
     Cells(10, 1).Value = "3rd poly"
-    Cells(16, 100).Value = "Polynominal"
-    Cells(16, 101).Value = "Shirley"
+    Cells(20, 101).Value = "Polynominal"
+    Cells(20, 102).Value = "Shirley"
+    Cells(20, 103).Value = Cells(1, 3).Value
     
     If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
         Cells(2, 2).Value = 0.000001
@@ -6810,8 +6812,9 @@ Sub TangentArcBG()
     Cells(1, 1).Value = "Arctan"
     Cells(1, 2).Value = "BG"
     Cells(1, 3).Value = vbNullString
-    Cells(16, 100).Value = "Arctan"
-    Cells(16, 101).Value = "BG"
+    Cells(20, 101).Value = "Arctan"
+    Cells(20, 102).Value = Cells(1, 2).Value
+    Cells(20, 103).Value = vbNullString
     
     For k = 2 To 7
         If Cells(k, 2).Font.Bold = "True" Then
@@ -6900,8 +6903,9 @@ Sub PolynominalBG()
     Cells(3, 1).Value = "a1"
     Cells(4, 1).Value = "a2"
     Cells(5, 1).Value = "a3"
-    Cells(16, 100).Value = "Polynominal"
-    Cells(16, 101).Value = "BG"
+    Cells(20, 101).Value = "Polynominal"
+    Cells(20, 102).Value = Cells(1, 2).Value
+    Cells(20, 103).Value = vbNullString
     Cells(startR, 99).FormulaR1C1 = "= (2 * RC1 - (R" & startR & "C1 + R" & endR & "C1))/(R" & endR & "C1 - R" & startR & "C1)"
     Range(Cells(startR, 99), Cells(endR, 99)).FillDown
     Cells(startR, 3).FormulaR1C1 = "=R2C2 + (R3C2 * RC99) + (R4C2 * (RC99)^2) + (R5C2 * (RC99)^3)"
@@ -6957,8 +6961,9 @@ Sub TougaardBG()
     Cells(4, 1).Value = "D"
     Cells(5, 1).Value = "Norm"
     Cells(6, 1).Value = "Offset"
-    Cells(16, 100).Value = "Tougaard"
-    Cells(16, 101).Value = "BG"
+    Cells(20, 101).Value = "Tougaard"
+    Cells(20, 102).Value = Cells(1, 2).Value
+    Cells(20, 103).Value = vbNullString
     
     For k = 2 To 5
         If Cells(k, 2).Font.Bold = "True" Then
@@ -7066,8 +7071,9 @@ Sub PolynominalTougaardBG()
     Cells(8, 1).Value = "1st poly"
     Cells(9, 1).Value = "2nd poly"
     Cells(10, 1).Value = "3rd poly"
-    Cells(16, 100).Value = "Polynominal"
-    Cells(16, 101).Value = "Tougaard"
+    Cells(20, 101).Value = "Polynominal"
+    Cells(20, 102).Value = "Tougaard"
+    Cells(20, 103).Value = Cells(1, 3).Value
     
     For k = 2 To 10
         If Cells(8, 101).Value = 0 And k >= 7 Then
@@ -7216,8 +7222,9 @@ Sub descriptEFfit1(fcmp As Range)
     Cells(20 + sftfit, 7).Value = "Least fits (GC)"
     Cells(20 + sftfit, 8).Value = "Residual (GC)"
     Cells(8, 101).Value = 0     ' 7.45: revised from "-1"
-    Cells(16, 100).Value = "EF"
-    Cells(16, 101).Value = "fit"
+    Cells(20, 101).Value = "EF"
+	Cells(20, 102).Value = "Fit"
+	Cells(20, 103).Value = vbNullString
 End Sub
 
 Sub descriptEFfit2()
