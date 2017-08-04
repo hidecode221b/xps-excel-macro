@@ -6319,7 +6319,7 @@ Sub descriptFit()
     Cells(12, 101).Value = pe
     Cells(13, 101).Value = wf
     Cells(14, 101).Value = char
-    Cells(16, 101).Value = "BG"
+    'Cells(16, 101).Value = "BG"
     Cells(17, 101).Value = 10       ' limit of iteration
     Cells(18, 101).FormulaR1C1 = "=Average(R31C2:R" & (30 + numData) & "C2)"
 	Cells(20, 101).Value = "BG"
