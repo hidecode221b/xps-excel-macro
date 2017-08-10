@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.30p"                             ' Version of this code.
+    ver = "8.31p"                             ' Version of this code.
     backSlash = Application.PathSeparator ' Mac = "/", Win = "\"
     If backSlash = "/" Then    ' location of directory for database
         direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
@@ -7757,7 +7757,7 @@ Sub scalecheck()
                 
                 chkMax = .Ceiling(chkMax, 2 * (10 ^ (j - 1)))
                 
-                If InStr(1, chkMax, ".") Then
+                If InStr(1, chkMin, ".") Then
                     j = Len(mid$(chkMin, 1, InStr(1, Abs(chkMin), ".", 1) - 1))
                 Else
                     j = Len(chkMin) - 1
