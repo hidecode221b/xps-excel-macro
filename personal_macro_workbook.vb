@@ -467,33 +467,18 @@ DeadInTheWater3:
     Set sheetData = Worksheets(strSheetDataName)
     Worksheets(strSheetDataName).Activate
     
-    If StrComp(mid$(ActiveWorkbook.Name, InStrRev(ActiveWorkbook.Name, ".") + 1, 3), "txt", 1) = 0 Or StrComp(mid$(ActiveWorkbook.Name, InStrRev(ActiveWorkbook.Name, ".") + 1, 3), "csv", 1) = 0 Or StrComp(mid$(ActiveWorkbook.Name, InStrRev(ActiveWorkbook.Name, ".") + 1, 3), "asc", 1) = 0 Then
-        wb = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1) + ".xlsx"
-    
-        Application.DisplayAlerts = False
-        If Len(ActiveWorkbook.Path) < 2 Then
-            Application.Dialogs(xlDialogSaveAs).Show
-        Else
-            On Error GoTo Error1
+	Application.DisplayAlerts = False
+	If Len(ActiveWorkbook.Path) < 2 Then
+		Application.Dialogs(xlDialogSaveAs).Show
+	Else
+		On Error GoTo Error1
 '            If backSlash = "/" And numRun = 1 Then
 '                filePermissionCandidates = Array(wbpath, ActiveWorkbook.FullName, wbpath & backSlash & wb)
 '                fileAccessGranted = GrantAccessToMultipleFiles(filePermissionCandidates)
 '            End If
-            ActiveWorkbook.SaveAs fileName:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
-        End If
-        Application.DisplayAlerts = True
-    
-    ElseIf StrComp(mid$(ActiveWorkbook.Name, InStrRev(ActiveWorkbook.Name, ".") + 1, 4), "xlsx", 1) = 0 Then
-        wb = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1) + ".xlsx"
-    ElseIf StrComp(mid$(ActiveWorkbook.Name, InStrRev(ActiveWorkbook.Name, ".") + 1, 3), "xls", 1) = 0 Then
-        wb = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1) + ".xlsx"
-    Else
-Error2:
-        Application.Dialogs(xlDialogSaveAs).Show
-        wb = ActiveWorkbook.Name
-    End If
-    Err.Clear
-    Exit Sub
+		ActiveWorkbook.SaveAs fileName:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
+	End If
+	Application.DisplayAlerts = True
 Error1:
     Err.Clear
 End Sub
@@ -505,7 +490,7 @@ Sub TargetDataAnalysis()
         Do
             If InStr(strMode, "'") > 0 Then     ' remove "'" generated in Igor produced text
                 q = InStr(strMode, "'")
-                strMode = Left$(strMode, q - 1) + mid$(strMode, q + 1)
+                strMode = Left$(strMode, q - 1) + mid$(strMode, q + 1)	
             Else
                 Cells(1, 1).Value = strMode
                 Exit Do
