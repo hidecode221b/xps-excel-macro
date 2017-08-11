@@ -479,6 +479,7 @@ DeadInTheWater3:
 		ActiveWorkbook.SaveAs fileName:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
 	End If
 	Application.DisplayAlerts = True
+	Exit Sub
 Error1:
     Err.Clear
 End Sub
