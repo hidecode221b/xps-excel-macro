@@ -7791,16 +7791,18 @@ Sub Initial()
         End
     End If
 
-'	' Uncomment these lines to make single instance from multiple instances in Excel workbooks
-'    If backSlash <> "/" Then
-'        If (InStr(ActiveWorkbook.Name, ".txt") > 0 Or InStr(ActiveWorkbook.Name, ".csv") > 0) And InstanceCount > 1 Then
-'            Call ExcelRenew ' regenerate xlsx file from text opened with different insstance
-'        ElseIf StrComp(ActiveSheet.Name, "renew", 1) = 0 Then
-'            testMacro = "debug"
-'            ElemX = ElemD
-'            ActiveSheet.Name = ActiveWorkbook.Name
-'        End If
-'    End If
+    If Val(Application.Version) < 15 Then   ' if excel version < 2013, make single instance from multiple ones.
+        If backSlash <> "/" Then
+            If (InStr(ActiveWorkbook.Name, ".txt") > 0 Or InStr(ActiveWorkbook.Name, ".csv") > 0) And InstanceCount > 1 Then
+                Call ExcelRenew ' regenerate xlsx file from text opened with different insstance
+            ElseIf StrComp(ActiveSheet.Name, "renew", 1) = 0 Then
+                testMacro = "debug"
+                ElemX = ElemD
+                ActiveSheet.Name = ActiveWorkbook.Name
+            End If
+        End If
+    End If
+    'Debug.Print Val(Application.Version), Application.OperatingSystem
     
     With Application.AddIns
     For n = 1 To .Count
