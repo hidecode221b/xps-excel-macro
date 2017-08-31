@@ -7790,16 +7790,17 @@ Sub Initial()
         If Err.Number = 91 Then Call debugAll       ' if no workbook is open, go to debugAll process!
         End
     End If
-    
-    If backSlash <> "/" Then
-        If InStr(ActiveWorkbook.Name, ".txt") > 0 And InstanceCount > 1 Then
-            Call ExcelRenew ' regenerate xlsx file from text opened with different insstance
-        ElseIf StrComp(ActiveSheet.Name, "renew", 1) = 0 Then
-            testMacro = "debug"
-            ElemX = ElemD
-            ActiveSheet.Name = ActiveWorkbook.Name
-        End If
-    End If
+
+'	' Uncomment these lines to make single instance from multiple instances in Excel workbooks
+'    If backSlash <> "/" Then
+'        If (InStr(ActiveWorkbook.Name, ".txt") > 0 Or InStr(ActiveWorkbook.Name, ".csv") > 0) And InstanceCount > 1 Then
+'            Call ExcelRenew ' regenerate xlsx file from text opened with different insstance
+'        ElseIf StrComp(ActiveSheet.Name, "renew", 1) = 0 Then
+'            testMacro = "debug"
+'            ElemX = ElemD
+'            ActiveSheet.Name = ActiveWorkbook.Name
+'        End If
+'    End If
     
     With Application.AddIns
     For n = 1 To .Count
