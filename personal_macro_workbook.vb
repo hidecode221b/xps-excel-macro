@@ -20,16 +20,16 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.31p"                             ' Version of this code.
+    ver = "8.32p"                             ' Version of this code.
     backSlash = Application.PathSeparator ' Mac = "/", Win = "\"
     If backSlash = "/" Then    ' location of directory for database
         direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
         'direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Documents" + backSlash + "XPS" + backSlash
     Else
-        direc = "E:" + backSlash + "Data" + backSlash + "Hideki" + backSlash + "XPS" + backSlash
-        ' "E:\Data\Hideki\XPS\"
+        direc = "D:" + backSlash + "Data" + backSlash + "Hideki" + backSlash + "XPS" + backSlash
+        ' "D:\Data\Hideki\XPS\"
     End If
-    windowSize = 1.5          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
+    windowSize = 1          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
     windowRatio = 4 / 3     ' window width / height, "2/1" for eyes or "4/3" for ppt
     ElemD = "C,O"           ' Default elements to be shown up in the element analysis.
     TimeCheck = "No"        ' "No" only iteration results in fitting, numeric value to suppress any display.
@@ -73,7 +73,7 @@ Sub SheetNameAnalysis()
             Application.DisplayAlerts = False
             Workbooks.Add
             Call UDsamples
-            ActiveWorkbook.SaveAs fileName:=direc & "UD.xlsx", FileFormat:=xlOpenXMLWorkbook
+            ActiveWorkbook.SaveAs Filename:=direc & "UD.xlsx", FileFormat:=xlOpenXMLWorkbook
             ActiveWorkbook.Close
             Application.DisplayAlerts = True
         End If
@@ -93,7 +93,7 @@ Sub SheetNameAnalysis()
                 
                 Workbooks.Add
                 Call UDsamples
-                ActiveWorkbook.SaveAs fileName:=direc & "UD.xlsx", FileFormat:=51
+                ActiveWorkbook.SaveAs Filename:=direc & "UD.xlsx", FileFormat:=51
                 ActiveWorkbook.Close
             Else
                 End 'Call GetOut
@@ -116,7 +116,7 @@ DeadInTheWater1:
                 
                 Workbooks.Add
                 Call UDsamples
-                ActiveWorkbook.SaveAs fileName:=direc & "UD.xlsx", FileFormat:=xlOpenXMLWorkbook
+                ActiveWorkbook.SaveAs Filename:=direc & "UD.xlsx", FileFormat:=xlOpenXMLWorkbook
                 ActiveWorkbook.Close
             Else
                 End 'Call GetOut
@@ -435,9 +435,9 @@ DeadInTheWater3:
         If InStr(ActiveWorkbook.Name, ".") < 1 Then
             Application.Dialogs(xlDialogSaveAs).Show
         End If
-		
-		strTest = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1)
-		strTest = mid$(strTest, 1, 25)
+        
+        strTest = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1)
+        strTest = mid$(strTest, 1, 25)
         
         flag = False
         For Each sheetData In Worksheets
@@ -466,20 +466,22 @@ DeadInTheWater3:
 
     Set sheetData = Worksheets(strSheetDataName)
     Worksheets(strSheetDataName).Activate
+    wb = ActiveWorkbook.Name
+    wb = mid$(wb, 1, InStrRev(wb, ".") - 1) + ".xlsx"
     
-	Application.DisplayAlerts = False
-	If Len(ActiveWorkbook.Path) < 2 Then
-		Application.Dialogs(xlDialogSaveAs).Show
-	Else
-		On Error GoTo Error1
+    Application.DisplayAlerts = False
+    If Len(ActiveWorkbook.Path) < 2 Then
+        Application.Dialogs(xlDialogSaveAs).Show
+    Else
+        On Error GoTo Error1
 '            If backSlash = "/" And numRun = 1 Then
 '                filePermissionCandidates = Array(wbpath, ActiveWorkbook.FullName, wbpath & backSlash & wb)
 '                fileAccessGranted = GrantAccessToMultipleFiles(filePermissionCandidates)
 '            End If
-		ActiveWorkbook.SaveAs fileName:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
-	End If
-	Application.DisplayAlerts = True
-	Exit Sub
+        ActiveWorkbook.SaveAs Filename:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
+    End If
+    Application.DisplayAlerts = True
+    Exit Sub
 Error1:
     Err.Clear
 End Sub
@@ -491,7 +493,7 @@ Sub TargetDataAnalysis()
         Do
             If InStr(strMode, "'") > 0 Then     ' remove "'" generated in Igor produced text
                 q = InStr(strMode, "'")
-                strMode = Left$(strMode, q - 1) + mid$(strMode, q + 1)	
+                strMode = Left$(strMode, q - 1) + mid$(strMode, q + 1)
             Else
                 Cells(1, 1).Value = strMode
                 Exit Do
@@ -824,7 +826,7 @@ CheckElemAgain:
     
     If ElemD <> "False" Then
         If ElemD = "" Then  ' when you click "OK" without any element in box
-			Call descriptHidden2
+            Call descriptHidden2
             Call FitCurve
             strErr = "skip"
             Exit Sub
@@ -1854,7 +1856,7 @@ Sub GetOut()
         Application.Dialogs(xlDialogSaveAs).Show
     Else
         On Error GoTo Error1
-        ActiveWorkbook.SaveAs fileName:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
+        ActiveWorkbook.SaveAs Filename:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
     End If
     
     Application.DisplayAlerts = True
@@ -1864,7 +1866,7 @@ Sub GetOut()
 Error1:
     MsgBox Error(Err)
     wb = mid$(ActiveWorkbook.Name, 1, InStr(ActiveWorkbook.Name, ".") - 1) + "_bk.xlsx"
-    ActiveWorkbook.SaveAs fileName:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
+    ActiveWorkbook.SaveAs Filename:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
     Err.Clear
     strErr = "skip"
     Resume Next
@@ -6287,11 +6289,11 @@ Sub descriptFit()
     Cells(13, 100).Value = "wf"
     Cells(14, 100).Value = "char"
     Cells(15, 100).Value = "nom. factor"
-	Cells(16, 100).Value = vbNullString
+    Cells(16, 100).Value = vbNullString
     Cells(17, 100).Value = "Iteration limit"
     Cells(18, 100).Value = "Average data"
     Cells(19, 100).Value = "Ver."
-	Cells(20, 100).Value = "BG type"
+    Cells(20, 100).Value = "BG type"
     Cells(8, 100).Value = "fit done"
     Cells(9, 100).Value = "#peak before"
     Cells(10, 100).Value = "Avg points"
@@ -6308,7 +6310,7 @@ Sub descriptFit()
     'Cells(16, 101).Value = "BG"
     Cells(17, 101).Value = 10       ' limit of iteration
     Cells(18, 101).FormulaR1C1 = "=Average(R31C2:R" & (30 + numData) & "C2)"
-	Cells(20, 101).Value = "BG"
+    Cells(20, 101).Value = "BG"
     Cells(8, 101).Value = 0         ' trigger to change the number of peaks
     Cells(2, 102).Value = "max FWHM1 limit"
     Cells(3, 102).Value = "min FWHM1 limit"
@@ -7209,8 +7211,8 @@ Sub descriptEFfit1(fcmp As Range)
     Cells(20 + sftfit, 8).Value = "Residual (GC)"
     Cells(8, 101).Value = 0     ' 7.45: revised from "-1"
     Cells(20, 101).Value = "EF"
-	Cells(20, 102).Value = "Fit"
-	Cells(20, 103).Value = vbNullString
+    Cells(20, 102).Value = "Fit"
+    Cells(20, 103).Value = vbNullString
 End Sub
 
 Sub descriptEFfit2()
@@ -7842,7 +7844,7 @@ Sub ExcelRenew()
     wb = mid$(xlApp.ActiveWorkbook.Name, 1, Len(xlApp.ActiveWorkbook.Name) - 4) + ".xlsx"
     Fname = xlApp.ActiveWorkbook.Path + backSlash + wb
     xlApp.ActiveSheet.Name = "renew"
-    xlApp.ActiveWorkbook.SaveAs fileName:=Fname, FileFormat:=xlOpenXMLWorkbook
+    xlApp.ActiveWorkbook.SaveAs Filename:=Fname, FileFormat:=xlOpenXMLWorkbook
     xlApp.ActiveWorkbook.Close SaveChanges:=False
     xlApp.Quit
     xlApp.Visible = False
@@ -8672,7 +8674,7 @@ End Sub
 Sub requestFileAccess()
     Dim fileAccessGranted As Boolean, filePermissionCandidates, p As Integer, strt As String
     'Create an array with file paths for the permissions that are needed.
-    Workbooks.Open fileName:=direc & "file_list.xlsx"
+    Workbooks.Open Filename:=direc & "file_list.xlsx"
     numGrant = Cells(5, 5).End(xlDown).Row - 4
     'filePermissionCandidates = Application.Transpose(Range(Cells(5, 5), Cells(numGrant + 4, 5)).Value)
     strt = vbNullString
@@ -8745,6 +8747,8 @@ Function Select_File_Or_Files_Mac(ext As String) As Variant
         Select_File_Or_Files_Mac = Split(MyFiles, Chr(10))
     End If
 End Function
+
+
 
 
 
