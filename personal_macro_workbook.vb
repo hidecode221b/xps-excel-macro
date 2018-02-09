@@ -4218,6 +4218,8 @@ Sub FitCurve()
             Call PolynominalShirleyBG
         ElseIf StrComp(strBG2, "t", 1) = 0 Then
             Call PolynominalTougaardBG
+		ElseIf StrComp(strBG2, "n", 1) = 0 Then
+            Call PolynominalNormalBG    ' non-normalized x axis
         Else
             Call PolynominalBG
         End If
@@ -4971,6 +4973,17 @@ Sub GetOutFit()
             Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
             Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
             Cells(5, 1).Value = "a3"
+			Cells(27, 100).Value = "All"
+            Cells(27, 101).Value = "BG total"
+            Cells(27, 102).Value = "Sum peaks"
+            Cells(27, 103).Value = "Sub total"
+            
+            If Cells(8, 101).Value > 0 Then
+                Cells(28, 100).Value = IntegrationTrapezoid(Range(Cells(startR, 1), Cells(endR, 1)), Range(Cells(startR, 2), Cells(endR, 2)))
+                Cells(28, 101).Value = IntegrationTrapezoid(Range(Cells(startR, 1), Cells(endR, 1)), Range(Cells(startR, 3), Cells(endR, 3)))
+                Cells(28, 102).FormulaR1C1 = "=sum(R21C5:R21C" & (4 + n) & ")"
+                Cells(28, 103).FormulaR1C1 = "=RC100 - RC101"
+            End If
         End If
     ElseIf StrComp(strBG1, "a", 1) = 0 Or StrComp(strBG1, "r", 1) = 0 Then
         Range(Cells(8, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
@@ -7032,6 +7045,86 @@ Sub PolynominalBG()
     Else
         Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
     End If
+    SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(5, 2))
+    
+    For k = 2 To 5
+        If Cells(k, 2).Font.Bold = "True" Then
+            SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
+        End If
+    Next
+    
+    SolverSolve UserFinish:=True
+    SolverFinish KeepFinal:=1
+End Sub
+
+Sub PolynominalNormalBG()   ' this is non-normalized x ; used for tau plot (optical band gap)
+    If StrComp(strl(1), "Po", 1) = 0 Then
+        
+    Else
+        For k = 2 To 5
+            If Cells(k, 2).Font.Bold = "True" Then
+            ElseIf Cells(8, 101).Value = 0 Then
+                If k = 2 Then
+                    'If Abs(Cells(2, 2).Value) > 10 Or Abs(Cells(2, 2).Value) < 1 Then Cells(2, 2).Value = 5
+                    Cells(2, 2).Value = (Cells(2, 101).Value)
+                ElseIf k = 3 Then
+                    If Abs(Cells(3, 2).Value) > Abs(Cells(2, 2).Value) Then Cells(3, 2).Value = Cells(2, 2).Value / 2 '0.1
+                ElseIf k = 4 Then
+                    If Abs(Cells(4, 2).Value) > Abs(Cells(2, 2).Value) Then Cells(4, 2).Value = Cells(2, 2).Value / 5 '0.01
+                ElseIf k = 5 Then
+                    If Abs(Cells(5, 2).Value) > Abs(Cells(2, 2).Value) Then Cells(5, 2).Value = Cells(2, 2).Value / 10 '0.001
+                End If
+            End If
+        Next
+    End If
+    
+    Cells(1, 1).Value = "Polynominal"
+    Cells(1, 2).Value = "Normal"
+    
+    If StrComp(mid$(LCase(Cells(1, 3).Value), 1, 1), "a", 1) = 0 Then
+        Cells(1, 3).Value = "ABG"
+    Else
+        Cells(1, 3).Value = "BG"
+    End If
+    
+    Cells(2, 1).Value = "a0"
+    Cells(3, 1).Value = "a1"
+    Cells(4, 1).Value = "a2"
+    Cells(5, 1).Value = "a3"
+    
+    Cells(20, 101).Value = "Polynominal"
+    Cells(20, 102).Value = "Normal"
+    Cells(20, 103).Value = Cells(1, 3).Value
+    
+    Cells(startR, 3).FormulaR1C1 = "=R2C2 + (R3C2 * RC1) + (R4C2 * (RC1)^2) + (R5C2 * (RC1)^3)"
+    Range(Cells(startR, 3), Cells(endR, 3)).FillDown
+    
+    If StrComp(mid$(LCase(Cells(11, 101).Value), 1, 1), "a", 1) = 0 Then ' least absolute value method
+        Cells(11, 101).Value = "absolute"
+        Cells(20 + sftfit, 100).Value = "least absolute"
+        If Cells(2, 2).Value = 0 Or Cells(startR, 3).Value = 0 Then
+            Cells(startR, 100).FormulaR1C1 = "= Abs(RC2 - RC3)" ' CV     ' added abs to solve sonvergence if negative data
+        Else
+            Cells(startR, 100).FormulaR1C1 = "= Abs((RC2 - RC3)/(RC3))" ' CV     ' added abs to solve sonvergence if negative data
+        End If
+    Else
+        Cells(11, 101).Value = "squares"
+        Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
+        If Cells(2, 2).Value = 0 Or Cells(startR, 3).Value = 0 Then
+            Cells(startR, 100).FormulaR1C1 = "=(RC2 - RC3)^2" ' CV this is the case for RC3 = 0
+        Else
+            Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
+        End If
+    End If
+
+    Range(Cells(startR, 100), Cells(endR, 100)).FillDown
+
+    If ns <= 0 Then
+        Cells(6 + sftfit2, 2).FormulaR1C1 = "=AVERAGE(R" & startR & "C100:R" & endR & "C100)"
+    Else
+        Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    End If
+    
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(5, 2))
     
     For k = 2 To 5
