@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.32p"                             ' Version of this code.
+    ver = "8.33p"                             ' Version of this code.
     backSlash = Application.PathSeparator ' Mac = "/", Win = "\"
     If backSlash = "/" Then    ' location of directory for database
         direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
@@ -399,6 +399,11 @@ DeadInTheWater3:
             Cells(1, 4).Value = "Name"
             testMacro = "debugPara"
             Call debugAll
+            Application.CutCopyMode = False
+            End
+		ElseIf LCase(Cells(1, 4).Value) = "lmfit" Then
+            Cells(1, 4).Value = "Name"
+            Call ExportLmfit
             Application.CutCopyMode = False
             End
         Else
@@ -2601,6 +2606,122 @@ Sub FitRatioAnalysis()
     
 SkipFitRatioAnalysis:
     Call GetOut
+End Sub
+
+Sub ExportLmfit()
+    Dim C0 As Variant, C1 As Variant, C2(5) As Variant, C3 As Variant, C4 As Variant, peakNum As Integer, model As String
+    Dim amprat As Variant, bediff As Variant, pos As Variant, posd As Variant
+    
+    peakNum = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Cells(8 + sftfit2, 2).Value
+    ReDim C4(peakNum)
+    
+    strSheetAnaName = "Pyt_" + strSheetDataName
+    strSheetFitName = "Fit_" + strSheetDataName
+    strSheetGraphName = "Graph_" + strSheetDataName
+    
+    Set sheetFit = Worksheets(strSheetFitName)
+    If ExistSheet(strSheetAnaName) Then
+        Application.DisplayAlerts = False
+        Worksheets(strSheetAnaName).Delete
+        Application.DisplayAlerts = True
+    End If
+        
+    Worksheets.Add().Name = strSheetAnaName
+    Set sheetAna = Worksheets(strSheetAnaName)
+    Set sheetFit = Worksheets(strSheetFitName)
+    Set sheetGraph = Worksheets(strSheetGraphName)
+    
+    Cells(2, 1).Value = "dat = np.loadtxt('" & strSheetDataName & ".txt', skiprows = 1)"
+    model = "mod = poly_mod"
+    q = 0
+    k = 0
+    
+    For p = 1 To peakNum
+        C2(0) = "gauss" & p & "  = GaussianModel(prefix='g" & p & "_')"
+        C2(1) = "pars.update( gauss" & p & ".make_params())"
+        If sheetFit.Cells(2, p + 4).Font.Bold = "True" Then
+            C2(2) = "pars['g" & p & "_center'].set(" & Application.Floor(sheetFit.Cells(2, p + 4), 0.01) & ", vary = False)"
+        Else
+            C2(2) = "pars['g" & p & "_center'].set(" & Application.Floor(sheetFit.Cells(2, p + 4), 0.01) & ")"
+        End If
+        
+        If sheetFit.Cells(4, p + 4).Font.Bold = "True" Then
+            C2(3) = "pars['g" & p & "_sigma'].set(" & Application.Floor(sheetFit.Cells(4, p + 4) / 2.35, 0.01) & ", vary = False)"
+        Else
+            C2(3) = "pars['g" & p & "_sigma'].set(" & Application.Floor(sheetFit.Cells(4, p + 4) / 2.35, 0.01) & ", min=0.2, max=4)"
+        End If
+        
+        If sheetFit.Cells(6, p + 4).Font.Bold = "True" Then
+            C2(4) = "pars['g" & p & "_amplitude'].set(" & Application.Floor(sheetFit.Cells(6, p + 4), 0.01) & ", vary = False)"
+        Else
+            C2(4) = "pars['g" & p & "_amplitude'].set(" & Application.Floor(sheetFit.Cells(6, p + 4), 0.01) & ", min=0)"
+        End If
+        
+        C3 = Application.Transpose(C2)
+        Range(Cells(4 + (p - 1) * 6, 1), Cells(3 + (p) * 6, 1)) = C3
+        
+        C4(p - 1) = "plt.plot(x, comps['g" & p & "_'], 'm--')"
+        
+        If IsEmpty(sheetFit.Cells(19, p + 4)) = False Then
+            q = q + 1
+            If StrComp(mid$(sheetFit.Cells(19, p + 4), 1, 1), "(", 1) = 0 Then
+                ReDim amprat(q)
+                ReDim pos(q)
+                ReDim C1(q)
+                pos(q - 1) = p
+                amprat(q - 1) = mid$(sheetFit.Cells(19, p + 4), 2, Len(sheetFit.Cells(19, p + 4)) - 2)
+            ElseIf StrComp(mid$(sheetFit.Cells(19, p + 4), Len(sheetFit.Cells(19, p + 4)), 1), ")", 1) = 0 Then
+                ReDim Preserve pos(q)
+                ReDim Preserve amprat(q)
+                ReDim Preserve C1(q)
+                pos(q - 1) = p
+                amprat(q - 1) = mid$(sheetFit.Cells(19, p + 4), 1, Len(sheetFit.Cells(19, p + 4)) - 1)
+                C1(q - 1) = "pars.add('g" & p & "_amplitude', expr = 'g" & pos(0) & "_amplitude * " & amprat(q - 1) & " / " & amprat(0) & "')"
+                q = 0
+            Else
+                ReDim Preserve pos(q)
+                ReDim Preserve amprat(q)
+                ReDim Preserve C1(q)
+                pos(q - 1) = p
+                amprat(q - 1) = mid$(sheetFit.Cells(19, p + 4), 1, Len(sheetFit.Cells(19, p + 4)) - 1)
+                C1(q - 1) = "pars.add('g" & p & "_amplitude', expr = 'g" & pos(0) & "_amplitude * " & amprat(q - 1) & " / " & amprat(0) & "')"
+            End If
+        End If
+        
+        If IsEmpty(sheetFit.Cells(20, p + 4)) = False Then
+            k = k + 1
+            If StrComp(mid$(sheetFit.Cells(20, p + 4), 1, 1), "[", 1) = 0 Then
+                ReDim bediff(k)
+                ReDim posd(k)
+                ReDim C0(k)
+                posd(k - 1) = p
+            ElseIf StrComp(mid$(sheetFit.Cells(20, p + 4), Len(sheetFit.Cells(20, p + 4)), 1), "]", 1) = 0 Then
+                ReDim Preserve posd(k)
+                ReDim Preserve bediff(k)
+                ReDim Preserve C0(k)
+                posd(k - 1) = p
+                bediff(k - 1) = mid$(sheetFit.Cells(20, p + 4), 1, Len(sheetFit.Cells(20, p + 4)) - 1)
+                C0(k - 1) = "pars.add('g" & p & "_center', expr = 'g" & posd(0) & "_center + " & bediff(k - 1) & " ')"
+                k = 0
+            Else
+                ReDim Preserve posd(k)
+                ReDim Preserve bediff(k)
+                ReDim Preserve C0(k)
+                posd(k - 1) = p
+                bediff(k - 1) = mid$(sheetFit.Cells(20, p + 4), 1, Len(sheetFit.Cells(20, p + 4)) - 1)
+                C0(k - 1) = "pars.add('g" & p & "_center', expr = 'g" & posd(0) & "_center + " & bediff(k - 1) & " ')"
+            End If
+        End If
+        
+        model = model & " + gauss" & p
+    Next
+    
+    Range(Cells(3 + (p - 1) * 6, 1), Cells(2 + (p - 1) * 6 + UBound(C1), 1)) = Application.Transpose(C1)
+    Range(Cells(3 + (p - 1) * 6 + UBound(C1), 1), Cells(2 + (p - 1) * 6 + UBound(C1) + UBound(C0), 1)) = Application.Transpose(C0)
+    
+    Cells(4 + (p - 1) * 6 + UBound(C1) + UBound(C0), 1) = model
+    Range(Cells(6 + (p - 1) * 6 + UBound(C1) + UBound(C0), 1), Cells(8 + (p - 1) * 6 + UBound(C1) + UBound(C0), 1)) = Application.Transpose(C4)
+    
 End Sub
 
 Sub FitAnalysis()
