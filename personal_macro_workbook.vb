@@ -401,7 +401,7 @@ DeadInTheWater3:
             Call debugAll
             Application.CutCopyMode = False
             End
-		ElseIf LCase(Cells(1, 4).Value) = "lmfit" Then
+        ElseIf LCase(Cells(1, 4).Value) = "lmfit" Then
             Cells(1, 4).Value = "Name"
             Call ExportLmfit
             Application.CutCopyMode = False
@@ -1809,7 +1809,6 @@ End Sub
 
 Sub GetOut()
     If Not Cells(8, 101).Value = 0 Then
-        If StrComp(TimeCheck, "yes", 1) = 0 Then TimeCheck = "yes1"
     Else
         If ExistSheet(strSheetFitName) And strAna = "FitRatioAnalysis" Then
             Worksheets(strSheetFitName).Activate
@@ -1822,7 +1821,7 @@ Sub GetOut()
     Application.ScreenUpdating = True
     Application.EnableEvents = True
     
-    If StrComp("Fit", mid$(ActiveSheet.Name, 1, 3)) = 0 And IsNumeric(TimeCheck) = False Then 'Cells(9, 1).Value = "Solve LSM" Then
+    If StrComp("Fit", mid$(ActiveSheet.Name, 1, 3)) = 0 And IsNumeric(TimeCheck) = False And Cells(1, 1) <> "EF" Then 'Cells(9, 1).Value = "Solve LSM" Then
         If IsNumeric(Cells(9 + sftfit2, 2)) Then
             If fileNum >= Cells(17, 101).Value And Cells(9 + sftfit2, 2).Value < 10 Then   ' limit in # of iteration
                 If a1 = a2 Then
@@ -1844,9 +1843,9 @@ Sub GetOut()
                 If IsEmpty(Cells(18, 101).Value) Then Cells(18, 101).FormulaR1C1 = "=Average(R21C2:R" & (20 + numData) & "C2)"
                 If IsNumeric(Cells(18, 101).Value) Then
                     If Abs(Cells(18, 101).Value) < 0.000001 Then
-                        TimeCheck = MsgBox("Fitting does not work properly, because avaraged In data is less than 1E-6!")
+                        TimeCheck = MsgBox("Fitting does not work properly, because averaged In data is less than 1E-6!")
                     ElseIf Abs(Cells(18, 101).Value) > 1E+29 Then
-                        TimeCheck = MsgBox("Fitting does not work properly, because avaraged In data is more than 1E+29!")
+                        TimeCheck = MsgBox("Fitting does not work properly, because averaged In data is more than 1E+29!")
                     End If
                 End If
             End If
@@ -1854,7 +1853,6 @@ Sub GetOut()
     End If
     
     testMacro = vbNullString
-    
     Application.DisplayAlerts = False
     
     If Len(ActiveWorkbook.Path) < 2 Then
@@ -1865,7 +1863,6 @@ Sub GetOut()
     End If
     
     Application.DisplayAlerts = True
-
     strErr = "skip"
     Exit Sub
 Error1:
@@ -4218,7 +4215,7 @@ Sub FitCurve()
             Call PolynominalShirleyBG
         ElseIf StrComp(strBG2, "t", 1) = 0 Then
             Call PolynominalTougaardBG
-		ElseIf StrComp(strBG2, "n", 1) = 0 Then
+        ElseIf StrComp(strBG2, "n", 1) = 0 Then
             Call PolynominalNormalBG    ' non-normalized x axis
         Else
             Call PolynominalBG
@@ -4784,24 +4781,28 @@ ExitIter:
 End Sub
 
 Sub FitEF()
-    Dim rng As Range, dataFit As Range
+    Dim rng As Range, dataFit As Range, fcmp As Range
     
-    If startR >= 21 + sftfit Then
+    If startR > 21 + sftfit Then        ' remove =
         If IsEmpty(Cells(startR - 1, 3)) = False Then
             Range(Cells(21 + sftfit, 3), Cells(startR - 1, 5)).ClearContents
-            Cells(8, 101).Value = -1
+            Cells(8, 101).Value = 0
         ElseIf IsEmpty(Cells(startR, 3)) = True Then
-            Cells(8, 101).Value = -1
+            Cells(8, 101).Value = 0
         End If
+    ElseIf startR <= 21 + sftfit Then
+        If IsEmpty(Cells(startR, 3)) = True Then Cells(8, 101).Value = 0
     End If
     
-    If endR <= numData + 20 + sftfit Then
+    If endR < numData + 20 + sftfit Then        ' remove =
         If IsEmpty(Cells(endR + 1, 3)) = False Then
             Range(Cells(endR + 1, 3), Cells(numData + 20 + sftfit, 5)).ClearContents
-            Cells(8, 101).Value = -1
+            Cells(8, 101).Value = 0
         ElseIf IsEmpty(Cells(endR, 3)) = True Then
-            Cells(8, 101).Value = -1
+            Cells(8, 101).Value = 0
         End If
+    ElseIf endR >= numData + 20 + sftfit Then
+        If IsEmpty(Cells(endR, 3)) = True Then Cells(8, 101).Value = 0
     End If
     
     If Cells(8, 101).Value > 0 Then
@@ -4836,21 +4837,55 @@ SkipInitialEF:
     
     Call SolverSetup
     SolverOk SetCell:=Cells(5 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(8, 5))
-    SolverAdd CellRef:=Cells(2, 5), Relation:=3, FormulaText:=Cells(8 + sftfit2, 2)   ' min
-    SolverAdd CellRef:=Cells(2, 5), Relation:=1, FormulaText:=Cells(9 + sftfit2, 2)   ' max
-    SolverAdd CellRef:=Cells(3, 2), Relation:=1, FormulaText:=Abs(Cells(2, 2))
-    SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=Abs(Cells(4, 2))
-    SolverAdd CellRef:=Cells(3, 2), Relation:=3, FormulaText:=-1 * Abs(Cells(2, 2))
-    SolverAdd CellRef:=Cells(5, 2), Relation:=3, FormulaText:=-1 * Abs(Cells(4, 2))
-    SolverAdd CellRef:=Cells(6, 2), Relation:=1, FormulaText:=Abs(Cells(5, 2)) / 10
-    SolverAdd CellRef:=Cells(7, 2), Relation:=1, FormulaText:=Abs(Cells(6, 2)) / 10
-    SolverAdd CellRef:=Cells(6, 2), Relation:=3, FormulaText:=-1 * Abs(Cells(5, 2)) / 10
-    SolverAdd CellRef:=Cells(7, 2), Relation:=3, FormulaText:=-1 * Abs(Cells(6, 2)) / 10
-    SolverAdd CellRef:=Cells(4, 5), Relation:=1, FormulaText:=10000
-    SolverAdd CellRef:=Cells(4, 5), Relation:=3, FormulaText:=1
-    SolverAdd CellRef:=Cells(2, 2), Relation:=3, FormulaText:=Cells(4, 2)
-    SolverAdd CellRef:=Cells(8, 2), Relation:=3, FormulaText:=0.0001
-    SolverAdd CellRef:=Cells(6, 5), Relation:=2, FormulaText:=Cells(6, 5)
+    If Cells(2, 2).Font.Bold = "True" Then  ' Int. Dos
+        SolverAdd CellRef:=Cells(2, 2), Relation:=2, FormulaText:=Cells(2, 2)
+    Else
+        SolverAdd CellRef:=Cells(2, 2), Relation:=1, FormulaText:=Abs(Cells(3, 101).Value - Cells(2, 101).Value)
+        SolverAdd CellRef:=Cells(2, 2), Relation:=3, FormulaText:=0
+    End If
+
+    If Cells(3, 2).Font.Bold = "True" Then  ' Slope dos
+        SolverAdd CellRef:=Cells(3, 2), Relation:=2, FormulaText:=Cells(3, 2)
+    Else
+        SolverAdd CellRef:=Cells(3, 2), Relation:=1, FormulaText:=10
+        SolverAdd CellRef:=Cells(3, 2), Relation:=3, FormulaText:=0
+    End If
+
+    If Cells(4, 2).Font.Bold = "True" Then  ' Int BG
+        SolverAdd CellRef:=Cells(4, 2), Relation:=2, FormulaText:=Cells(4, 2)
+    Else
+        SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=Cells(2, 101).Value * 2
+        SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=0
+    End If
+
+    If Cells(5, 2).Font.Bold = "True" Then  ' slope bg
+        SolverAdd CellRef:=Cells(5, 2), Relation:=2, FormulaText:=Cells(5, 2)
+    Else
+        SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=10
+        SolverAdd CellRef:=Cells(5, 2), Relation:=3, FormulaText:=0
+    End If
+    
+    SolverAdd CellRef:=Cells(8, 2), Relation:=3, FormulaText:=0.0001    ' Norm fd
+
+    If Cells(2, 5).Font.Bold = "True" Then  ' BE
+        SolverAdd CellRef:=Cells(2, 5), Relation:=2, FormulaText:=Cells(2, 5)
+    Else
+        SolverAdd CellRef:=Cells(2, 5), Relation:=1, FormulaText:=Cells(9 + sftfit2, 2)   ' max
+        SolverAdd CellRef:=Cells(2, 5), Relation:=3, FormulaText:=Cells(8 + sftfit2, 2)   ' min
+    End If
+    
+    SolverAdd CellRef:=Cells(3, 5), Relation:=2, FormulaText:=Cells(3, 5)
+
+    If Cells(4, 5).Font.Bold = "True" Then  ' Temp
+        SolverAdd CellRef:=Cells(4, 5), Relation:=2, FormulaText:=Cells(4, 5)
+    Else
+        SolverAdd CellRef:=Cells(4, 5), Relation:=1, FormulaText:=10000
+        SolverAdd CellRef:=Cells(4, 5), Relation:=3, FormulaText:=0
+    End If
+    
+    SolverAdd CellRef:=Cells(5, 5), Relation:=2, FormulaText:=Cells(5, 5)
+
+    SolverAdd CellRef:=Cells(6, 5), Relation:=2, FormulaText:=0.1   ' Gauss width
 
     For k = 2 To 8
         If Cells(k, 2).Font.Bold = "True" Then
@@ -4973,7 +5008,7 @@ Sub GetOutFit()
             Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
             Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
             Cells(5, 1).Value = "a3"
-			Cells(27, 100).Value = "All"
+            Cells(27, 100).Value = "All"
             Cells(27, 101).Value = "BG total"
             Cells(27, 102).Value = "Sum peaks"
             Cells(27, 103).Value = "Sub total"
@@ -7404,16 +7439,16 @@ Sub descriptEFfit1(fcmp As Range)
         Cells(4, 5).Value = 300
         Cells(4, 5).Font.Bold = "True"
         Cells(2, 5).Value = 0
-        Cells(6, 5).Value = 1
+        Cells(6, 5).Value = 0.1
         Cells(8, 5).Value = 1
     ElseIf Cells(8, 101).Value = -1 Then
         Range(Cells(2, 5), Cells(8, 5)) = fcmp
     End If
     
-    Cells(2, 2).Value = dblMax
-    Cells(3, 2).Value = 1
-    Cells(4, 2).Value = dblMin
-    Cells(5, 2).Value = 0
+    Cells(2, 2).Value = (Cells(startR, 2) - Cells(endR, 2)) / 2  '(dblMax - dblMin) / 2     ' int dos
+    Cells(3, 2).Value = (Cells(12 + sftfit2, 2) - Cells(11 + sftfit2, 2)) / (Cells(startR, 2) - Cells(endR, 2))     ' slope dos
+    Cells(4, 2).Value = Cells(endR, 2).Value      ' dblMin      ' int bg
+    Cells(5, 2).Value = (Cells(12 + sftfit2, 2) - Cells(11 + sftfit2, 2)) / (Cells(startR, 2) - Cells(endR, 2)) / 5     ' slope bg
 '    Cells(6, 2).Value = 0
 '    Cells(7, 2).Value = 0
     Cells(8, 2).Value = 0
@@ -8961,6 +8996,8 @@ Function Select_File_Or_Files_Mac(ext As String) As Variant
         Select_File_Or_Files_Mac = Split(MyFiles, Chr(10))
     End If
 End Function
+
+
 
 
 
