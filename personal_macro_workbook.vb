@@ -39,7 +39,7 @@ Sub CLAM2()
     a2 = -0.02624           ' B = A0 + A1 * Exp(A2 * gap)
     gamma = 1.2             ' An electron energy: GeV
     lambda = 6              ' A magnetic period: cm
-    fitLimit = 250          ' Maximum fit range: eV
+    fitLimit = 500          ' Maximum fit range: eV
     mfp = 0.6               ' Inelastic mean free path formula: E^(mfp), and mfp can be from 0.5 to 0.9.
     para = 100              ' position of parameters in the graph sheet with higher version of 6.56.
                             ' the limit of compared spectra depends on (para/3).
@@ -7875,16 +7875,16 @@ Sub FitEquations()
     
     ActiveChart.HasAxis(xlCategory, xlSecondary) = True
     With ActiveChart.Axes(xlCategory, xlSecondary)
-        If StrComp(strl(1), "Pe", 1) = 0 Then
-            .MinimumScale = startEb
-            .MaximumScale = endEb
-            .ReversePlotOrder = False
-            .Crosses = xlMaximum
-        Else
+        If StrComp(mid$(Cells(20 + sftfit, 1).Value, 1, 2), "BE", 1) = 0 Then
             .MinimumScale = endEb
             .MaximumScale = startEb
             .ReversePlotOrder = True
             .Crosses = xlMinimum
+        Else
+            .MinimumScale = startEb
+            .MaximumScale = endEb
+            .ReversePlotOrder = False
+            .Crosses = xlMaximum
         End If
     End With
 
