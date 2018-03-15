@@ -586,7 +586,7 @@ Sub PlotCLAM2()
     C2 = dataIntData     ' U second column
     C3 = dataKeGraph.Offset(, 2)    ' dataIntGraph    ' A
     
-    If StrComp(strMode, "AE/eV", 1) = 0 or StrComp(strMode, "PE/eV", 1) = 0 Then
+    If StrComp(strMode, "AE/eV", 1) = 0 Then
         C4 = Range(Cells(1, para + 1), Cells(1, para + 5))
         For n = 1 To numData
             startR = n - 1
@@ -606,7 +606,6 @@ Sub PlotCLAM2()
             Next
             
             C3(n, 1) = (C4(1, 3) * C4(1, 4) - C4(1, 2) * C4(1, 5)) / (C4(1, 1) * C4(1, 3) - C4(1, 2) * C4(1, 2))
-
         Next
         Range(Cells(11, 2), Cells((numData + 10), 2)) = C2
     ElseIf InStr(strMode, "E/eV") > 0 Then
@@ -688,7 +687,7 @@ Sub PlotCLAM2()
         .Top = 20
     End With
 
-    If StrComp(strl(1), "Be", 1) = 0 Or StrComp(strl(1), "Po", 1) = 0 Then GoTo SkipGraph2
+    If StrComp(strl(1), "Pe", 1) = 0 Or StrComp(strl(1), "Be", 1) = 0 Or StrComp(strl(1), "Po", 1) = 0 Then GoTo SkipGraph2
     
     Charts.Add
     ActiveChart.ChartType = xlXYScatterLinesNoMarkers 'xlXYScatterSmoothNoMarkers
@@ -701,11 +700,7 @@ Sub PlotCLAM2()
         .MinimumScale = startEk
         .MaximumScale = endEk
         .HasTitle = True
-        If StrComp(strl(1), "Pe", 1) = 0 Then
-            .AxisTitle.Text = "Photon energy (eV)"
-        Else
-            .AxisTitle.Text = "Kinetic energy (eV)"
-        End If
+        .AxisTitle.Text = "Kinetic energy (eV)"
     End With
 
     ActiveChart.SeriesCollection(1).Border.ColorIndex = 22
@@ -1130,16 +1125,12 @@ SkipElem:
     Else
         maxXPSFactor = maxXPSFactor * 1.2
     End If
-
-    Set dataKeGraph = Range(Cells(11, 1), Cells(11, 1).Offset(numData - 1, 0))
-    Call scalecheck ' to check chkMax, chkMin
     
     For n = 1 To numXPSFactors
         C2(n, 8) = dblMin + (C2(n, 11) * C2(n, 7) * ((dblMax - dblMin) / (maxXPSFactor)))
         If C2(n, 7) = 0 Then
             C2(n, 8) = vbNullString
         End If
-        C2(n, 9) = (C2(n, 11) * C2(n, 7) * ((chkMax - chkMin) / (maxXPSFactor)))
     Next
     
     Range(Cells(51, para + 10), Cells((numXPSFactors + 50), para + 20)) = C2
@@ -1272,7 +1263,7 @@ SkipXPSnumZero:
     For n = 1 To numAESFactors
         C2(n, 8) = dblMin + (C2(n, 11) * C2(n, 7) * ((dblMax - dblMin) / (maxAESFactor)))
         C2(n, 2) = C2(n, 1) + C2(n, 2)
-        C2(n, 9) = (C2(n, 11) * C2(n, 7) * ((chkMax - chkMin) / (maxAESFactor)))
+        C2(n, 9) = (C2(n, 11) * C2(n, 7) * ((chkMin) / (maxAESFactor)))
     Next
     
     Range(Cells((numXPSFactors + 51), para + 10), Cells((numXPSFactors + numAESFactors + 50), para + 20)) = C2
@@ -1885,34 +1876,27 @@ End Sub
 
 Sub GetAutoScale()
     Dim numDataT As Integer, npts As Integer, pstart As Integer, pend As Integer, jc As Integer, dt As Integer, dc As Integer, rng As Range, rg As Range
-    Dim iniRow1 As Single, iniRow2 As Single, endRow1 As Single, endRow2 As Single, strAuto As String, maxv As Single, calv As Single, rngx As Range, strArr() As String, strArre() As String
+    Dim iniRow1 As Single, iniRow2 As Single, endRow1 As Single, endRow2 As Single, strAuto As String, maxv As Single, calv As Single, rngx As Range
     
     strAuto = LCase(Cells(1, 1).Value)
-    ' "autop" to run the previous auto command
+    
     If StrComp(strAuto, "autop", 1) = 0 And IsEmpty(Cells(40, para + 11).Value) = False Then strAuto = Cells(40, para + 11).Value
 
-    'Use IntegrationTrapezoid(rng, dataData) to calibrate the offset and multiple factors
-    ' k->npts to be number of points to be integrated from both ends
     npts = 0
     
-    
     For dt = 0 To ncomp
-        
         Set rngx = Range(Cells(11, (1 + (dt * 3))), Cells(11, (1 + (dt * 3))).End(xlDown))
         numDataT = Application.CountA(rngx)
         
+        Set rng = Range(Cells(11, (3 + (dt * 3))), Cells(10 + numDataT, (3 + (dt * 3))))
+        
+        numDataT = Application.CountA(rng)
         If Len(strAuto) > 4 Then
-            
-            'Debug.Print mid$(strAuto, 5, 1), mid$(strAuto, Len(strAuto), 1)
             If StrComp(mid$(strAuto, 5, 1), "(", 1) = 0 And StrComp(mid$(strAuto, Len(strAuto), 1), ")", 1) = 0 Then
-                
-                ' Point range specified in "auto(1,10)" point 1 to 10 from start and end to be calibrated
-                'Debug.Print mid$(strAuto, 6, InStr(6, strAuto, ",", 1) - 6), mid$(strAuto, InStr(6, strAuto, ",", 1) + 1, Len(strAuto) - InStr(6, strAuto, ",", 1) - 1)
                 If IsNumeric(mid$(strAuto, 6, InStr(6, strAuto, ",", 1) - 6)) And IsNumeric(mid$(strAuto, InStr(6, strAuto, ",", 1) + 1, Len(strAuto) - InStr(6, strAuto, ",", 1) - 1)) Then
                     pstart = Application.Floor(mid$(strAuto, 6, InStr(6, strAuto, ",", 1) - 6), 1)
                     pend = Application.Ceiling(mid$(strAuto, InStr(6, strAuto, ",", 1) + 1, Len(strAuto) - InStr(6, strAuto, ",", 1) - 1), 1)
-                    'Debug.Print pstart, pend
-                    
+
                     If pstart >= 1 And pend > pstart Then
                     
                     Else
@@ -1931,27 +1915,12 @@ Sub GetAutoScale()
                     Cells(9, 3 * dt + 2).Value = Application.WorksheetFunction.Average(rng)
                     Cells(9, 3 * dt + 3).Value = 1 / Abs(Application.WorksheetFunction.Average(dataData) - Cells(9, 3 * dt + 2).Value)
                 Else ' XAS mode
-                    Cells(9, 3 * dt + 2).Value = Application.WorksheetFunction.Average(dataData.Offset(0, -1))
-                    Cells(9, 3 * dt + 3).Value = 1 / Abs(Application.WorksheetFunction.Average(rng.Offset(0, -1)) - Cells(9, 3 * dt + 2).Value)
+                    Cells(9, 3 * dt + 2).Value = Application.WorksheetFunction.Average(dataData)
+                    Cells(9, 3 * dt + 3).Value = 1 / Abs(Application.WorksheetFunction.Average(rng) - Cells(9, 3 * dt + 2).Value)
+                
                 End If
             ElseIf StrComp(mid$(strAuto, 5, 1), "[", 1) = 0 And StrComp(mid$(strAuto, Len(strAuto), 1), "]", 1) = 0 And InStr(6, strAuto, ":", 1) > 0 And InStr(6, strAuto, ",", 1) > 0 Then
-                ' Check # of ":" and "," between [ and ].
-                strArr() = Split(strAuto, ",")
-                Debug.Print UBound(strArr())
-                If UBound(strArr()) <> 1 Then End
-                For k = 0 To UBound(strArr())
-                    strArre() = Split(strArr(k), ":")
-                    Debug.Print UBound(strArre())
-                    If UBound(strArre()) <> 1 Then End
-                Next
-                        
                 stepEk = Abs(Cells(7, 3 * dt + 2).Value)
-                
-                If stepEk <= 0 Then
-                    stepEk = Abs(Cells(12, 3 * dt + 1).Value - Cells(11, 3 * dt + 1).Value)
-                End If
-                
-                Debug.Print stepEk
                 ' BE range specified in "auto[273:274,291.5:294]" to calibrate offset in 293 and 274, and multiple in 291.5 and 294 eV as a unity
                 
                 If IsNumeric(mid$(strAuto, 6, InStr(6, strAuto, ":", 1) - 6)) Then
@@ -1991,32 +1960,26 @@ Sub GetAutoScale()
                     endRow2 = 0
                 End If
                 
-                If StrComp(mid$(LCase(Cells(10, 3 * dt + 1).Value), 1, 2), "pe", 1) = 0 Then
+                If StrComp(LCase(Cells(10, 3 * dt + 1).Value), "pe", 1) = 0 Then
                     If iniRow1 = endRow1 Then
                         Cells(9, 3 * dt + 2).Value = 0
                     Else
                         For jc = 0 To numDataT - 1
-                            If iniRow1 <= Cells(12 + numDataT + 8 + jc, 3 * dt + 2).Offset(0, -1) And IsEmpty(Cells(11 + jc, 3 * dt + 3).Offset(0, -1)) = False Then
+                            If iniRow1 <= Cells(12 + numDataT + 8 + jc, 3 * dt + 2).Value And IsEmpty(Cells(11 + jc, 3 * dt + 3).Value) = False Then
                                 pstart = jc + 1
                                 Exit For
-                            ElseIf jc = numDataT - 1 Then
-                                Exit Sub
                             End If
                         Next
                         
                         For jc = 0 To numDataT - 1
-                            If endRow1 <= Cells(12 + numDataT + 8 + jc, 3 * dt + 2).Offset(0, -1) And IsEmpty(Cells(11 + jc, 3 * dt + 3).Offset(0, -1)) = False Then
+                            If endRow1 <= Cells(12 + numDataT + 8 + jc, 3 * dt + 2).Value And IsEmpty(Cells(11 + jc, 3 * dt + 3).Value) = False Then
                                 pend = jc + 1
                                 Exit For
-                            ElseIf jc = numDataT - 1 Then
-                                Exit Sub
                             End If
                         Next
                         
-                        'Debug.Print iniRow1, endRow1, p, q
-                        
                         If pstart >= 1 And pend > pstart Then
-                            Set rng = Range(Cells(11 + pstart - 1, (3 + (dt * 3))), Cells(11 + pend - 1, (3 + (dt * 3)))).Offset(0, -1)
+                            Set rng = Range(Cells(11 + pstart - 1, (3 + (dt * 3))), Cells(11 + pend - 1, (3 + (dt * 3))))
                             Cells(9, 3 * dt + 2).Value = Application.WorksheetFunction.Average(rng)
                         End If
                     End If
@@ -2025,30 +1988,24 @@ Sub GetAutoScale()
                         Cells(9, 3 * dt + 3).Value = 1
                     Else
                         For jc = 0 To numDataT - 1
-                            If iniRow2 >= Cells(11 + (numDataT * 2) + 8 - jc, 3 * dt + 2).Offset(0, -1) And IsEmpty(Cells(11 + jc, 3 * dt + 3).Offset(0, -1)) = False Then
+                            If iniRow2 >= Cells(11 + (numDataT * 2) + 8 - jc, 3 * dt + 2).Value And IsEmpty(Cells(11 + jc, 3 * dt + 3).Value) = False Then
                                 pend = jc + 1
                                 Exit For
-                            ElseIf jc = numDataT - 1 Then
-                                Exit Sub
                             End If
                         Next
                         
                         For jc = 0 To numDataT - 1
-                            If endRow2 >= Cells(11 + (numDataT * 2) + 8 - jc, 3 * dt + 2).Offset(0, -1) And IsEmpty(Cells(11 + jc, 3 * dt + 3).Offset(0, -1)) = False Then
+                            If endRow2 >= Cells(11 + (numDataT * 2) + 8 - jc, 3 * dt + 2).Value And IsEmpty(Cells(11 + jc, 3 * dt + 3).Value) = False Then
                                 pstart = jc + 1
                                 Exit For
-                            ElseIf jc = numDataT - 1 Then
-                                Exit Sub
                             End If
                         Next
                     
                         If pstart >= 1 And pend > pstart Then
-                            Set dataData = Range(Cells(10 + numDataT - pend + 1, (3 + (dt * 3))), Cells(10 + numDataT - pstart + 1, (3 + (dt * 3)))).Offset(0, -1)
+                            Set dataData = Range(Cells(10 + numDataT - pend + 1, (3 + (dt * 3))), Cells(10 + numDataT - pstart + 1, (3 + (dt * 3))))
                             Cells(9, 3 * dt + 3).Value = 1 / Abs(Application.WorksheetFunction.Average(dataData) - Cells(9, 3 * dt + 2).Value)
                         End If
                     End If
-                    
-                    'Debug.Print iniRow2, endRow2, pstart, pend
                 Else
                     If iniRow1 = endRow1 Then
                         Cells(9, 3 * dt + 2).Value = 0
@@ -2057,8 +2014,7 @@ Sub GetAutoScale()
                             If iniRow1 <= Cells(11 + (numDataT * 2) + 8 - jc, 3 * dt + 2).Value And IsEmpty(Cells(11 + jc, 3 * dt + 3).Value) = False Then
                                 pstart = jc + 1
                                 Exit For
-                            ElseIf jc = numDataT - 1 Then
-                                Exit Sub
+                            
                             End If
                         Next
                         
@@ -2066,12 +2022,8 @@ Sub GetAutoScale()
                             If endRow1 <= Cells(11 + (numDataT * 2) + 8 - jc, 3 * dt + 2).Value And IsEmpty(Cells(11 + jc, 3 * dt + 3).Value) = False Then
                                 pend = jc + 1
                                 Exit For
-                            ElseIf jc = numDataT - 1 Then
-                                Exit Sub
                             End If
                         Next
-                        
-                        Debug.Print iniRow1, endRow1, pstart, pend
                         
                         If pstart >= 1 And pend > pstart Then
                             Set rng = Range(Cells(10 + numDataT - pend + 1, (3 + (dt * 3))), Cells(10 + numDataT - pstart + 1, (3 + (dt * 3))))
@@ -2086,8 +2038,6 @@ Sub GetAutoScale()
                             If iniRow2 >= Cells(12 + numDataT + 8 + jc, 3 * dt + 2).Value And IsEmpty(Cells(11 + jc, 3 * dt + 3).Value) = False Then
                                 pend = jc + 1
                                 Exit For
-                            ElseIf jc = numDataT - 1 Then
-                                Exit Sub
                             End If
                         Next
                         
@@ -2095,8 +2045,6 @@ Sub GetAutoScale()
                             If endRow2 >= Cells(12 + numDataT + 8 + jc, 3 * dt + 2).Value And IsEmpty(Cells(11 + jc, 3 * dt + 3).Value) = False Then
                                 pstart = jc + 1
                                 Exit For
-                            ElseIf jc = numDataT - 1 Then
-                                Exit Sub
                             End If
                         Next
                         
@@ -2105,112 +2053,84 @@ Sub GetAutoScale()
                             Cells(9, 3 * dt + 3).Value = 1 / Abs(Application.WorksheetFunction.Average(dataData) - Cells(9, 3 * dt + 2).Value)
                         End If
                     End If
-                    
-                    Debug.Print iniRow2, endRow2, pstart, pend
                 End If
-            
             ElseIf StrComp(mid$(strAuto, 5, 1), "{", 1) = 0 And StrComp(mid$(strAuto, Len(strAuto), 1), "}", 1) = 0 Then ' calibrate BE at max value
-                    npts = 0
-                    jc = 0
-                    If StrComp(LCase(Cells(10, 3 * dt + 3).Value), "de", 1) = 0 Then jc = -1 'XAS mode
-                    Set rng = Range(Cells(11, (3 + (dt * 3))), Cells(10 + numDataT, (3 + (dt * 3)))).Offset(0, jc)
-                    maxv = Application.Max(rng)
-                    
-                    For Each rg In rng
-                        If rg = maxv Then
-                            pstart = rg.Row
-                        End If
-                    Next
-                    
-                    'pstart = Application.Match(maxv, rng, 0) + 11
-                    Debug.Print maxv, pstart, mid$(strAuto, 6, Len(strAuto) - 6)
-                    
-                    If IsEmpty(mid$(strAuto, 6, Len(strAuto) - 6)) = False Then
-                        If IsNumeric(mid$(strAuto, 6, Len(strAuto) - 6)) Then
-                            calv = mid$(strAuto, 6, Len(strAuto) - 6)
-                        Else
-                            calv = 284.6
-                        End If
+                npts = 0
+                maxv = Application.Max(rng)
+                
+                For Each rg In rng
+                    If rg = maxv Then
+                        pstart = rg.Row
+                    End If
+                Next
+                
+                'pstart = Application.Match(maxv, rng, 0) + 11
+                Debug.Print maxv, pstart, mid$(strAuto, 6, Len(strAuto) - 6)
+                
+                If IsEmpty(mid$(strAuto, 6, Len(strAuto) - 6)) = False Then
+                    If IsNumeric(mid$(strAuto, 6, Len(strAuto) - 6)) Then
+                        calv = mid$(strAuto, 6, Len(strAuto) - 6)
                     Else
                         calv = 284.6
                     End If
-                    
-                    If Cells(2, 1).Value = "PE shifts" Then
-                        dc = -2
-                    Else
-                        dc = 0
-                    End If
-                    
-                    Cells(4 + dc, 3 * dt + 2).Value = 0 ' reset char value to be calibrated
-                    
-                    Cells(4 + dc, 3 * dt + 2).Value = Cells(pstart, (2 + (dt * 3))).Value - calv
+                Else
+                    calv = 284.6
+                End If
+                
+                Cells(4, 3 * dt + 2).Value = 0  ' reset char value to be calibrated
+                Cells(4, 3 * dt + 2).Value = Cells(pstart, (2 + (dt * 3))).Value - calv
+             ElseIf StrComp(mid$(strAuto, 5, 1), "'", 1) = 0 And StrComp(mid$(strAuto, Len(strAuto), 1), "'", 1) = 0 Then ' char to a value
+                npts = 0
+                maxv = Application.Max(rng)
 
-            ElseIf StrComp(mid$(strAuto, 5, 1), "'", 1) = 0 And StrComp(mid$(strAuto, Len(strAuto), 1), "'", 1) = 0 Then ' char to a value
-                    npts = 0
-                    jc = 0
-                    If StrComp(LCase(Cells(10, 3 * dt + 3).Value), "de", 1) = 0 Then jc = -1 'XAS mode
-                    Set rng = Range(Cells(11, (3 + (dt * 3))), Cells(10 + numDataT, (3 + (dt * 3)))).Offset(0, jc)
-                    maxv = Application.Max(rng)
-                    
-                    For Each rg In rng
-                        If rg = maxv Then
-                            pstart = rg.Row
-                        End If
-                    Next
-                    
-                    'pstart = Application.Match(maxv, rng, 0) + 11
-                    Debug.Print maxv, pstart, mid$(strAuto, 6, Len(strAuto) - 6)
-                    
-                    If IsEmpty(mid$(strAuto, 6, Len(strAuto) - 6)) = False Then
-                        If IsNumeric(mid$(strAuto, 6, Len(strAuto) - 6)) Then
-                            calv = mid$(strAuto, 6, Len(strAuto) - 6)
-                        Else
-                            calv = 0
-                        End If
+                For Each rg In rng
+                    If rg = maxv Then
+                        pstart = rg.Row
+                    End If
+                Next
+
+                'pstart = Application.Match(maxv, rng, 0) + 11
+                Debug.Print maxv, pstart, mid$(strAuto, 6, Len(strAuto) - 6)
+
+                If IsEmpty(mid$(strAuto, 6, Len(strAuto) - 6)) = False Then
+                    If IsNumeric(mid$(strAuto, 6, Len(strAuto) - 6)) Then
+                        calv = mid$(strAuto, 6, Len(strAuto) - 6)
                     Else
                         calv = 0
                     End If
-                    
-                    If Cells(2, 1).Value = "PE shifts" Then
-                        dc = -2
-                    Else
-                        dc = 0
-                    End If
-                    
-                    Cells(4 + dc, 3 * dt + 2).Value = calv ' reset char value as a constant
-                    
-            ElseIf IsNumeric(mid$(strAuto, 5, Len(strAuto) - 4)) = True Then
+                Else
+                    calv = 0
+                End If
+
+                If Cells(2, 1).Value = "PE shifts" Then
+                    dc = -2
+                Else
+                    dc = 0
+                End If
                 
-                ' point calibration in auto10 to calibrate at 10 points from start and end
+                Cells(4 + dc, 3 * dt + 2).Value = calv ' reset char value as a constant
+                
+            ElseIf IsNumeric(mid$(strAuto, 5, Len(strAuto) - 4)) = True Then
                 npts = mid$(strAuto, 5, Len(strAuto) - 4)
-                'Debug.Print k
                 If npts >= 0 And npts < numDataT / 2 Then
                     
                 Else
                     npts = 0
                 End If
                 
-                jc = 0
-                If StrComp(LCase(Cells(10, 3 * dt + 3).Value), "de", 1) = 0 Then jc = -1 'XAS mode
-                
                 If npts = 0 Then       ' Auto0 makes all default
                     Cells(9, 3 * dt + 2).Value = 0
                     Cells(9, 3 * dt + 3).Value = 1
-                ElseIf Cells(10 + npts, (3 + (dt * 3))).Offset(0, jc) > Cells(11 + numDataT - npts, (3 + (dt * 3))).Offset(0, jc) Then  ' PES mode
-                    Cells(9, 3 * dt + 2).Value = Cells(11 + numDataT - npts, (3 + (dt * 3))).Offset(0, jc)
-                    Cells(9, 3 * dt + 3).Value = 1 / (Cells(10 + npts, (3 + (dt * 3))).Offset(0, jc) - Cells(11 + numDataT - npts, (3 + (dt * 3))).Offset(0, jc))
+                ElseIf Cells(10 + npts, (3 + (dt * 3))).Value > Cells(11 + numDataT - npts, (3 + (dt * 3))).Value Then  ' PES mode
+                    Cells(9, 3 * dt + 2).Value = Cells(11 + numDataT - npts, (3 + (dt * 3))).Value
+                    Cells(9, 3 * dt + 3).Value = 1 / (Cells(10 + npts, (3 + (dt * 3))).Value - Cells(11 + numDataT - npts, (3 + (dt * 3))).Value)
                 Else    ' XAS mode
-                    Cells(9, 3 * dt + 2).Value = Cells(10 + npts, (3 + (dt * 3))).Offset(0, jc)
-                    Cells(9, 3 * dt + 3).Value = 1 / (Cells(11 + numDataT - npts, (3 + (dt * 3))).Offset(0, jc) - Cells(10 + npts, (3 + (dt * 3))).Offset(0, jc))
+                    Cells(9, 3 * dt + 2).Value = Cells(10 + npts, (3 + (dt * 3))).Value
+                    Cells(9, 3 * dt + 3).Value = 1 / (Cells(11 + numDataT - npts, (3 + (dt * 3))).Value - Cells(10 + npts, (3 + (dt * 3))).Value)
                 End If
-                
             ElseIf StrComp(strAuto, "autowf", 1) = 0 Then
-                
                 ' point calibration in "autowf" for cutoff data
                 npts = 0
-                jc = 0
-                If StrComp(LCase(Cells(10, 3 * dt + 3).Value), "de", 1) = 0 Then jc = -1 'XAS mode
-                Set rng = Range(Cells(11, (3 + (dt * 3))), Cells(10 + numDataT, (3 + (dt * 3)))).Offset(0, jc)
                 maxv = Application.Max(rng)
                 
                 For Each rg In rng
@@ -2220,23 +2140,17 @@ Sub GetAutoScale()
                 Next
                 
                 Debug.Print maxv, pstart
-                jc = 0
-                If StrComp(LCase(Cells(10, 3 * dt + 3).Value), "de", 1) = 0 Then jc = -1 'XAS mode
-                If Cells(11 + npts, 3).Offset(0, jc) < Cells(10 + numDataT - npts, 3).Offset(0, jc) Then
-                    Cells(9, 3 * dt + 2).Value = Cells(11 + npts, (3 + (dt * 3))).Offset(0, jc)
-                    Cells(9, 3 * dt + 3).Value = 1 / (Cells(pstart, (3 + (dt * 3))).Offset(0, jc) - Cells(11 + npts, (3 + (dt * 3))).Offset(0, jc))
+                
+                If Cells(11 + npts, 3).Value < Cells(10 + numDataT - npts, 3).Value Then
+                    Cells(9, 3 * dt + 2).Value = Cells(11 + npts, (3 + (dt * 3))).Value
+                    Cells(9, 3 * dt + 3).Value = 1 / (Cells(pstart, (3 + (dt * 3))).Value - Cells(11 + npts, (3 + (dt * 3))).Value)
                 Else
-                    Cells(9, 3 * dt + 2).Value = Cells(10 + numDataT - npts, (3 + (dt * 3))).Offset(0, jc)
-                    Cells(9, 3 * dt + 3).Value = 1 / (Cells(pstart, (3 + (dt * 3))).Offset(0, jc) - Cells(10 + numDataT - npts, (3 + (dt * 3))).Offset(0, jc))
+                    Cells(9, 3 * dt + 2).Value = Cells(10 + numDataT - npts, (3 + (dt * 3))).Value
+                    Cells(9, 3 * dt + 3).Value = 1 / (Cells(pstart, (3 + (dt * 3))).Value - Cells(10 + numDataT - npts, (3 + (dt * 3))).Value)
                 End If
-                
             ElseIf StrComp(strAuto, "automax", 1) = 0 Then
-                
                 ' point calibration in "automax" for cutoff data
                 npts = 0
-                jc = 0
-                If StrComp(LCase(Cells(10, 3 * dt + 3).Value), "de", 1) = 0 Then jc = -1 'XAS mode
-                Set rng = Range(Cells(11, (3 + (dt * 3))), Cells(10 + numDataT, (3 + (dt * 3)))).Offset(0, jc)
                 maxv = Application.Max(rng)
                 
                 For Each rg In rng
@@ -2248,45 +2162,36 @@ Sub GetAutoScale()
                 Debug.Print maxv, pstart
                 
                 If StrComp(LCase(Cells(10, 3 * dt + 1).Value), "pe", 1) = 0 Then 'XAS mode
-                    Cells(9, 3 * dt + 2).Value = Cells(11 + npts, (3 + (dt * 3))).Offset(0, jc)
-                    Cells(9, 3 * dt + 3).Value = 1 / (Cells(pstart, (3 + (dt * 3))).Offset(0, jc) - Cells(11 + npts, (3 + (dt * 3))).Offset(0, jc))
+                    Cells(9, 3 * dt + 2).Value = Cells(11 + npts, (3 + (dt * 3))).Value
+                    Cells(9, 3 * dt + 3).Value = 1 / (Cells(pstart, (3 + (dt * 3))).Value - Cells(11 + npts, (3 + (dt * 3))).Value)
                 Else    ' PES mode
                     Cells(9, 3 * dt + 2).Value = Cells(10 + numDataT - npts, (3 + (dt * 3))).Value
                     Cells(9, 3 * dt + 3).Value = 1 / (Cells(pstart, (3 + (dt * 3))).Value - Cells(10 + numDataT - npts, (3 + (dt * 3))).Value)
                 End If
-                
             Else
-                
-                ' point calibration in "auto" at start and end points
                 npts = 0
                 
                 If StrComp(LCase(Cells(10, 3 * dt + 1).Value), "pe", 1) = 0 Then 'XAS mode
-                    Cells(9, 3 * dt + 2).Value = Cells(11 + npts, (3 + (dt * 3))).Offset(0, -1)
-                    Cells(9, 3 * dt + 3).Value = 1 / (Cells(10 + numDataT - npts, (3 + (dt * 3))).Offset(0, -1) - Cells(11 + npts, (3 + (dt * 3))).Offset(0, -1))
+                    Cells(9, 3 * dt + 2).Value = Cells(11 + npts, (3 + (dt * 3))).Value
+                    Cells(9, 3 * dt + 3).Value = 1 / (Cells(10 + numDataT - npts, (3 + (dt * 3))).Value - Cells(11 + npts, (3 + (dt * 3))).Value)
                 Else    ' PES mode
                     Cells(9, 3 * dt + 2).Value = Cells(10 + numDataT - npts, (3 + (dt * 3))).Value
                     Cells(9, 3 * dt + 3).Value = 1 / (Cells(11 + npts, (3 + (dt * 3))).Value - Cells(10 + numDataT - npts, (3 + (dt * 3))).Value)
                 End If
             End If
-               
         Else ' point calibration in "auto" at start and end points
             npts = 0
-            jc = 0
-            If StrComp(LCase(Cells(10, 3 * dt + 3).Value), "de", 1) = 0 Then jc = -1 'XAS mode
-            If Cells(11 + npts, (3 + (dt * 3))).Offset(0, jc) > Cells(10 + numDataT - npts, (3 + (dt * 3))).Offset(0, jc) Then  ' PES mode
-                Cells(9, 3 * dt + 2).Value = Cells(10 + numDataT - npts, (3 + (dt * 3))).Offset(0, jc)
-                Cells(9, 3 * dt + 3).Value = 1 / (Cells(11 + npts, (3 + (dt * 3))).Offset(0, jc) - Cells(10 + numDataT - npts, (3 + (dt * 3))).Offset(0, jc))
+            If Cells(11 + npts, (3 + (dt * 3))).Value > Cells(10 + numDataT - npts, (3 + (dt * 3))).Value Then  ' PES mode
+                Cells(9, 3 * dt + 2).Value = Cells(10 + numDataT - npts, (3 + (dt * 3))).Value
+                Cells(9, 3 * dt + 3).Value = 1 / (Cells(11 + npts, (3 + (dt * 3))).Value - Cells(10 + numDataT - npts, (3 + (dt * 3))).Value)
             Else    ' XAS mode
-                Cells(9, 3 * dt + 2).Value = Cells(11 + npts, (3 + (dt * 3))).Offset(0, jc)
-                Cells(9, 3 * dt + 3).Value = 1 / (Cells(10 + numDataT - npts, (3 + (dt * 3))).Offset(0, jc) - Cells(11 + npts, (3 + (dt * 3))).Offset(0, jc))
+                Cells(9, 3 * dt + 2).Value = Cells(11 + npts, (3 + (dt * 3))).Value
+                Cells(9, 3 * dt + 3).Value = 1 / (Cells(10 + numDataT - npts, (3 + (dt * 3))).Value - Cells(11 + npts, (3 + (dt * 3))).Value)
             End If
         End If
-        'Debug.Print numData, ncomp, numDataT
     Next
     
-    Debug.Print "auto", strAuto
     Cells(40, para + 11).Value = strAuto
-    
     If StrComp(mid$(ActiveSheet.Name, 1, 4), "Cmp_", 1) = 0 Then
         Cells(1, 1).Value = vbNullString
         End
@@ -2301,7 +2206,6 @@ Sub GetAutoScale()
             multi = 1
         End If
     End If
-    
 End Sub
 
 Sub ExportCmp(ByRef strXas As String)
@@ -3390,7 +3294,7 @@ End Sub
 Sub FitInitial()
     Dim C1 As Variant, mySeries As Series, myChartOBJ As ChartObject
     
-    If StrComp(strAna, "ana", 1) = 0 Or StrComp(strl(1), "Po", 1) = 0 Then
+    If StrComp(strAna, "ana", 1) = 0 Or StrComp(strl(1), "Pe", 1) = 0 Or StrComp(strl(1), "Po", 1) = 0 Then
         Worksheets(strSheetGraphName).Activate
         Set sheetGraph = Worksheets(strSheetGraphName)
         numData = Cells(41, para + 12).Value '((Cells(6, 2).Value - Cells(5, 2).Value) / Cells(7, 2).Value) + 1
@@ -3398,27 +3302,10 @@ Sub FitInitial()
         Set dataKeGraph = Range(Cells(20 + numData, 1), Cells(20 + numData, 1).Offset(numData - 1, 0))
 
         Call scalecheck
-        If StrComp(strl(1), "Po", 1) = 0 Then
+        If StrComp(strl(1), "Pe", 1) = 0 Or StrComp(strl(1), "Po", 1) = 0 Then
             Cells(10, 3).Value = "Ab"
         Else
             Cells(10, 3).Value = "In"
-        End If
-        If ExistSheet(strSheetFitName) Then
-            Application.DisplayAlerts = False
-            Worksheets(strSheetFitName).Delete
-            Application.DisplayAlerts = True
-        End If
-    ElseIf StrComp(strl(1), "Pe", 1) = 0 Then
-        Worksheets(strSheetGraphName).Activate
-        Set sheetGraph = Worksheets(strSheetGraphName)
-        numData = Cells(41, para + 12).Value '((Cells(6, 2).Value - Cells(5, 2).Value) / Cells(7, 2).Value) + 1
-        Set dataBGraph = Range(Cells(20 + numData, 1), Cells(20 + numData, 1).Offset(numData - 1, 1))
-        Set dataKeGraph = Range(Cells(20 + numData, 1), Cells(20 + numData, 1).Offset(numData - 1, 0))
-        'Set dataIntGraph = dataKeGraph.Offset(, 2)
-        
-'        Call scalecheck
-        If StrComp(strl(1), "Pe", 1) = 0 Then
-            Cells(10, 2).Value = "Ab"
         End If
         If ExistSheet(strSheetFitName) Then
             Application.DisplayAlerts = False
@@ -3976,7 +3863,7 @@ Sub FitRange(ByRef strCpa As String)
     char = Cells(14, 101).Value
     ns = Cells(10, 101).Value
     
-    If StrComp(LCase(Worksheets(strSheetGraphName).Cells(10, 2).Value), "ab", 1) = 0 And StrComp(LCase(Worksheets(strSheetGraphName).Cells(10, 1).Value), "pe", 1) = 0 Then
+    If StrComp(LCase(Worksheets(strSheetGraphName).Cells(10, 3).Value), "ab", 1) = 0 And StrComp(LCase(Worksheets(strSheetGraphName).Cells(10, 1).Value), "pe", 1) = 0 Then
         strl(1) = "Pe"
     ElseIf StrComp(LCase(Worksheets(strSheetGraphName).Cells(10, 1).Value), "po", 1) = 0 Then
         strl(1) = "Po"
@@ -6120,7 +6007,7 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
                 Cells(10 + (imax), (5 + (n * 3))).FormulaR1C1 = "=R[-" & (imax - 1) & "]C"
             End If
         ElseIf strl(3) = "De" Then
-            Cells(10 + (imax), (4 + (n * 3))).FormulaR1C1 = "=R2C + R[-" & (imax - 1) & "]C"
+            Cells(10 + (imax), (4 + (n * 3))).FormulaR1C1 = "=R2C[1] + R[-" & (imax - 1) & "]C"
             Range(Cells(10 + (imax), (4 + (n * 3))), Cells((2 * imax) - 1, (4 + (n * 3)))).FillDown
             Cells(10 + (imax), (5 + (n * 3))).FormulaR1C1 = "= (R[-" & (imax - 1) & "]C - R9C) * R9C[1]"
             Range(Cells(10 + (imax), (5 + (n * 3))), Cells((2 * imax) - 1, (5 + (n * 3)))).FillDown
@@ -8051,7 +7938,7 @@ Sub numMajorUnitsCheck(ByRef startEk As Single, endEk As Single)
 End Sub
 
 Sub scalecheck()
-    Dim dataIntGraph As Range, dataDeGraph As Range, jc As Integer
+    Dim dataIntGraph As Range, dataDeGraph As Range, jc as Integer
     ' dataKeGraph is energy column
     Set dataDeGraph = dataKeGraph.Offset(0, 1)
     
