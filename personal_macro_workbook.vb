@@ -254,7 +254,7 @@ DeadInTheWater3:
             ElemD = Cells(51, para + 9).Value
         End If
         
-        If StrComp(LCase(Cells(1, 1).Value), "exp", 1) = 0 Then
+        If StrComp(LCase(mid$(Cells(1, 1).Value, 1, 3)), "exp", 1) = 0 Then
             strSheetAnaName = "Exp_" + strSheetDataName
             strSheetGraphName = "Graph_" + strSheetDataName
             Call ExportCmp("")
@@ -586,7 +586,7 @@ Sub PlotCLAM2()
     C2 = dataIntData     ' U second column
     C3 = dataKeGraph.Offset(, 2)    ' dataIntGraph    ' A
     
-    If StrComp(strMode, "AE/eV", 1) = 0 Then
+    If StrComp(strMode, "AE/eV", 1) = 0 or StrComp(strMode, "PE/eV", 1) = 0 Then
         C4 = Range(Cells(1, para + 1), Cells(1, para + 5))
         For n = 1 To numData
             startR = n - 1
@@ -606,8 +606,8 @@ Sub PlotCLAM2()
             Next
             
             C3(n, 1) = (C4(1, 3) * C4(1, 4) - C4(1, 2) * C4(1, 5)) / (C4(1, 1) * C4(1, 3) - C4(1, 2) * C4(1, 2))
-            Range(Cells(11, 2), Cells((numData + 10), 2)) = C2
         Next
+        Range(Cells(11, 2), Cells((numData + 10), 2)) = C2
     ElseIf InStr(strMode, "E/eV") > 0 Then
         If StrComp(Cells(1, 3).Value, "Ip", 1) = 0 Or StrComp(Cells(1, 3).Value, "Ie", 1) = 0 Then
             C4 = dataKeData.Offset(, 2)
@@ -2198,8 +2198,9 @@ Sub GetAutoScale()
     Else
         Cells(1, 1).Value = "Grating"
         
-        If ncomp > 0 Then
+        If ncomp >= 0 Then
             strErr = "skip"
+            Call offsetmultiple
         Else
             off = 0
             multi = 1
@@ -2208,9 +2209,15 @@ Sub GetAutoScale()
 End Sub
 
 Sub ExportCmp(ByRef strXas As String)
-    Dim rng As Range, numDataT As Integer
+    Dim rng As Range, numDataT As Integer, nameXaxis As Integer
     
-    If LCase(Cells(1, 1).Value) = "exp" Or strXas = "Is" Then
+    If StrComp(LCase(Cells(1, 1).Value), "exp2", 1) = 0 Then
+        nameXaxis = 1   ' E/eV form to export each data file in text
+    Else
+        nameXaxis = 0   ' Export data in the other program to be pasted
+    End If
+	
+    If mid$(LCase(Cells(1, 1).Value), 1, 3) = "exp" Or strXas = "Is" Then
         If ExistSheet(strSheetAnaName) Then
             Application.DisplayAlerts = False
             Worksheets(strSheetAnaName).Delete
@@ -2236,7 +2243,13 @@ Sub ExportCmp(ByRef strXas As String)
             numDataT = Application.CountA(rng)
             sheetGraph.Range(Cells(11 + numDataT + 8, (2 + (q * 3))), Cells(11 + (numDataT * 2) + 8, (3 + (q * 3)))).Copy
             sheetAna.Cells(1, 1 + (q * 2)).PasteSpecial Paste:=xlValues
-            sheetAna.Cells(1, 1 + (q * 2)).Value = "BE/eV"
+            If nameXaxis > 0 Then
+                    If mid$(Cells(10, 1).Value, 1, 2) = "PE" Then   'XAS mode
+                        sheetAna.Cells(1, 1 + (q * 2)).Value = "PE/eV"
+                    Else
+                        sheetAna.Cells(1, 1 + (q * 2)).Value = "BE/eV"          ' this is option if want to name with "BE/eV" on x axis name
+                    End If
+                End If
         Next
         
         If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
@@ -5538,27 +5551,27 @@ Sub KeBL()
 End Sub
 
 Sub offsetmultiple()
-    ActiveSheet.ChartObjects(1).Activate
-    With ActiveSheet.ChartObjects(1)
-        .Top = 150
-    End With
-
-    With ActiveChart.Axes(xlValue)
-        .MinimumScaleIsAuto = True
-        .MaximumScaleIsAuto = True
-    End With
-            
-    If strl(1) = "Ke" Then
-        ActiveSheet.ChartObjects(2).Activate
-        With ActiveSheet.ChartObjects(2)
-            .Top = 150 + (500 / windowSize)
-        End With
-
-        With ActiveChart.Axes(xlValue)
-            .MinimumScaleIsAuto = True
+    Dim numCharts As Integer, myChartOBJ As ChartObject
+    
+    numCharts = 0
+    
+    For Each myChartOBJ In ActiveSheet.ChartObjects
+        If ncomp > 0 Then
+            With myChartOBJ
+                .Top = 150 + numCharts * (500 / windowSize)
+            End With
+        End If
+    
+        With myChartOBJ.Chart.Axes(xlValue)
+            If StrComp(Cells(10, 3).Value, "De", 1) = 0 And numCharts = 1 Then
+                .MinimumScaleIsAuto = True
+            Else
+                .MinimumScale = 0
+            End If
             .MaximumScaleIsAuto = True
         End With
-    End If
+        numCharts = numCharts + 1
+    Next
 End Sub
 
 Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, sBG As Variant, cmp As Integer, ncmp As Integer, ncomp)
@@ -5994,7 +6007,7 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
                 Cells(10 + (imax), (5 + (n * 3))).FormulaR1C1 = "=R[-" & (imax - 1) & "]C"
             End If
         ElseIf strl(3) = "De" Then
-            Cells(10 + (imax), (4 + (n * 3))).FormulaR1C1 = "=R2C + R[-" & (imax - 1) & "]C"
+            Cells(10 + (imax), (4 + (n * 3))).FormulaR1C1 = "=R2C[1] + R[-" & (imax - 1) & "]C"
             Range(Cells(10 + (imax), (4 + (n * 3))), Cells((2 * imax) - 1, (4 + (n * 3)))).FillDown
             Cells(10 + (imax), (5 + (n * 3))).FormulaR1C1 = "= (R[-" & (imax - 1) & "]C - R9C) * R9C[1]"
             Range(Cells(10 + (imax), (5 + (n * 3))), Cells((2 * imax) - 1, (5 + (n * 3)))).FillDown
@@ -7925,7 +7938,9 @@ Sub numMajorUnitsCheck(ByRef startEk As Single, endEk As Single)
 End Sub
 
 Sub scalecheck()
-    Dim dataIntGraph As Range, chkRef As Object
+    Dim dataIntGraph As Range, dataDeGraph As Range, jc as Integer
+    ' dataKeGraph is energy column
+    Set dataDeGraph = dataKeGraph.Offset(0, 1)
     
     If StrComp(mid$(ActiveSheet.Name, 1, 4), "Fit_", 1) = 0 Then
         Set dataIntGraph = dataKeGraph.Offset(, 1)
@@ -7935,13 +7950,13 @@ Sub scalecheck()
     
     With Application
         If strl(3) = "De" Then
-            j = 1
+            jc = 1
         Else
-            j = 0
+            jc = 0
         End If
         
-        startEb = Cells(20 + (numData), 2 - j).Value
-        endEb = Cells(20 + (numData), 2 - j).Offset(numData - 1, 0).Value
+        startEb = Cells(20 + (numData), 2).Offset(0, jc * -1)
+        endEb = Cells(20 + (numData), 2).Offset(numData - 1, jc * -1)
 
         Call numMajorUnitsCheck(startEb, endEb)
         
@@ -7979,29 +7994,11 @@ Sub scalecheck()
         dblMin = .Min(dataIntGraph)
         
         If strl(3) = "De" Then
-            dblMax = .Max(dataBeGraph)
-            dblMin = .Min(dataBeGraph)
+            ' dataDeGraph second column
+            dblMax = .Max(dataDeGraph)
+            dblMin = .Min(dataDeGraph)
             chkMax = .Max(dataIntGraph)
             chkMin = .Min(dataIntGraph)
-            If chkMax = 0 Or chkMin = 0 Then
-                strErr = "err0"
-            Else
-                If InStr(1, chkMax, ".") Then
-                    j = Len(mid$(chkMax, 1, InStr(1, chkMax, ".", 1) - 1))
-                Else
-                    j = Len(chkMax)
-                End If
-                
-                chkMax = .Ceiling(chkMax, 2 * (10 ^ (j - 1)))
-                
-                If InStr(1, chkMin, ".") Then
-                    j = Len(mid$(chkMin, 1, InStr(1, Abs(chkMin), ".", 1) - 1))
-                Else
-                    j = Len(chkMin) - 1
-                End If
-                
-                chkMin = .Ceiling(chkMin, -2 * (10 ^ (j - 1)))
-            End If
         End If
     End With
 End Sub
@@ -8016,6 +8013,8 @@ Sub Initial()
     strErrX = ""
 
     pe = 0
+    wf = 4
+    char = 0
     off = 0
     multi = 1
     startR = 0
