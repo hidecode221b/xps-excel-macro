@@ -20,16 +20,19 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.34p"                             ' Version of this code.
+    ver = "8.35p"                             ' Version of this code.
     backSlash = Application.PathSeparator ' Mac = "/", Win = "\"
     If backSlash = "/" Then    ' location of directory for database
+        ' mac
         direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
         'direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Documents" + backSlash + "XPS" + backSlash
     Else
-        'direc = "C:" + backSlash + "Users" + backSlash + "Public" + backSlash + "Data" + backSlash
-        'direc = "G:" + backSlash + "Data" + backSlash + "Hideki" + backSlash + "XPS" + backSlash
-        direc = "D:\Data\Hideki\XPS\"
+        ' Windows
+        'direc = "C:" + backSlash + "Users" + backSlash + "Public" + backSlash + "Data" + backSlash ' this is for BOOTCAMP on MacBookAir.
+        'direc = "G:" + backSlash + "Data" + backSlash + "Hideki" + backSlash + "XPS" + backSlash    ' this is for Windows PC with HDD storage.
+        direc = "D:\Data\Hideki\XPS\"          'default
     End If
+    
     windowSize = 1          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
     windowRatio = 4 / 3     ' window width / height, "2/1" for eyes or "4/3" for ppt
     ElemD = "C,O"           ' Default elements to be shown up in the element analysis.
@@ -1021,7 +1024,7 @@ CheckElemAgain:
     If numXPSFactors = 0 Then GoTo SkipXPSnumZero
     
     maxXPSFactor = 0
-    ReDim C3(1 To numXPSFactors, 1 To 7)
+    ReDim C3(1 To numXPSFactors, 1 To 8)
     
     For n = 1 To numXPSFactors
         strTest = C2(n, 1) + Left$(C2(n, 2), 2)
@@ -1032,7 +1035,11 @@ CheckElemAgain:
             GoTo SkipElem
         End If
         
-        Fname = direc + "webCross" + backSlash + LCase(strTest) + ".txt"
+        If strl(1) = "Pe" Then
+            Fname = direc + "XAS" + backSlash + LCase(C2(n, 1)) + ".nff"
+        Else
+            Fname = direc + "webCross" + backSlash + LCase(strTest) + ".txt"
+        End If
         
         If Dir(Fname) = vbNullString Then
             TimeCheck = MsgBox("File Not Found in " + Fname + "!", vbExclamation, "Database error")
@@ -1052,40 +1059,49 @@ CheckElemAgain:
             C1 = Split(Record, vbTab)
 
             If strl(1) = "Pe" Then         ' XAS mode
-                If C2(n, 3) < 15 Then    ' if PE < 15 eV, ignore it.
-                    
-                ElseIf C2(n, 3) > 15 And C1(0) >= C2(n, 3) And q = 0 And C2(n, 3) <> 1486.6 Then
-                    C3(n, 2) = C1(0)      ' PE
-                    C3(n, 3) = C1(1)      ' Cross section at PE
-                    C3(n, 6) = C1(4)  ' asymmetric parameter
+                If C2(n, 3) < 10 Then    ' if PE < 10 eV, ignore it.
+                ElseIf IsNumeric(C1(0)) = False Then
+                ElseIf CSng(C1(0)) >= C2(n, 3) And q = 0 Then
+                    If iRow = 2 Then
+                        C3(n, 2) = CSng(C1(0))      ' PE
+                        C3(n, 3) = CSng(C1(2))      ' Atomic scattering factor f2 at PE
+                    Else
+                        C3(n, 2) = CSng(C1(0))      ' PE
+                        C3(n, 3) = CSng(C1(2))      ' Atomic scattering factor f2 at PE
+'                        C3(n, 2) = C2(n, 3)        ' PE at interpolation mode
+'                        C3(n, 3) = C3(n, 8) + (C2(n, 3) - C3(n, 7)) * (CSng(C1(2)) - C3(n, 8)) / (CSng(C1(0)) - C3(n, 7)) 'linear interporation
+                    End If
+                    C3(n, 7) = CSng(C1(0))    ' check original
+                    C3(n, 8) = CSng(C1(2))
                     q = 1
-                ElseIf C2(n, 3) > 15 And C1(0) >= C2(n, 3) And q = 0 And C2(n, 3) = 1486.6 Then
-                    C3(n, 2) = C1(0)      ' PE
-                    C3(n, 3) = C1(1)      ' Cross section at PE
-                    C3(n, 4) = C1(0)      ' Al Ka PE
-                    C3(n, 5) = C1(1)      ' Cross section at Al Ka
-                    C3(n, 6) = C1(4)  ' asymmetric parameter
-                    q = 1
-                ElseIf C1(0) = 1486.6 Then
-                    C3(n, 4) = C1(0)      ' Al Ka PE
-                    C3(n, 5) = C1(1)      ' Cross section at Al Ka
+                ElseIf q = 0 Then
+                    C3(n, 7) = C1(0)    ' store the value for interpolation
+                    C3(n, 8) = C1(2)
                 End If
             Else
                 If C1(0) >= pe And q = 0 And C1(0) <> 1486.6 Then
-                    C3(n, 2) = C1(0)
-                    C3(n, 3) = C1(1)
-                    C3(n, 6) = C1(4)  ' asymmetric parameter
+                    C3(n, 2) = pe
+                    C3(n, 3) = C3(n, 8) + (pe - C3(n, 7)) * (C1(1) - C3(n, 8)) / (C1(0) - C3(n, 7)) 'linear interporation
+'                    C3(n, 2) = C1(0)      ' PE
+'                    C3(n, 3) = C1(1)      ' Cross section at PE
+                    C3(n, 6) = C1(4)      ' asymmetric parameter: beta
+                    C3(n, 7) = C1(0)    ' check original
+                    C3(n, 8) = C1(1)
+                    Debug.Print C3(n, 1), C3(n, 2), C3(n, 3), C3(n, 7), C3(n, 8)
                     q = 1
                 ElseIf C1(0) >= pe And q = 0 And C1(0) = 1486.6 Then
                     C3(n, 2) = C1(0)
                     C3(n, 3) = C1(1)
                     C3(n, 4) = C1(0)
                     C3(n, 5) = C1(1)
-                    C3(n, 6) = C1(4)  ' asymmetric parameter
+                    C3(n, 6) = C1(4)      ' asymmetric parameter: beta
                     q = 1
                 ElseIf C1(0) = 1486.6 Then
                     C3(n, 4) = C1(0)
                     C3(n, 5) = C1(1)
+                Else
+                    C3(n, 7) = C1(0)    ' store the value for interpolation
+                    C3(n, 8) = C1(1)
                 End If
             End If
             
@@ -1113,7 +1129,7 @@ SkipElem:
             Else
                 C2(n, 7) = C3(n, 3)
             End If
-        ElseIf StrComp(asf, "PSF", 1) = 0 Then
+        ElseIf StrComp(asf, "PSF", 1) = 0 Or strl(1) = "Pe" Then
             C2(n, 7) = C3(n, 3)       ' if no RSF available, use cross section as a RSF.
         Else
             C2(n, 7) = C2(n, 7) * C3(n, 3) / C3(n, 5)
@@ -1134,13 +1150,13 @@ SkipElem:
 
     If strl(1) = "Pe" Then Set dataKeGraph = Range(Cells(20 + numData, 1), Cells(20 + numData, 1).Offset(numData - 1, 0))
     Call scalecheck ' to check chkMax, chkMin
-    
+    Debug.Print dblMax, dblMin, chkMax, chkMin
     For n = 1 To numXPSFactors
-        C2(n, 8) = dblMin + (C2(n, 11) * C2(n, 7) * ((dblMax - dblMin) / (maxXPSFactor)))
+        C2(n, 8) = dblMin + (C2(n, 11) * C2(n, 7) * ((dblMax - dblMin) / (maxXPSFactor)))   ' norm
         If C2(n, 7) = 0 Then
             C2(n, 8) = vbNullString
         End If
-        C2(n, 9) = (C2(n, 11) * C2(n, 7) * ((chkMax - chkMin) / (maxXPSFactor)))
+        C2(n, 9) = (C2(n, 11) * C2(n, 7) * ((chkMax) / (maxXPSFactor)))   ' aes_diff
     Next
     
     Range(Cells(51, para + 10), Cells((numXPSFactors + 50), para + 20)) = C2
@@ -5487,10 +5503,15 @@ Sub FormatData()   ' this is a template for data loading.
     If StrComp(strMode, "CLAM2", 1) = 0 Then        ' XPS mode
         strMode = "KE/eV"
         peX = CInt(mid$(Cells(8, 1).Value, 19, (Len(Cells(8, 1).Value) - 18 - 2)))
+        off = 0
+        multi = 0.0000000000001
     ElseIf StrComp(strMode, "Photo", 1) = 0 Then    ' XAS mode
         strMode = "PE/eV"
+        off = 0
+        multi = 1
     Else
-        
+        off = 0
+        multi = 1
     End If
     
     If graphexist = 0 And strMode = "KE/eV" Then
@@ -5510,8 +5531,6 @@ Sub FormatData()   ' this is a template for data loading.
         char = 0
         
         ' initialize parameters adjustable
-        off = 0
-        multi = 0.0000000000001
         ncomp = 0
         highpe(0) = pe
         ' optional parameters
@@ -7618,7 +7637,7 @@ Sub SolverSetup()      ' fair results with moderate time
     SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
     SolverOptions MaxTime:=20, Iterations:=1000, Precision:=0.000001, AssumeLinear _
         :=False, StepThru:=False, Estimates:=1, Derivatives:=1, SearchOption:=1, _
-        IntTolerance:=5, Scaling:=False, Convergence:=0.00001, AssumeNonNeg:=False
+        IntTolerance:=5, Scaling:=True, Convergence:=0.00001, AssumeNonNeg:=False
 End Sub
 
 Sub SolverSetup2()      ' Accurate results with quite long time
@@ -9307,6 +9326,12 @@ Function Select_File_Or_Files_Mac(ext As String) As Variant
         Select_File_Or_Files_Mac = Split(MyFiles, Chr(10))
     End If
 End Function
+
+
+
+
+
+
 
 
 
