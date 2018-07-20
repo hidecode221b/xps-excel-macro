@@ -72,8 +72,7 @@ Values compiled by Gwyn P. Williams (updated Excel file and poster available)
 
 Scofield photoionization cross-section database combined with x-ray booklet binding energy database
 "Hartree-Slater subshell photoionization cross-sections at 1254 and 1487 eV"
-J. H. Scofield
-Journal of Electron Spectroscopy and Related Phenomena, 8129-137 (1976).
+J. H. Scofield, Journal of Electron Spectroscopy and Related Phenomena, 8129-137 (1976).
 - http://dx.doi.org/10.1016/0368-2048(76)80015-1
 
 #### AES
@@ -84,6 +83,11 @@ S. Mroczkowski and D. Lichtman, J. Vac. Sci. Technol. A 3, 1860 (1985).
 
 (Electron beam energy at 1, 3, 5, and 10 keV for relative cross section and derivative factors)
 
+#### XAS
+"X-Ray Interactions: Photoabsorption, Scattering, Transmission, and Reflection at E = 50-30,000 eV, Z = 1-92"
+B. L. Henke, E. M. Gullikson, and J. C. Davis, Atomic Data and Nuclear Data Tables 54, 181-342 (1993).
+- https://doi.org/10.1006/adnd.1993.1013
+- http://henke.lbl.gov/optical_constants/asf.html
 
 #### WebCross folder
 Photoionization cross section online database files should be downloaded and placed in this folder.
@@ -96,9 +100,10 @@ J. J. Yeh, Gordon and Breach Science Publishers, Langhorne, PE (USA), 1993.
 J. J. Yeh and I. Lindau, Atomic Data and Nuclear Data Tables, 32, 1-155 (1985).
 - http://dx.doi.org/10.1016/0092-640X(85)90016-6
 
+
 Note that database are supposed to be revised and updated locally based on the experiment.
 All the database files are based on AlKa source energy at 1486.6 eV, and webCross data normalize the RSF.
-You may also check spectral lines and profiles in the link below;
+You may also check spectral lines and profiles online below;
 
 NIST X-ray Photoelectron Spectroscopy Database
 - http://srdata.nist.gov/xps/
