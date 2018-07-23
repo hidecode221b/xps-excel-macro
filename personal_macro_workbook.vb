@@ -90,7 +90,7 @@ Sub SheetNameAnalysis()
                 C1 = Split(direc, backSlash)
                 For q = 1 To UBound(C1) - 1
                     C1(q) = C1(q - 1) & backSlash & C1(q)
-                    Debug.Print C1(q)
+                    'Debug.Print C1(q)
                     FSO.CreateFolder C1(q)
                 Next q
                 
@@ -1080,14 +1080,18 @@ CheckElemAgain:
                 End If
             Else
                 If C1(0) >= pe And q = 0 And C1(0) <> 1486.6 Then
-                    C3(n, 2) = pe
-                    C3(n, 3) = C3(n, 8) + (pe - C3(n, 7)) * (C1(1) - C3(n, 8)) / (C1(0) - C3(n, 7)) 'linear interporation
-'                    C3(n, 2) = C1(0)      ' PE
-'                    C3(n, 3) = C1(1)      ' Cross section at PE
+                    If iRow = 1 Then    ' under the excitation threshold
+                        C3(n, 2) = C1(0)      ' PE
+                        C3(n, 3) = 0      ' Cross section at PE
+                    Else
+                        C3(n, 2) = pe
+                        C3(n, 3) = C3(n, 8) + (pe - C3(n, 7)) * (C1(1) - C3(n, 8)) / (C1(0) - C3(n, 7)) 'linear interporation
+'                        C3(n, 2) = C1(0)      ' PE
+'                        C3(n, 3) = C1(1)      ' Cross section at PE
+                    End If
                     C3(n, 6) = C1(4)      ' asymmetric parameter: beta
                     C3(n, 7) = C1(0)    ' check original
                     C3(n, 8) = C1(1)
-                    Debug.Print C3(n, 1), C3(n, 2), C3(n, 3), C3(n, 7), C3(n, 8)
                     q = 1
                 ElseIf C1(0) >= pe And q = 0 And C1(0) = 1486.6 Then
                     C3(n, 2) = C1(0)
@@ -1150,7 +1154,7 @@ SkipElem:
 
     If strl(1) = "Pe" Then Set dataKeGraph = Range(Cells(20 + numData, 1), Cells(20 + numData, 1).Offset(numData - 1, 0))
     Call scalecheck ' to check chkMax, chkMin
-    Debug.Print dblMax, dblMin, chkMax, chkMin
+
     For n = 1 To numXPSFactors
         C2(n, 8) = dblMin + (C2(n, 11) * C2(n, 7) * ((dblMax - dblMin) / (maxXPSFactor)))   ' norm
         If C2(n, 7) = 0 Then
@@ -4298,17 +4302,17 @@ recheckformua1:
     
     If numbra1 <> numbra2 Then
         If numbra1 > numbra2 Then
-            Debug.Print "non match (>)"
+            'Debug.Print "non match (>)"
             Cells(14 + sftfit2, numbran1) = vbNullString
         ElseIf numbra1 < numbra2 Then
-            Debug.Print "non match (<)"
+            'Debug.Print "non match (<)"
             Cells(14 + sftfit2, numbran2) = vbNullString
         End If
         
         cnt = cnt + 1
         If cnt < 10 Then GoTo recheckformua1
     Else
-        Debug.Print "match (=)"
+        'Debug.Print "match (=)"
     End If
     
 recheckformua2:
@@ -4330,17 +4334,17 @@ recheckformua2:
     
     If numbra1 <> numbra2 Then
         If numbra1 > numbra2 Then
-            Debug.Print "non match [>]"
+            'Debug.Print "non match [>]"
             Cells(15 + sftfit2, numbran1) = vbNullString
         ElseIf numbra1 < numbra2 Then
-            Debug.Print "non match [<]"
+            'Debug.Print "non match [<]"
             Cells(15 + sftfit2, numbran2) = vbNullString
         End If
         
         cnt = cnt + 1
         If cnt < 10 Then GoTo recheckformua2
     Else
-        Debug.Print "match [=]"
+        'Debug.Print "match [=]"
     End If
         
 End Sub
@@ -5934,17 +5938,17 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
         If StrComp(mid$(strCpa, 1, 6), "Graph_", 1) = 0 Then
             If StrComp(mid$(strCpa, 1, 11), "Graph_Norm_", 1) = 0 Then
                 Set sheetTarget = Workbooks(Target).Worksheets("Graph_Norm_" + strSheetDataName)
-                Debug.Print "Graph_Norm_" + strSheetDataName
+                'Debug.Print "Graph_Norm_" + strSheetDataName
             Else
                 Set sheetTarget = Workbooks(Target).Worksheets("Graph_" + strSheetDataName)
-                Debug.Print "Graph_" + strSheetDataName
+                'Debug.Print "Graph_" + strSheetDataName
             End If
             
             If StrComp(sheetTarget.Cells(40, para + 9).Value, "Ver.", 1) = 0 Then
                 iCol = para
             Else
                 For iCol = 1 To 500
-                Debug.Print sheetTarget.Cells(40, iCol + 9).Value, iCol
+                'Debug.Print sheetTarget.Cells(40, iCol + 9).Value, iCol
                     If StrComp(sheetTarget.Cells(40, iCol + 9).Value, "Ver.", 1) = 0 Then
                         Exit For
                     ElseIf iCol = 500 Then
@@ -5968,10 +5972,10 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
         ElseIf StrComp(mid$(strCpa, 1, 4), "Fit_", 1) = 0 Then
             If StrComp(mid$(strCpa, 1, 9), "Fit_Norm_", 1) = 0 Then
                 Set sheetTarget = Workbooks(Target).Worksheets("Fit_Norm_" + strSheetDataName)
-                Debug.Print "Fit_Norm_" + strSheetDataName
+                'Debug.Print "Fit_Norm_" + strSheetDataName
             Else
                 Set sheetTarget = Workbooks(Target).Worksheets("Fit_" + strSheetDataName)
-                Debug.Print "Fit_" + strSheetDataName
+                'Debug.Print "Fit_" + strSheetDataName
             End If
             
             If StrComp(sheetTarget.Cells(19, 100).Value, "Ver.", 1) = 0 Then
@@ -5984,7 +5988,7 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
             numData = sheetTarget.Cells(5, 101).Value
             
         ElseIf StrComp(mid$(strCpa, 1, 9), "Ana_", 1) = 0 Then
-            Debug.Print "Ana_" + strSheetDataName
+            'Debug.Print "Ana_" + strSheetDataName
             
             If StrComp(Cells(1, para + 1).Value, "Parameters", 1) = 0 Then
             Else
@@ -7943,7 +7947,7 @@ Sub FitEquations()
             If Cells(7, (4 + n)).Font.Italic = "False" And Cells(7, (4 + n)).Font.Underline = xlUnderlineStyleSingle Then   ' exponential asymmetric blend based Voigt (GL multipak)
                 Cells(8, (4 + n)).Value = 0.35
                 Cells(9, (4 + n)).Value = 10
-                Debug.Print "non-italic underline multipak"
+                'Debug.Print "non-italic underline multipak"
                 For k = 1 To numData        ' ' R8C: Tail coefficient, R9C: Half Tail length at half maximum
                     If Cells((startR - 1 + k), 1).Value >= Cells(2, (4 + n)).Value Then
                         Cells((startR - 1 + k), (4 + n)).FormulaR1C1 = "=R6C * ((R7C)*((((R4C)/2)^2)/((RC[" & (-3 - n) & "]-R2C)^2 + ((R4C)/2)^2)) + (1- R7C)*(EXP(-(1/2)*((RC[" & (-3 - n) & "]-R2C)/(R4C/2.35))^2)) + (R8C * (1 - EXP(-(1/2)*((RC[" & (-3 - n) & "]-R2C)/(R4C/2.35))^2)) * exp((-6.9/R9C) * (2 * (RC[" & (-3 - n) & "] - R2C))/R4C)))"
@@ -8779,7 +8783,7 @@ Sub debugAll()      ' multiple file analysis in sequence
         ElemX = Workbooks(wbX).Sheets("Graph_" + strSheetDataName).Cells(51, para + 9).Value
     ElseIf modex <= -2 Then
     ElseIf Len(ElemX) > 0 Then
-        Debug.Print ElemX, "ElemX", Len(ElemX)
+        'Debug.Print ElemX, "ElemX", Len(ElemX)
     Else
         ElemX = Application.InputBox(Title:="Input atomic elements", Prompt:="Example:C,O,Co,etc ... without space!", Default:="C,O,Au", Type:=2)
     End If
@@ -8822,9 +8826,9 @@ Sub debugAll()      ' multiple file analysis in sequence
                     ElemX = mid$(strTest, 13, Len(strTest) - 23)
                     If InStr(1, AElist, ElemX) = 0 Then ElemX = vbNullString
                 ElseIf InStrRev(strTest, "_") > 0 Then
-                    Debug.Print mid$(strTest, InStrRev(strTest, "_") + 1, InStrRev(strTest, ".") - InStrRev(strTest, "_") - 1)
+                    'Debug.Print mid$(strTest, InStrRev(strTest, "_") + 1, InStrRev(strTest, ".") - InStrRev(strTest, "_") - 1)
                     ElemT = mid$(strTest, InStrRev(strTest, "_") + 1, InStrRev(strTest, ".") - InStrRev(strTest, "_") - 1)
-                    Debug.Print mid$(ElemT, Len(ElemT) - 1, 1), mid$(ElemT, 1, Len(ElemT) - 2)
+                    'Debug.Print mid$(ElemT, Len(ElemT) - 1, 1), mid$(ElemT, 1, Len(ElemT) - 2)
                     
                     If mid$(ElemT, Len(ElemT) - 1, 1) Like "[0-9]" And IsNumeric(mid$(ElemT, 1, Len(ElemT) - 2)) = False Then
                         If mid$(ElemT, 1, Len(ElemT) - 2) <> "Su" Then
@@ -8861,7 +8865,7 @@ Sub debugAll()      ' multiple file analysis in sequence
             Application.DisplayAlerts = False
             strSheetDataName = strNorm + mid$(Target, InStrRev(Target, backSlash) + 1, Len(Target) - InStrRev(Target, backSlash) - 5)
             If Len(strSheetDataName) > 25 Then strSheetDataName = mid$(strSheetDataName, 1, 25)
-            Debug.Print strSheetDataName
+            'Debug.Print strSheetDataName
             
             Set shf = Workbooks(strTest).Sheets("Fit_" + strSheetDataName)
             shf.Activate
@@ -8880,7 +8884,7 @@ Sub debugAll()      ' multiple file analysis in sequence
                 ' Error handling process here
                 If StrComp(strErrX, "skip", 1) = 0 Then
                     Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
-                    Debug.Print "strErrX"
+                    'Debug.Print "strErrX"
                     Exit Sub
                 End If
                 'Error handling process end
@@ -8906,7 +8910,7 @@ Sub debugAll()      ' multiple file analysis in sequence
             ' Error handling process here
             If StrComp(strErrX, "skip", 1) = 0 Then
                 Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
-                Debug.Print "strErrX"
+                'Debug.Print "strErrX"
                 Exit Sub
             End If
             ' Error handling process end
