@@ -464,7 +464,11 @@ DeadInTheWater3:
         End
     Else
         If InStr(ActiveWorkbook.Name, ".") < 1 Then
-            Application.Dialogs(xlDialogSaveAs).Show
+            flag = Application.Dialogs(xlDialogSaveAs).Show
+            If flag = False Then
+                TimeCheck = MsgBox("Save the file with the extension: xlsx!", vbExclamation)
+                End
+            End If
         End If
         
         strTest = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1)
@@ -2868,7 +2872,8 @@ End Sub
 Sub FitAnalysis()
     Dim C1 As Variant, C2 As Variant, C3 As Variant, peakNum As Integer, fitNum As Integer, bookNum As Integer, imax As Integer
     Dim OpenFileName As Variant, fcmp As Variant, sBG As Variant, ncmp As Integer, ncomp As Integer, rng As Range, strSheetCmpName As String, strTest As String
-    
+    Dim SourceRangeColor1 As Long
+            
     If Len(strSheetDataName) > 25 Then strSheetDataName = mid$(strSheetDataName, 1, 25)
 
     peakNum = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Cells(8 + sftfit2, 2).Value
@@ -3266,7 +3271,6 @@ Sub FitAnalysis()
         Else
             Set dataBGraph = Range(Cells(10 + (imax), 2), Cells((2 * imax) - 1, 3))
         End If
-        Dim SourceRangeColor1 As Long
         
         Charts.Add
         ActiveChart.ChartType = xlXYScatterLinesNoMarkers 'xlXYScatterSmoothNoMarkers
@@ -5504,18 +5508,15 @@ End Sub
 Sub FormatData()   ' this is a template for data loading.
     Dim iniRow As Integer, endRow As Integer, totalDataPoints As Integer, eneCol As Single, speCol As Single, cnt As Integer, msgap As Integer
     
-    If StrComp(strMode, "CLAM2", 1) = 0 Then        ' XPS mode
+    If StrComp(strMode, "CLAM2", 1) = 0 Then        ' XPS mode for CLAM2 user defined
         strMode = "KE/eV"
         peX = CInt(mid$(Cells(8, 1).Value, 19, (Len(Cells(8, 1).Value) - 18 - 2)))
-        off = 0
-        multi = 0.0000000000001
-    ElseIf StrComp(strMode, "Photo", 1) = 0 Then    ' XAS mode
+        If graphexist = 0 Then
+            off = 0
+            multi = 0.000000000001
+        End If
+    ElseIf StrComp(strMode, "Photo", 1) = 0 Then    ' XAS mode for user defined
         strMode = "PE/eV"
-        off = 0
-        multi = 1
-    Else
-        off = 0
-        multi = 1
     End If
     
     If graphexist = 0 And strMode = "KE/eV" Then
@@ -6166,12 +6167,6 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
 
         Cells(9, (4 + (n * 3))).Interior.Color = RGB(139, 195, 74)  ' added 20160324
         Range(Cells(9, (5 + (n * 3))), Cells(9, (6 + (n * 3)))).Interior.Color = RGB(197, 225, 165)  ' added 20160324
-        
-        If Cells(3, (4 + (n * 3))).Interior.ColorIndex = 45 Then
-            Cells(3, (5 + (n * 3))).FormulaR1C1 = "=(Ln((((Sqrt((((950 *((" & gamma & ")^2))/(R4C * " & lambda & "))-1) * 2))/(" & lambda & " * 0.934)) - " & a0 & ")/(" & a1 & ")))/(" & a2 & ")" ' gap
-        ElseIf Cells(4, (4 + (n * 3))).Interior.ColorIndex = 45 Then
-            Cells(4, (5 + (n * 3))).FormulaR1C1 = "=950 * ((" & gamma & ") ^ 2) / (((((0.934 * " & lambda & " * (" & a0 & " + " & a1 & " * Exp(" & a2 & " * R3C))) ^ 2) / 2) + 1) * " & lambda & ")" ' 1st har.
-        End If
         
         imax = numData + 10
         
@@ -7435,7 +7430,7 @@ Sub TougaardBG()
     Cells(20, 102).Value = Cells(1, 2).Value
     Cells(20, 103).Value = vbNullString
     
-    For k = 2 To 5
+    For k = 2 To 6
         If Cells(k, 2).Font.Bold = "True" Then
         ElseIf k = 2 Then
             Cells(2, 2).Value = 2866    '2866 or 1840 or 736
@@ -7445,6 +7440,8 @@ Sub TougaardBG()
             Cells(4, 2).Value = 1       ' 1 default
         ElseIf k = 5 Then
             Cells(5, 2).Value = 1
+        ElseIf k = 6 Then
+            Cells(6, 2).Value = Cells(2, 101).Value
         End If
     Next
     
@@ -7871,27 +7868,39 @@ Sub FitEquations()
     Cells(16, 101).Value = 0
     
     If q < j Then
-        If (j - q) Mod 2 = 0 And j Mod 2 = 0 Then
+        If (j - q) Mod 2 = 0 And StrComp(Cells(15 + sftfit2, (4 + q - 1)).Value, "[", 1) = 0 Then
             For n = 1 To (j - q) Step 2
                 Range(Cells(1, (4 + q + n)), Cells(9 + sftfit2, (4 + q + n + 1))).Value = Range(Cells(1, (4 + q - 1)), Cells(9 + sftfit2, (4 + q))).Value
                 Range(Cells(14 + sftfit2, (4 + q + n)), Cells(15 + sftfit2, (4 + q + n + 1))).Value = Range(Cells(14 + sftfit2, (4 + q - 1)), Cells(15 + sftfit2, (4 + q))).Value
-                Cells(1, (4 + q + n)).Value = Cells(1, 5).Value + "_" + CStr((4 + q + n - 5) / 2)
-                Cells(1, (4 + q + n + 1)).Value = Cells(1, 6).Value + "_" + CStr((4 + q + n + 1 - 6) / 2)
+                If InStr(1, Cells(1, (4 + q - 1 + n - 1)).Value, "_", 1) > 0 Then
+                    Cells(1, (4 + q + n)).Value = Cells(1, (4 + q - 1 + n - 1)).Value + "I"
+                    Cells(1, (4 + q + n + 1)).Value = Cells(1, (4 + q + n - 1)).Value + "I"
+                Else
+                    Cells(1, (4 + q + n)).Value = Cells(1, (4 + q - 1 + n - 1)).Value + "_I"
+                    Cells(1, (4 + q + n + 1)).Value = Cells(1, (4 + q + n - 1)).Value + "_I"
+                End If
                 Cells(2, (4 + q + n)).Value = Cells(2, (4 + q - 1)).Value + n * (Cells(8, 103).Value / Cells(8 + sftfit2, 2).Value)
                 Cells(2, (4 + q + n + 1)).Value = Cells(2, (4 + q)).Value + n * (Cells(8, 103).Value / Cells(8 + sftfit2, 2).Value)
-                If Cells(4, 5).Font.Bold = True Then
+                If Cells(4, 4 + q - 1).Font.Bold = True Then
                     Cells(4, (4 + q + n)).Font.Bold = True
                 End If
                 
-                If Cells(4, 6).Font.Bold = True Then
+                If Cells(4, 4 + q).Font.Bold = True Then
                     Cells(4, (4 + q + n + 1)).Font.Bold = True
                 End If
             Next
         Else
             For n = 1 To (j - q)
                 Range(Cells(1, (4 + q + n)), Cells(9 + sftfit2, (4 + q + n))).Value = Range(Cells(1, (4 + q)), Cells(9 + sftfit2, (4 + q))).Value
-                Cells(1, (4 + q + n)).Value = Cells(1, 5).Value + "s" + CStr((4 + q + n) - 5)
+                If InStr(1, Cells(1, (4 + q + n - 1)).Value, "_", 1) > 0 Then
+                    Cells(1, (4 + q + n)).Value = Cells(1, (4 + q + n - 1)).Value + "i"
+                Else
+                    Cells(1, (4 + q + n)).Value = Cells(1, (4 + q + n - 1)).Value + "_i"
+                End If
                 Cells(2, (4 + q + n)).Value = Cells(2, (4 + q)).Value + n * (Cells(8, 103).Value / Cells(8 + sftfit2, 2).Value)
+                If Cells(4, 4 + q).Font.Bold = True Then
+                    Cells(4, (4 + q + n)).Font.Bold = True
+                End If
             Next
         End If
         Cells(9, 101).Value = j
@@ -8157,7 +8166,7 @@ Sub FitEquations()
 End Sub
 
 Sub numMajorUnitsCheck(ByRef startEk As Single, endEk As Single)
-    If Abs(startEk - endEk) >= 500 Then
+    If Abs(startEk - endEk) >= 500 And Abs(startEk - endEk) < 1500 Then
         numMajorUnit = 100
     ElseIf Abs(startEk - endEk) > 100 And Abs(startEk - endEk) < 500 Then
         numMajorUnit = 50 * windowSize
@@ -8167,11 +8176,11 @@ Sub numMajorUnitsCheck(ByRef startEk As Single, endEk As Single)
         numMajorUnit = 2 * windowSize
     ElseIf Abs(startEk - endEk) <= 20 And Abs(startEk - endEk) > 1 Then
         numMajorUnit = 1 * windowSize
-    ElseIf Abs(startEk - endEk) <= 1 Then
+    Else
         numMajorUnit = 0
     End If
     
-    If numData >= 1500 Then numMajorUnit = 0
+    'If numData >= 1500 Then numMajorUnit = 0
 End Sub
 
 Sub scalecheck()
@@ -9330,6 +9339,8 @@ Function Select_File_Or_Files_Mac(ext As String) As Variant
         Select_File_Or_Files_Mac = Split(MyFiles, Chr(10))
     End If
 End Function
+
+
 
 
 
