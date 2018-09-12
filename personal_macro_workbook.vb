@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.35p"                             ' Version of this code.
+    ver = "8.36p"                             ' Version of this code.
     backSlash = Application.PathSeparator ' Mac = "/", Win = "\"
     If backSlash = "/" Then    ' location of directory for database
         ' mac
@@ -1025,7 +1025,7 @@ CheckElemAgain:
     Next
     
     numXPSFactors = k
-    If numXPSFactors = 0 Then GoTo SkipXPSnumZero
+    If numXPSFactors = 0 Or strl(2) = "Ae" Then GoTo SkipXPSnumZero
     
     maxXPSFactor = 0
     ReDim C3(1 To numXPSFactors, 1 To 8)
@@ -1149,6 +1149,8 @@ SkipElem:
     For n = 1 To numXPSFactors
         If C2(n, 7) >= maxXPSFactor Then maxXPSFactor = C2(n, 7) Else maxXPSFactor = maxXPSFactor
     Next
+    
+    If maxXPSFactor = 0 Then maxXPSFactor = 1   'if C2(n, 7) are all zero.
     
     If Abs(startEb - endEb) > fitLimit Then
         maxXPSFactor = maxXPSFactor * 2
@@ -5613,12 +5615,10 @@ Sub KeBL()
             pe = 1253.6
             multi = 1
     ElseIf strMode = "KE/eV" Or strMode = "BE/eV" Then
-            If StrComp(testMacro, "debug", 1) = 0 Then
-                If peX = 0 Then
                     If IsEmpty(Cells(1, 2).Value) = False Then
                         If StrComp(mid$(Cells(1, 2).Value, 1, 3), "PE:", 1) = 0 And StrComp(mid$(Cells(1, 2).Value, Len(Cells(1, 2).Value) - 1, 2), "eV", 1) = 0 Then
                             If IsNumeric(mid$(Cells(1, 2).Value, 4, Len(Cells(1, 2).Value) - 5)) Then
-                                pe = CSng(mid$(Cells(1, 2).Value, 4, Len(Cells(1, 2).Value) - 5))
+                                peX = CSng(mid$(Cells(1, 2).Value, 4, Len(Cells(1, 2).Value) - 5))
                                 multi = 1
                             Else
                                 peX = Application.InputBox(Title:="Manual input mode", Prompt:="Input a photon energy [eV] or cancel to switch AES mode", Default:=650, Type:=1)
@@ -5629,11 +5629,8 @@ Sub KeBL()
                     Else
                         peX = Application.InputBox(Title:="Manual input mode", Prompt:="Input a photon energy [eV] or cancel to switch AES mode", Default:=650, Type:=1)
                     End If
-                End If
                 pe = peX
-            Else
-                pe = Application.InputBox(Title:="Manual input mode", Prompt:="Input a photon energy [eV] or cancel to switch AES mode", Default:=650, Type:=1)
-            End If
+
             highpe(0) = pe
             If pe <= 0 Then
                 Cells(1, 1).Value = "AE/eV"
