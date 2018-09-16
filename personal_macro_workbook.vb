@@ -836,7 +836,7 @@ Sub ElemXPS()
     
 CheckElemAgain:
 
-    If StrComp(testMacro, "debug", 1) = 0 Then
+    If StrComp(Mid$(testMacro, 1, 5), "debug", 1) = 0 Then
         ElemD = ElemX
     Else
         ElemD = Application.InputBox(Title:="Input atomic elements", Prompt:="Example:C,O,Co,etc ... without space!", Default:=ElemD, Type:=2)
@@ -3231,8 +3231,8 @@ Sub FitAnalysis()
                 Cells(10, 3) = "De"
                 Range(Cells(2, 1), Cells(2, 1)).Interior.ColorIndex = 3
                 Range(Cells(2, 2), Cells(2, 3)).Interior.ColorIndex = 38
-                [A3:A3].Interior.ColorIndex = 45
-                [B3:C3].Interior.ColorIndex = 44
+                [A3:A3].Interior.ColorIndex = 44
+                [B3:C3].Interior.ColorIndex = 36
             End If
             
             Cells(10 + (imax), 2).FormulaR1C1 = "= (R[-" & (imax - 1) & "]C - R9C) * R9C[1]"
@@ -3266,8 +3266,8 @@ Sub FitAnalysis()
         Range(Cells(10 + (imax), 1), Cells((2 * imax) - 1, 1)).FillDown
         Range(Cells(10 + (imax), 2), Cells((2 * imax) - 1, 2)).FillDown
         Range(Cells(10 + (imax), 3), Cells((2 * imax) - 1, 3)).FillDown
-        Cells(9, 1).Interior.Color = RGB(139, 195, 74)  ' added 20160324
-        Range(Cells(9, 2), Cells(9, 3)).Interior.Color = RGB(197, 225, 165)  ' added 20160324
+        [A9:A9].Interior.ColorIndex = 43
+        [B9:C9].Interior.ColorIndex = 35
         If StrComp(mid$(Cells(10, 1), 1, 2), "PE", 1) = 0 Then
             Set dataBGraph = Range(Cells(10 + (imax), 1), Cells((2 * imax) - 1, 2))
         Else
@@ -6162,8 +6162,8 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
             Cells(9, (6 + (n * 3))).Value = 1
         End If
 
-        Cells(9, (4 + (n * 3))).Interior.Color = RGB(139, 195, 74)  ' added 20160324
-        Range(Cells(9, (5 + (n * 3))), Cells(9, (6 + (n * 3)))).Interior.Color = RGB(197, 225, 165)  ' added 20160324
+        [A9:A9].Interior.ColorIndex = 43
+        [B9:C9].Interior.ColorIndex = 35
         
         imax = numData + 10
         
@@ -6370,8 +6370,8 @@ Sub descriptGraph()
     [A2:A4].Interior.Color = RGB(244, 67, 54)
     [B2:C4].Interior.Color = RGB(244, 143, 177)
     [A5:A8].Interior.Color = RGB(3, 169, 244)
-    Range(Cells(9, 1), Cells(9, 1)).Interior.Color = RGB(139, 195, 74)
-    Range(Cells(9, 2), Cells(9, 3)).Interior.Color = RGB(197, 225, 165)
+    [A9:A9].Interior.ColorIndex = 43
+    [B9:C9].Interior.ColorIndex = 35
     ReDim strl(3)
     imax = numData + 10
     
@@ -6385,8 +6385,8 @@ Sub descriptGraph()
         Cells(6, 1).Value = "End PE"
         Cells(7, 1).Value = "Step PE"
         [C2:C7].Value = "eV"
-        [A3:A3].Interior.ColorIndex = 45
-        [B3:C3].Interior.ColorIndex = 44
+        [A3:A3].Interior.ColorIndex = 44
+        [B3:C3].Interior.ColorIndex = 36
         Range(Cells(4, 1), Cells(4, 3)).Clear
         
         Cells(10, 1).Value = "Pe"
@@ -6445,8 +6445,8 @@ Sub descriptGraph()
         Cells(6, 1).Value = "End KE"
         Cells(7, 1).Value = "Step KE"
         [C2:C7].Value = "eV"
-        [A3:A3].Interior.ColorIndex = 45
-        [B3:C3].Interior.ColorIndex = 44
+        [A3:A3].Interior.ColorIndex = 44
+        [B3:C3].Interior.ColorIndex = 36
 
         Range(Cells(4, 1), Cells(4, 3)).Clear
         Cells(1, 1).Value = "AES elec."
@@ -8290,7 +8290,7 @@ Sub Initial()
             If (InStr(ActiveWorkbook.Name, ".txt") > 0 Or InStr(ActiveWorkbook.Name, ".csv") > 0) And InstanceCount > 1 Then
                 Call ExcelRenew ' regenerate xlsx file from text opened with different insstance
             ElseIf StrComp(ActiveSheet.Name, "renew", 1) = 0 Then
-                testMacro = "debug"
+                testMacro = "debug_renew"
                 ElemX = ElemD
                 ActiveSheet.Name = ActiveWorkbook.Name
             End If
