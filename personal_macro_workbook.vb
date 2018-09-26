@@ -2384,7 +2384,7 @@ Sub ExportCmp(ByRef strXas As String)
             sheetGraph.Range(Cells(11 + numDataT + 8, (1 + sftPe + (q * 3))), Cells(11 + (numDataT * 2) + 8, (2 + sftPe + (q * 3)))).Copy
             sheetAna.Cells(1, 1 + (q * 2)).PasteSpecial Paste:=xlValues
             If nameXaxis > 0 Then
-                    If mid$(Cells(10, 1).Value, 1, 2) = "PE" Then   'XAS mode
+                    If mid$(LCase(Cells(10, 1).Value), 1, 2) = "pe" Then   'XAS mode
                         sheetAna.Cells(1, 1 + (q * 2)).Value = "PE/eV"
                     Else
                         sheetAna.Cells(1, 1 + (q * 2)).Value = "BE/eV"          ' this is option if want to name with "BE/eV" on x axis name
@@ -8459,7 +8459,6 @@ Sub GetNormalize()
         If multi = 0 Then
             multi = 1
         End If
-        'Debug.Print off, multi
         
         If LCase(Cells(10, 1).Value) = "pe" Then
             jc = 1
@@ -8472,14 +8471,12 @@ Sub GetNormalize()
         numData = Application.CountA(rng)
         Set rng = Range(Cells(11, (k + 1 - jc + ((1) * 3))), Cells(11, (k + 1 - jc + (1 * 3))).End(xlDown))
         iCol = Application.CountA(rng)
-        'Debug.Print numData, iCol
         
         C1 = sheetGraph.Range(Cells(11 + numData + 9, (k + 1 - jc + (0 * 3))), Cells(11 + (numData * 2) + 8, (k + 2 - jc + (0 * 3)))) ' first data set
         C2 = sheetGraph.Range(Cells(11 + iCol + 9, (2 - jc + (n * 3))), Cells(11 + (iCol * 2) + 8, (3 - jc + (n * 3))))   ' second data set
         C3 = sheetGraph.Range(Cells(11, (1 + ((n + 1) * 3))), Cells(10 + numData, (3 + ((n + 1) * 3)))) ' third data set
         stepEk = Cells(7, (k + 1 + (0 * 3))).Value
         endEk = Cells(7, (k + 1 + (1 * 3))).Value
-        'Debug.Print stepEk, endEk
 
         p = 1
         For q = 1 To numData
@@ -8524,9 +8521,7 @@ Sub GetNormalize()
         Next
         
         numData = p - 1
-        
         imax = numData + 10
-        
         sheetGraph.Range(Cells(11, (1 + ((n + 1) * 3))), Cells(10 + numData, (3 + ((n + 1) * 3)))) = C3
         
         If LCase(Cells(10, 1).Value) = "pe" Then
@@ -8585,7 +8580,6 @@ Sub GetNormalize()
         Range(Cells(2, (5 + (n * 3))), Cells(2, (6 + (n * 3)))).Interior.ColorIndex = 38
         Range(Cells(9, (4 + (n * 3))), Cells(9, ((4 + (n * 3))))).Interior.ColorIndex = 43
         Range(Cells(9, (5 + (n * 3))), Cells(9, ((6 + (n * 3))))).Interior.ColorIndex = 35
-    
         
         Cells(10 + (imax), (4 + (n * 3))).FormulaR1C1 = "=R2C[1] + R[-" & (imax - 1) & "]C"
         Range(Cells(10 + (imax), (4 + (n * 3))), Cells((2 * imax) - 1, (4 + (n * 3)))).FillDown
@@ -8645,137 +8639,154 @@ Sub GetNormalize()
         End If
         
         sheetGraph.Range(Cells(11, (4 + (n * 3))), Cells((2 * (numData + 10)) - 1, (6 + (n * 3)))).Clear
-        
-        sheetGraph.Cells(1, 5 + (n * 3)).Value = strSheetDataName & "_lcmb"
+        sheetGraph.Cells(1, 5 + (n * 3)).Value = "lcmb_" & strSheetDataName
         
         For p = 1 To n
-            sheetGraph.Cells(2, (4 + p + (n * 3))) = "Std" & p
-            sheetGraph.Cells(2, (4 + p + (n * 3))).Interior.ColorIndex = 41
-            sheetGraph.Cells(3, (4 + p + (n * 3))).Interior.ColorIndex = 33
-            sheetGraph.Cells(4, (4 + p + (n * 3))).Interior.ColorIndex = 44
+            sheetGraph.Cells(2, (4 + p + (n * 3))) = sheetGraph.Cells(1, (2 + (p * 3)))
+            sheetGraph.Range(Cells(2, (4 + p + (n * 3))), Cells(4, (4 + p + (n * 3)))).Interior.Color = sheetGraph.Cells(10, (2 + (p * 3))).Interior.Color
         Next
         
         sheetGraph.Cells(2, (4 + (n * 3))) = "Name"
-        sheetGraph.Cells(3, (4 + (n * 3))) = "Coeff"
+        sheetGraph.Cells(3, (4 + (n * 3))) = "Weight"
         sheetGraph.Cells(4, (4 + (n * 3))) = "Ratio %"
 
         sheetGraph.Cells(5, (4 + (n * 3))) = "Start"
         sheetGraph.Cells(6, (4 + (n * 3))) = "End"
         sheetGraph.Cells(5, (6 + (n * 3))) = "eV"
         sheetGraph.Cells(6, (6 + (n * 3))) = "eV"
-        sheetGraph.Cells(8, (4 + (n * 3))) = "SUM LS"
+        sheetGraph.Cells(8, (4 + (n * 3))) = "Reduced chi-square"
 
         sheetGraph.Cells(10, (4 + (n * 3))) = Cells(10, 2 - jc).Value
         sheetGraph.Cells(10, (5 + (n * 3))) = Cells(10, 3 - jc).Value
         sheetGraph.Cells(10, (6 + (n * 3))) = "LS"
         
         Range(Cells(2, (4 + (n * 3))), Cells(4, (4 + (n * 3)))).Interior.ColorIndex = 15
-        Range(Cells(5, (4 + (n * 3))), Cells(6, (4 + (n * 3)))).Interior.ColorIndex = 39
+        Range(Cells(5, (4 + (n * 3))), Cells(6, (4 + (n * 3)))).Interior.ColorIndex = 3
         Range(Cells(5, (5 + (n * 3))), Cells(6, (6 + (n * 3)))).Interior.ColorIndex = 38
-        Range(Cells(8, (4 + (n * 3))), Cells(8, (4 + (n * 3)))).Interior.ColorIndex = 46
-        Range(Cells(8, (5 + (n * 3))), Cells(8, (6 + (n * 3)))).Interior.ColorIndex = 45
+        Range(Cells(8, (4 + (n * 3))), Cells(8, (4 + (n * 3)))).Interior.ColorIndex = 4
+        Range(Cells(8, (5 + (n * 3))), Cells(8, (6 + (n * 3)))).Interior.ColorIndex = 35
+        
+        startEk = 0
+        endEk = 0
+        numData = 0
 
-        Set rng = Range(Cells(11, (k + 1 - jc + ((0) * 3))), Cells(11, (k + 1 - jc + (0 * 3))).End(xlDown))
-        numData = Application.CountA(rng)   ' first data set
-        'Debug.Print numData, iCol
-        
-        stepEk = Cells(7, (k + 1 + (0 * 3))).Value
-        
-        If stepEk <= 0 Then
-            stepEk = Abs(Cells(12, 3).Value - Cells(11, 3).Value)
-        End If
-        
-        formulaStr = ""
+        For p = 0 To n
+            Set rng = Range(Cells(11, (k + 1 - jc + (p * 3))), Cells(11, (k + 1 - jc + (p * 3))).End(xlDown))
+            iCol = Application.CountA(rng)
+            C1 = sheetGraph.Range(Cells(11 + iCol + 9, (k + 1 - jc + (p * 3))), Cells(11 + (iCol * 2) + 8, (k + 1 - jc + (p * 3))))
+
+            If p = 0 Then
+                stepEk = Cells(7, (k + 1 + (p * 3))).Value
+            Else
+                If stepEk <> Cells(7, (k + 1 + (p * 3))).Value Then End
+            End If
+            
+            If p = 0 Then
+                startEk = C1(1, 1)
+                endEk = C1(iCol, 1)
+            Else
+                If jc = 1 Then
+                    If startEk >= C1(1, 1) Then
+                    Else
+                        startEk = C1(1, 1)
+                    End If
+                    
+                    If endEk <= C1(iCol, 1) Then
+                    Else
+                        endEk = C1(iCol, 1)
+                    End If
+                Else
+                    If startEk <= C1(1, 1) Then
+                    Else
+                        startEk = C1(1, 1)
+                    End If
+                    
+                    If endEk >= C1(iCol, 1) Then
+                    Else
+                        endEk = C1(iCol, 1)
+                    End If
+                End If
+            End If
+        Next
         
         For p = 1 To n
             If IsEmpty(Cells(3, 4 + p + (n * 3))) Then
-                Cells(3, 4 + p + (n * 3)) = 1 / n
+                Cells(3, 4 + p + (n * 3)) = 1 / n   'default weight
             End If
         Next
         
         If IsEmpty(Cells(5, 5 + (n * 3))) Or IsEmpty(Cells(6, 5 + (n * 3))) Then
-            Cells(5, 5 + (n * 3)) = Cells(5, 2)
-            Cells(6, 5 + (n * 3)) = Cells(6, 2)
-        End If
-        
-        iniRow1 = Cells(5, 5 + (n * 3))
-        iniRow2 = Cells(6, 5 + (n * 3))
-            
-        If StrComp(mid$(LCase(Cells(10, 1).Value), 1, 2), "pe", 1) = 0 Then
-        
-            For j = 0 To numData - 1
-                If iniRow1 <= Cells(12 + numData + 8 + j, 2).Offset(0, -1) And IsEmpty(Cells(11 + j, 3).Offset(0, -1)) = False Then
-                    pstart = j + 1
-                    Exit For
-                ElseIf j = numData - 1 Then
-                    Exit Sub
-                End If
-            Next
-        
-            For j = 0 To numData - 1
-                If iniRow2 >= Cells(11 + (numData * 2) + 8 - j, 2).Offset(0, -1) And IsEmpty(Cells(11 + j, 3).Offset(0, -1)) = False Then
-                    pend = j + 1
-                    Exit For
-                ElseIf j = numData - 1 Then
-                    Exit Sub
-                End If
-            Next
-            
-            Debug.Print iniRow1, iniRow2, pstart, pend
+            Cells(5, 5 + (n * 3)) = startEk ' default start
+            Cells(6, 5 + (n * 3)) = endEk ' default end
         Else
-            For j = 0 To numData - 1
-                If iniRow2 <= Cells(11 + (numData * 2) + 8 - j, 2).Value And IsEmpty(Cells(11 + j, 3).Value) = False Then
-                    pstart = j + 1
-                    Exit For
-                ElseIf j = numData - 1 Then
-                    Exit Sub
-                End If
-            Next
-
-            For j = 0 To numData - 1
-                If iniRow1 >= Cells(12 + numData + 8 + j, 2).Value And IsEmpty(Cells(11 + j, 3).Value) = False Then
-                    pend = j + 1
-                    Exit For
-                ElseIf j = numData - 1 Then
-                    Exit Sub
-                End If
-            Next
-    '   Debug.Print iniRow1, iniRow2, pstart, pend
+            If jc = 1 Then
+                If Cells(5, 5 + (n * 3)) < startEk Then Cells(5, 5 + (n * 3)) = startEk
+                If Cells(6, 5 + (n * 3)) > endEk Then Cells(6, 5 + (n * 3)) = endEk
+            Else
+                If Cells(5, 5 + (n * 3)) > startEk Then Cells(5, 5 + (n * 3)) = startEk
+                If Cells(6, 5 + (n * 3)) < endEk Then Cells(6, 5 + (n * 3)) = endEk
+            End If
         End If
         
-        imax = numData + 10
+        startEk = Cells(5, 5 + (n * 3))
+        endEk = Cells(6, 5 + (n * 3))
+        numData = Abs((startEk - endEk) / stepEk) + 1
+        formulaStr = ""
         
-        For p = 1 To n
-            If p = 1 Then
-                formulaStr = "=R3C" & (4 + p + (n * 3)) & "*" & "R[" & (imax - 1) & "]C" & (((p + 1) * 3) - jc) & ""
+        For p = 0 To n
+            Set rng = Range(Cells(11, (k + 1 - jc + (p * 3))), Cells(11, (k + 1 - jc + (p * 3))).End(xlDown))
+            iCol = Application.CountA(rng)
+                
+            If jc = 1 Then
+                For j = 0 To iCol - 1
+                    If startEk <= Cells(12 + iCol + 8 + j, (k + (p * 3))) And IsEmpty(Cells(11 + j, (k + 1 + (p * 3)))) = False Then
+                        pstart = j + 1
+                        Exit For
+                    ElseIf j = iCol - 1 Then
+                        End
+                    End If
+                Next
             Else
-                formulaStr = formulaStr & "+R3C" & (4 + p + (n * 3)) & "*" & "R[" & (imax - 1) & "]C" & (((p + 1) * 3) - jc) & ""
+                For j = 0 To iCol - 1
+                    If startEk >= Cells(12 + iCol + 8 + j, (k + 1 + (p * 3))).Value And IsEmpty(Cells(11 + j, (k + 2 + (p * 3))).Value) = False Then
+                        pstart = j + 1
+                        Exit For
+                    ElseIf j = iCol - 1 Then
+                        End
+                    End If
+                Next
+            End If
+            
+            If p = 0 Then
+                Cells(11, (4 + (n * 3))).FormulaR1C1 = "=R[" & (iCol + 10 - 1 + pstart - 1) & "]C" & (2 - jc) & ""
+                Cells(11, (6 + (n * 3))).FormulaR1C1 = "=(R[" & (iCol + 10 - 1 + pstart - 1) & "]C" & (3 - jc) & " - RC[-1])^2"
+            Else
+                If p = 1 Then
+                    formulaStr = "=R3C" & (4 + p + (n * 3)) & "*" & "R[" & (iCol + 10 - 1 + pstart - 1) & "]C" & (((p + 1) * 3) - jc) & ""
+                Else
+                    formulaStr = formulaStr & "+R3C" & (4 + p + (n * 3)) & "*" & "R[" & (iCol + 10 - 1 + pstart - 1) & "]C" & (((p + 1) * 3) - jc) & ""
+                End If
             End If
         Next
         
-        Debug.Print formulaStr, "formulaStr"
-        
-        Cells(11, (4 + (n * 3))).FormulaR1C1 = "=R[" & (imax - 1) & "]C" & (2 - jc) & ""
-'        Cells(11, (5 + (n * 3))).FormulaR1C1 = "=R3C11*R[" & (imax - 1) & "]C" & (6 - jc) & " + R3C12*R[" & (imax - 1) & "]C" & (9 - jc) & ""
+        imax = numData + 10
         Cells(11, (5 + (n * 3))).FormulaR1C1 = "" & (formulaStr) & ""
-        Cells(11, (6 + (n * 3))).FormulaR1C1 = "=(R[" & (imax - 1) & "]C" & (3 - jc) & " - RC[-1])^2"
         
         For p = 1 To n
             Cells(4, (4 + p + (n * 3))).FormulaR1C1 = "=100*R[-1]C/Sum(R[-1]C" & (5 + (n * 3)) & ":R[-1]C" & (4 + n + (n * 3)) & ")"
         Next
         
-        Cells(8, (5 + (n * 3))).FormulaR1C1 = "=SUM(R11C[1]:R" & (10 + numData) & "C[1])"
+        Cells(8, (5 + (n * 3))).FormulaR1C1 = "=SUM(R11C[1]:R" & (10 + numData) & "C[1])/" & (numData + 2 - n) & ""
         Range(Cells(11, (4 + (n * 3))), Cells(10 + numData, (6 + (n * 3)))).FillDown
-        If pstart > 1 Then
-            sheetGraph.Range(Cells(11, (5 + (n * 3))), Cells(9 + pstart, (6 + (n * 3)))).Clear
-        End If
-        If pend > 1 Then
-            sheetGraph.Range(Cells(12 + numData - pend, (5 + (n * 3))), Cells(10 + numData, (6 + (n * 3)))).Clear
-        End If
         
         Call SolverSetup
         SolverOk SetCell:=Cells(8, 5 + (n * 3)), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(3, 5 + (n * 3)), Cells(3, 4 + n + (n * 3)))
         SolverAdd CellRef:=Range(Cells(3, 5 + (n * 3)), Cells(3, 4 + n + (n * 3))), Relation:=3, FormulaText:=0 ' min
+        For p = 1 To n
+            If Cells(3, 4 + p + (n * 3)).Font.Bold = "True" Then
+                SolverAdd CellRef:=Cells(3, 4 + p + (n * 3)), Relation:=2, FormulaText:=Cells(3, 4 + p + (n * 3))
+            End If
+        Next
         SolverSolve UserFinish:=True
         SolverFinish KeepFinal:=1
 
@@ -8790,12 +8801,11 @@ Sub GetNormalize()
         End If
         
         strTest = strSheetDataName + "_lcmb"
-
         Cells(10, ((4 + (n * 3)))).Value = strl(1)
         Cells(10, ((5 + (n * 3)))).Value = strl(2)
         Cells(10, ((6 + (n * 3)))).Value = strl(3)
         
-        Set dataKeGraph = Range(Cells(10 + pstart, (4 + (n * 3))), Cells(11 + numData - pend, (4 + (n * 3))))
+        Set dataKeGraph = Range(Cells(11, (4 + (n * 3))), Cells(11 + numData, (4 + (n * 3))))
         
         ActiveSheet.ChartObjects(1).Activate
         p = ActiveChart.SeriesCollection.Count
@@ -8813,6 +8823,10 @@ Sub GetNormalize()
             .Name = Cells(1, 5 + (n * 3)).Value
             .XValues = dataKeGraph
             .Values = dataKeGraph.Offset(0, 1)
+            With .Format.Line
+                .Weight = 2
+                .DashStyle = msoLineDashDotDot
+            End With
             SourceRangeColor1 = .Border.Color
         End With
 
@@ -8833,7 +8847,6 @@ Sub GetNormalize()
         End If
         
         sheetGraph.Activate
-        
         If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         
     ElseIf strNorm = "edge" And ncomp = 0 Then
@@ -8845,7 +8858,6 @@ Sub GetNormalize()
         If multi = 0 Then
             multi = 1
         End If
-        'Debug.Print off, multi
         
         If LCase(Cells(10, 1).Value) = "pe" Then
             jc = 1
@@ -8875,8 +8887,6 @@ Sub GetNormalize()
         
         Range(Cells(2, (1 + (n * 3))), Cells(5, (1 + (n * 3)))).Interior.ColorIndex = 14
         Range(Cells(2, (2 + (n * 3))), Cells(5, (3 + (n * 3)))).Interior.ColorIndex = 42
-'        Range(Cells(4, (1 + (n * 3))), Cells(5, (1 + (n * 3)))).Interior.ColorIndex = 47
-'        Range(Cells(4, (2 + (n * 3))), Cells(5, (3 + (n * 3)))).Interior.ColorIndex = 41
         Range(Cells(6, (1 + (n * 3))), Cells(7, (1 + (n * 3)))).Interior.ColorIndex = 48
         Range(Cells(6, (2 + (n * 3))), Cells(9, (3 + (n * 3)))).Interior.ColorIndex = 15
         Range(Cells(8, (1 + (n * 3))), Cells(9, (1 + (n * 3)))).Interior.ColorIndex = 48
@@ -8885,22 +8895,13 @@ Sub GetNormalize()
         sheetGraph.Range(Cells(1, (4 + (n * 3))), Cells((2 * (numData + 10)) - 1, (6 + (n * 3)))).Clear
         Set rng = Range(Cells(11, (k + 1 - jc + ((0) * 3))), Cells(11, (k + 1 - jc + (0 * 3))).End(xlDown))
         numData = Application.CountA(rng)   ' first data set
-        'Debug.Print numData, iCol
-        
-'        C1 = sheetGraph.Range(Cells(11 + numData + 9, (k + 1 - jc + (0 * 3))), Cells(11 + (numData * 2) + 8, (k + 2 - jc + (0 * 3)))) ' first data set
-'        C2 = sheetGraph.Range(Cells(11 + numData + 9, (1 + (n * 3))), Cells(11 + (numData * 2) + 8, (3 + (n * 3))))   ' second data set
-'        C3 = sheetGraph.Range(Cells(11, (1 + ((n + 1) * 3))), Cells(10 + numData, (3 + ((n + 1) * 3)))) ' third data set
         stepEk = Cells(7, (k + 1 + (0 * 3))).Value
-'        endEk = Cells(7, (k + 1 + (1 * 3))).Value
-        'Debug.Print stepEk, endEk
-        
         
         If stepEk <= 0 Then
             stepEk = Abs(Cells(12, 3).Value - Cells(11, 3).Value)
         End If
         
         If StrComp(mid$(LCase(Cells(10, 1).Value), 1, 2), "pe", 1) = 0 Then
-        
             If IsEmpty(Cells(2, 5)) Or IsEmpty(Cells(3, 5)) Or IsEmpty(Cells(4, 5)) Or IsEmpty(Cells(5, 5)) Then
                 iniRow1 = Cells(5, 2).Value
                 endRow1 = Cells(5, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
@@ -8926,7 +8927,6 @@ Sub GetNormalize()
                 Cells(5, 5).Value = endRow2
             End If
             
-'        If StrComp(mid$(LCase(Cells(10, 1).Value), 1, 2), "pe", 1) = 0 Then
             If iniRow1 = endRow1 Then
                 End
             Else
@@ -8947,8 +8947,6 @@ Sub GetNormalize()
                         Exit Sub
                     End If
                 Next
-                
-                'Debug.Print iniRow1, endRow1, p, q
                 
                 If pstart >= 1 And pend > pstart Then
                     x0 = Cells(11 + pstart - 1, 2).Offset(0, -1)
@@ -8990,10 +8988,7 @@ Sub GetNormalize()
                     Post_offset = y1 - Post_slope * x1
                 End If
             End If
-            
-            Debug.Print "Post", x0, x1, y0, y1, iniRow2, endRow2, pstart, pend
         Else
-        
             If IsEmpty(Cells(2, 5)) Or IsEmpty(Cells(3, 5)) Or IsEmpty(Cells(4, 5)) Or IsEmpty(Cells(5, 5)) Then
                 iniRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value
                 endRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
@@ -9019,7 +9014,6 @@ Sub GetNormalize()
                 Cells(5, 5).Value = endRow2
             End If
             
-            Debug.Print iniRow1, endRow1, iniRow2, endRow2
             If iniRow2 = endRow2 Then
                 End
             Else
@@ -9040,8 +9034,6 @@ Sub GetNormalize()
                         Exit Sub
                     End If
                 Next
-                
-                Debug.Print iniRow2, endRow2, pstart, pend
                 
                 If pstart >= 1 Then
                     x0 = Cells(10 + numData - pstart, 2)
@@ -9083,7 +9075,6 @@ Sub GetNormalize()
                     Post_offset = y1 - Post_slope * x1
                 End If
             End If
-    '                    Debug.Print iniRow2, endRow2, pstart, pend
         End If
         
         Cells(6, 5).Value = Pre_slope
@@ -9092,7 +9083,6 @@ Sub GetNormalize()
         Cells(9, 5).Value = Post_offset
         
         imax = numData + 10
-        
         Cells(11, (1 + (n * 3))).FormulaR1C1 = "=R[" & (imax - 1) & "]C[" & (-2 - jc) & "]"
         Cells(11, (2 + (n * 3))).FormulaR1C1 = "=R6C5*RC[-1]+R7C5"
         Cells(11, (3 + (n * 3))).FormulaR1C1 = "=R8C5*RC[-2]+R9C5"
@@ -9156,7 +9146,6 @@ Sub GetNormalize()
             Cells(5, ((5 + (n * 3)))).Value = Cells(11, 8).Value
             Cells(6, ((5 + (n * 3)))).Value = Cells(10 + numData, 8).Value
         End If
-        
         
         Cells(7, ((5 + (n * 3)))).Value = Cells(12, 7).Value - Cells(11, 7).Value
         Range(Cells(5, 9), Cells(7, 9)) = "eV"
@@ -9281,7 +9270,6 @@ Sub GetNormalize()
         Range(Cells(9 + (imax), (2 + (n * 3))), Cells(9 + (imax), ((2 + (n * 3))))).Interior.ColorIndex = 50
         Range(Cells(10, (3 + (n * 3))), Cells(10, ((3 + (n * 3))))).Interior.ColorIndex = 54
         Range(Cells(9 + (imax), (3 + (n * 3))), Cells(9 + (imax), ((3 + (n * 3))))).Interior.ColorIndex = 54
-
         Range(Cells(10, (5 + (n * 3))), Cells(10, ((5 + (n * 3))))).Interior.ColorIndex = 45
         Range(Cells(9 + (imax), (5 + (n * 3))), Cells(9 + (imax), ((5 + (n * 3))))).Interior.ColorIndex = 45
 
