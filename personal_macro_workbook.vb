@@ -841,7 +841,7 @@ Sub ElemXPS()
     
 CheckElemAgain:
 
-    If StrComp(Mid$(testMacro, 1, 5), "debug", 1) = 0 Then
+    If StrComp(mid$(testMacro, 1, 5), "debug", 1) = 0 Then
         ElemD = ElemX
     Else
         ElemD = Application.InputBox(Title:="Input atomic elements", Prompt:="Example:C,O,Co,etc ... without space!", Default:=ElemD, Type:=2)
@@ -6677,6 +6677,9 @@ Sub descriptFit()
     Cells(18 + sftfit2, 1).Value = "b"
     Cells(19 + sftfit2, 1).Value = "theta"
     
+    Cells(20 + sftfit2, 1).Value = "Figure of merit"
+    Cells(21 + sftfit2, 1).Value = "chi^2*"
+    
     If IsNumeric(ver) Then
         If ver < 7.58 Then
             sftfit = 0
@@ -6866,6 +6869,8 @@ Sub descriptFit()
     Range(Cells(15 + sftfit2 + 1, 4), Cells(15 + sftfit2 + 4, 4)).Interior.Color = RGB(176, 190, 197)
     Range(Cells(1, 5), Cells(15 + sftfit2, 5)).Interior.Color = RGB(178, 235, 242) '34
     Range(Cells(15 + sftfit2 + 1, 5), Cells(15 + sftfit2 + 4, 5)).Interior.Color = RGB(207, 216, 220)
+    Range(Cells(21 + sftfit2, 1), Cells(21 + sftfit2, 1)).Interior.Color = RGB(255, 0, 102)
+    Range(Cells(21 + sftfit2, 2), Cells(21 + sftfit2, 2)).Interior.Color = RGB(255, 128, 179)
 End Sub
 
 Sub descriptInitialFit()
@@ -6951,7 +6956,7 @@ Sub ShirleyBG()
     Cells(20, 103).Value = vbNullString
     
     If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
-        Cells(2, 2).Value = 0.000001
+        Cells(2, 2).Value = 0.001
         If Cells(3, 2).Value > 0.1 Or Cells(3, 2).Value <= 0.0000001 Then Cells(3, 2).Value = 0.001
     ElseIf Cells(3, 2).Value >= 0.1 Or Cells(3, 2).Value <= 0.000001 Then
         Cells(3, 2).Value = 0.001
@@ -7682,9 +7687,9 @@ End Sub
 
 Sub SolverSetup()      ' fair results with moderate time
     SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
-    SolverOptions MaxTime:=20, Iterations:=1000, Precision:=0.000001, AssumeLinear _
-        :=False, StepThru:=False, Estimates:=1, Derivatives:=1, SearchOption:=1, _
-        IntTolerance:=5, Scaling:=True, Convergence:=0.00001, AssumeNonNeg:=False
+    SolverOptions MaxTime:=20, Iterations:=100, Precision:=0.000001, AssumeLinear _
+        :=False, StepThru:=False, Estimates:=1, Derivatives:=2, SearchOption:=1, _
+        IntTolerance:=5, Scaling:=True, Convergence:=0.0001, AssumeNonNeg:=False
 End Sub
 
 Sub SolverSetup2()      ' Accurate results with quite long time
@@ -8035,23 +8040,20 @@ Sub FitEquations()
         Cells(8 + sftfit2, (4 + n)).FormulaR1C1 = "=R6C + " & dblMin
     Next
 
+    Cells(20 + sftfit, (5 + j)).Value = "SUM fits"
+    Cells(20 + sftfit, (6 + j)).Value = "Least fits"
     Cells(startR, (5 + j)).FormulaR1C1 = "=SUM(RC[" & -j & "]:RC[-1])"      ' sum of peaks
-    Range(Cells(startR, (5 + j)), Cells(endR, (5 + j))).FillDown
     Cells((numData + 23 + sftfit), (5 + j)).FormulaR1C1 = "=R[" & (-numData - 2) & "]C + R[" & (-numData - 2) & "]C[" & -j - 2 & "]"    ' Sum of Peaks + BG
     Range(Cells((numData + 23 + sftfit), (4 + n)), Cells((2 * numData + 22 + sftfit), (4 + n))).FillDown
     Cells((numData + 22 + sftfit), (4 + n)).Value = "peaks+BG"
-    If IntegrationTrapezoid(Range(Cells(startR, 1), Cells(endR, 1)), Range(Cells(startR, 3), Cells(endR, 3))) / Abs(startR - endR) < 0.01 Then
-        Cells(startR, (6 + j)).FormulaR1C1 = "=((RC2 - R[" & (2 + numData) & "]C[-1])^2)"
-    Else
-        Cells(startR, (6 + j)).FormulaR1C1 = "=((RC2 - R[" & (2 + numData) & "]C[-1])^2)/(abs(R[" & (2 + numData) & "]C[-1]))"
-    End If
-    Range(Cells(startR, (6 + j)), Cells(endR, (6 + j))).FillDown
-    Cells(9 + sftfit2, 2).FormulaR1C1 = "=(SUM(R" & (21 + sftfit) & "C" & (6 + j) & ":R" & (20 + sftfit + numData) & "C" & (6 + j) & ")) /(" & (endR - startR + 1) & " - R16C101)" 'Sum of LS4
-    Cells(20 + sftfit, (5 + j)).Value = "SUM fits"
-    Cells(20 + sftfit, (6 + j)).Value = "Least fits"
-    Cells(20 + sftfit, (7 + j)).Value = "Residual"
-    Cells(startR, (7 + j)).FormulaR1C1 = "=(RC2 - R[" & (2 + numData) & "]C[-2])"    ' percentage
-    Range(Cells(startR, (7 + j)), Cells(endR, (7 + j))).FillDown
+    Cells(startR, (6 + j)).FormulaR1C1 = "=((RC2 - R[" & (2 + numData) & "]C[-1])^2)/RC2"
+    Cells(20 + sftfit, (7 + j)).Value = "Residual (%)"
+    Cells(startR, (7 + j)).FormulaR1C1 = "=100*(RC2 - R[" & (2 + numData) & "]C[-2])/abs(RC2)"    ' residual percentage
+    Cells(20 + sftfit, (8 + j)).Value = "Residual"
+    Cells(startR, (8 + j)).FormulaR1C1 = "=(RC2 - R[" & (2 + numData) & "]C[-3])"    ' residual
+    Range(Cells(startR, (5 + j)), Cells(endR, (8 + j))).FillDown
+    Cells(9 + sftfit2, 2).FormulaR1C1 = "=SUM(R" & (21 + sftfit) & "C" & (6 + j) & ":R" & (20 + sftfit + numData) & "C" & (6 + j) & ")/(" & (endR - startR + 1) & " - R16C101)"
+    Cells(21 + sftfit2, 2).FormulaR1C1 = "=R" & (9 + sftfit2) & "C"
     
     ActiveSheet.ChartObjects(1).Activate
     ActiveChart.SeriesCollection.NewSeries
@@ -8638,7 +8640,7 @@ Sub GetNormalize()
             jc = 0
         End If
         
-        sheetGraph.Range(Cells(11, (4 + (n * 3))), Cells((2 * (numData + 10)) - 1, (6 + (n * 3)))).Clear
+        sheetGraph.Range(Cells(11, (4 + (n * 3))), Cells((2 * (numData + 10)) - 1, (8 + (n * 3)))).Clear
         sheetGraph.Cells(1, 5 + (n * 3)).Value = "lcmb_" & strSheetDataName
         
         For p = 1 To n
@@ -8654,18 +8656,22 @@ Sub GetNormalize()
         sheetGraph.Cells(6, (4 + (n * 3))) = "End"
         sheetGraph.Cells(5, (6 + (n * 3))) = "eV"
         sheetGraph.Cells(6, (6 + (n * 3))) = "eV"
-        sheetGraph.Cells(8, (4 + (n * 3))) = "Reduced chi-square"
-
+        sheetGraph.Cells(8, (4 + (n * 3))) = "chi^2*"
+        sheetGraph.Cells(9, (4 + (n * 3))) = "R-factor"
         sheetGraph.Cells(10, (4 + (n * 3))) = Cells(10, 2 - jc).Value
         sheetGraph.Cells(10, (5 + (n * 3))) = Cells(10, 3 - jc).Value
         sheetGraph.Cells(10, (6 + (n * 3))) = "LS"
-        
+        sheetGraph.Cells(10, (7 + (n * 3))) = "Ob"
+        sheetGraph.Cells(10, (8 + (n * 3))) = "Sq"
         Range(Cells(2, (4 + (n * 3))), Cells(4, (4 + (n * 3)))).Interior.ColorIndex = 15
         Range(Cells(5, (4 + (n * 3))), Cells(6, (4 + (n * 3)))).Interior.ColorIndex = 3
         Range(Cells(5, (5 + (n * 3))), Cells(6, (6 + (n * 3)))).Interior.ColorIndex = 38
         Range(Cells(8, (4 + (n * 3))), Cells(8, (4 + (n * 3)))).Interior.ColorIndex = 4
         Range(Cells(8, (5 + (n * 3))), Cells(8, (6 + (n * 3)))).Interior.ColorIndex = 35
-        
+        Range(Cells(9, (4 + (n * 3))), Cells(9, (4 + (n * 3)))).Interior.ColorIndex = 10
+        Range(Cells(9, (5 + (n * 3))), Cells(9, (6 + (n * 3)))).Interior.ColorIndex = 50
+        Range(Cells(10, (6 + (n * 3))), Cells(10, (8 + (n * 3)))).Interior.ColorIndex = 15
+
         startEk = 0
         endEk = 0
         numData = 0
@@ -8759,7 +8765,8 @@ Sub GetNormalize()
             
             If p = 0 Then
                 Cells(11, (4 + (n * 3))).FormulaR1C1 = "=R[" & (iCol + 10 - 1 + pstart - 1) & "]C" & (2 - jc) & ""
-                Cells(11, (6 + (n * 3))).FormulaR1C1 = "=(R[" & (iCol + 10 - 1 + pstart - 1) & "]C" & (3 - jc) & " - RC[-1])^2"
+                Cells(11, (7 + (n * 3))).FormulaR1C1 = "=R[" & (iCol + 10 - 1 + pstart - 1) & "]C" & (3 - jc) & ""
+                Cells(11, (8 + (n * 3))).FormulaR1C1 = "=(RC[-1])^2"
             Else
                 If p = 1 Then
                     formulaStr = "=R3C" & (4 + p + (n * 3)) & "*" & "R[" & (iCol + 10 - 1 + pstart - 1) & "]C" & (((p + 1) * 3) - jc) & ""
@@ -8776,8 +8783,10 @@ Sub GetNormalize()
             Cells(4, (4 + p + (n * 3))).FormulaR1C1 = "=100*R[-1]C/Sum(R[-1]C" & (5 + (n * 3)) & ":R[-1]C" & (4 + n + (n * 3)) & ")"
         Next
         
-        Cells(8, (5 + (n * 3))).FormulaR1C1 = "=SUM(R11C[1]:R" & (10 + numData) & "C[1])/" & (numData + 2 - n) & ""
-        Range(Cells(11, (4 + (n * 3))), Cells(10 + numData, (6 + (n * 3)))).FillDown
+        Cells(11, (6 + (n * 3))).FormulaR1C1 = "=((RC[1] - RC[-1])^2)"
+        Cells(8, (5 + (n * 3))).FormulaR1C1 = "=SUM(R11C[1]:R" & (10 + numData) & "C[1])/(" & (numData - n) & " * SUM(R11C[2]:R" & (10 + numData) & "C[2]))"
+        Cells(9, (5 + (n * 3))).FormulaR1C1 = "=SUM(R11C[1]:R" & (10 + numData) & "C[1])/SUM(R11C[3]:R" & (10 + numData) & "C[3])"
+        Range(Cells(11, (4 + (n * 3))), Cells(10 + numData, (8 + (n * 3)))).FillDown
         
         Call SolverSetup
         SolverOk SetCell:=Cells(8, 5 + (n * 3)), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(3, 5 + (n * 3)), Cells(3, 4 + n + (n * 3)))
@@ -10059,6 +10068,8 @@ Function Select_File_Or_Files_Mac(ext As String) As Variant
         Select_File_Or_Files_Mac = Split(MyFiles, Chr(10))
     End If
 End Function
+
+
 
 
 
