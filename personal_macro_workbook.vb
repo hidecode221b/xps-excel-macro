@@ -4418,7 +4418,7 @@ Sub FitCurve()
     Range(Cells(startR, 4), Cells(endR, 4)).FillDown
     
     If startR > 21 + sftfit Then
-        Range(Cells(21 + sftfit, 3), Cells(startR - 1, 4)).ClearContents
+        Range(Cells(21 + sftfit, 3), Cells(startR - 2, 4)).ClearContents
     End If
     
     If endR < numData + 20 + sftfit Then
@@ -4506,6 +4506,9 @@ Resolve:
             If StrComp(Cells(1, 3).Value, "ABG", 1) = 0 Then
                 SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j))) ' active Shirley
                 ' Error here : No Solver reference in VBE - Tools - References - Solver checked.
+                For k = 2 To 5
+                    SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
+                Next
                 For k = 2 To 10
                     If Cells(k, 2).Font.Bold = "True" Then
                         SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
@@ -5230,11 +5233,12 @@ Sub GetOutFit()
         Range(Cells(9, 4), Cells(19 + sftfit2, 5)).Interior.ColorIndex = xlNone
         Range(Cells(9, 1), Cells(9, 2)).ClearContents
     Else
-        Cells(5, 2).Value = fileNum
-        Cells(5, 1).Value = "Iteration"
+        Cells(6, 2).Value = fileNum
+        Cells(6, 1).Value = "Iteration fit"
         Cells(5, 2).Font.Bold = "False"
-        Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
-        Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
+		Cells(6, 2).Font.Bold = "False"
+        Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
+        Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
     End If
     
     For n = 1 To j
@@ -6433,7 +6437,8 @@ Sub descriptGraph()
         Cells(5, 1).Value = "Start PE"
         Cells(6, 1).Value = "End PE"
         Cells(7, 1).Value = "Step PE"
-        [C2:C7].Value = "eV"
+        [C2:C2].Value = "eV"
+        [C5:C7].Value = "eV"
         [A3:A3].Interior.ColorIndex = 44
         [B3:C3].Interior.ColorIndex = 36
         Range(Cells(4, 1), Cells(4, 3)).Clear
@@ -6658,7 +6663,7 @@ Sub descriptFit()
         Cells(3, 1).Value = "Initial A"
         Cells(4, 1).Value = "Final A"
         Cells(5, 1).Value = "Iteration"
-        Cells(2, 2).Value = 0.000001
+        Cells(2, 2).Value = 0.0001
         Cells(3, 2).Value = 0.001
     End If
     
@@ -6943,89 +6948,95 @@ Sub descriptInitialFit()
 SkipBarPlot:
 End Sub
 
-Sub ShirleyBG()
+Sub ShirleyBG() 'iteration mode
+    Dim C1 As Variant, C2 As Variant
+    
     Cells(1, 1).Value = "Shirley"
     Cells(1, 2).Value = "BG"
     Cells(1, 3).Value = vbNullString
+    
+    If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
+        Cells(2, 2).Value = 0.0001
+        If Cells(3, 2).Value > 0.1 Or Cells(3, 2).Value <= 0.0001 Then Cells(3, 2).Value = 0.001
+    ElseIf Cells(3, 2).Value >= 0.1 Or Cells(3, 2).Value <= 0.0001 Then
+        Cells(3, 2).Value = 0.001
+    End If
+
+    Cells(5, 2).Value = 0
     Cells(2, 1).Value = "Tolerance"
     Cells(3, 1).Value = "Initial A"
     Cells(4, 1).Value = "Final A"
     Cells(5, 1).Value = "Iteration"
+    
     Cells(20, 101).Value = "Shirley"
     Cells(20, 102).Value = Cells(1, 2).Value
     Cells(20, 103).Value = vbNullString
     
-    If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
-        Cells(2, 2).Value = 0.001
-        If Cells(3, 2).Value > 0.1 Or Cells(3, 2).Value <= 0.0000001 Then Cells(3, 2).Value = 0.001
-    ElseIf Cells(3, 2).Value >= 0.1 Or Cells(3, 2).Value <= 0.000001 Then
-        Cells(3, 2).Value = 0.001
-    End If
-
-    Cells(4, 2).Value = Cells(3, 2).Value
-    Cells(startR, 98).FormulaR1C1 = "= (2 * RC1 - (R" & startR & "C1 + R" & endR & "C1))/(R" & endR & "C1 - R" & startR & "C1)" ' CT
-    Range(Cells(startR, 98), Cells(endR, 98)).FillDown
-
     If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
-        If Cells(startR, 1).Value = Cells(21 + sftfit, 1).Value Then
-            Cells(startR - 1, 3).FormulaR1C1 = "=AVERAGE(R[1]C2:R[" & (ns) & "]C2)"
-            Cells(startR, 3).FormulaR1C1 = "=AVERAGE(R[1]C2:R[" & (ns) & "]C2)"
-            Cells(startR - 1, 3).Value = Cells(startR - 1, 3).Value
-            Cells(startR, 3).Value = Cells(startR, 3).Value
-        ElseIf Cells(startR + Int(ns / 2), 1).Value > Cells(11 + sftfit2, 2).Value And Cells(startR, 1).Value <= Cells(11 + sftfit2, 2).Value Then
-            Cells(startR - 1, 3).FormulaR1C1 = "=AVERAGE(RC2:R[" & (ns - 1) & "]C2)"
-            Cells(startR, 3).FormulaR1C1 = "=AVERAGE(RC2:R[" & (ns - 1) & "]C2)"
-        ElseIf Cells(startR + Int(ns / 2), 1).Value <= Cells(11 + sftfit2, 2).Value Then
-            Cells(startR - 1, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (Int(ns / 2)) & "]C2:R[" & (Int(ns / 2) + 1) & "]C2)"
-            Cells(startR, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (Int(ns / 2)) & "]C2:R[" & (Int(ns / 2) + 1) & "]C2)"
-        End If
-        
-        Cells(startR, 99).FormulaR1C1 = "= ABS(RC2 - R[-1]C3)"  ' CU
-        Cells(startR, 99).Value = Cells(startR, 99).Value
-        For k = startR + 1 To endR Step 1
-            Cells(k, 99).FormulaR1C1 = "= ABS(R[-1]C2 - R[-1]C3)"
-            Cells(k, 3).FormulaR1C1 = "=R" & (startR) & "C + R4C2 * SUM(R[-1]C99:R" & (startR) & "C99)"
-        Next
-    Else        ' for BE
-        If Cells(endR, 1).Value = Cells(Cells(5, 101).Value + 20 + sftfit, 1).Value Then
-            Cells(endR + 1, 3).FormulaR1C1 = "=AVERAGE(R[-1]C2:R[" & (-ns) & "]C2)"
-            Cells(endR, 3).FormulaR1C1 = "=AVERAGE(R[-1]C2:R[" & (-ns) & "]C2)"
-            Cells(endR + 1, 3).Value = Cells(endR + 1, 3).Value
-            Cells(endR, 3).Value = Cells(endR, 3).Value
-        ElseIf Cells(Cells(5, 101).Value + 20 + sftfit - Int(ns / 2), 1).Value > Cells(11 + sftfit2, 2).Value And Cells(Cells(5, 101).Value + 20 + sftfit, 1).Value <= Cells(11 + sftfit2, 2).Value Then
-            Cells(endR + 1, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (ns - (Cells(5, 101).Value + 20 + sftfit - endR)) & "]C2:R[" & (Cells(5, 101).Value + 20 + sftfit - endR - 1) & "]C2)"
-            Cells(endR, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (ns - (Cells(5, 101).Value + 20 + sftfit - endR)) & "]C2:R[" & (Cells(5, 101).Value + 20 + sftfit - endR - 1) & "]C2)"
-            Cells(endR + 1, 3).Value = Cells(endR + 1, 3).Value
-            Cells(endR, 3).Value = Cells(endR, 3).Value
-        ElseIf Cells(Cells(5, 101).Value + 20 + sftfit - Int(ns / 2), 1).Value <= Cells(11 + sftfit2, 2).Value Then
-            Cells(endR + 1, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (Int(ns / 2) - 1) & "]C2:R[" & (Int(ns / 2)) & "]C2)"
-            Cells(endR, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (Int(ns / 2) - 1) & "]C2:R[" & (Int(ns / 2)) & "]C2)"
-            Cells(endR + 1, 3).Value = Cells(endR + 1, 3).Value
-            Cells(endR, 3).Value = Cells(endR, 3).Value
-        End If
-        
-        Cells(endR, 99).FormulaR1C1 = "= Abs(RC2 - R[1]C3)"
-
-        For k = endR - 1 To startR Step -1
-            Cells(k, 99).FormulaR1C1 = "= Abs(R[1]C2 - R[1]C3)"
-            Cells(k, 3).FormulaR1C1 = "=R" & (endR + 1) & "C + R4C2 * SUM(R[1]C99:R" & (endR) & "C99)"
-        Next
+        Range(Cells(startR, 3), Cells(endR, 3)) = Cells(startR, 2).Value
+    Else
+        Range(Cells(startR, 3), Cells(endR, 3)) = Cells(endR, 2).Value
     End If
-
-    Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV     ' added abs to solve sonvergence if negative data
+    
+    C1 = Range(Cells(startR, 2), Cells(endR, 2))    'C
+    C2 = Range(Cells(startR, 3), Cells(endR, 3))    'A
+    
+    Range(Cells(startR, 3), Cells(endR, 3)) = ShirleyIteration(Cells(2, 2).Value, Cells(3, 2).Value, C1, C2, Cells(20 + sftfit, 2).Value)
+    Cells(4, 2).Value = a0
+    Cells(5, 2).Value = k
+    
+    Cells(11, 101).Value = "squares"
+    Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
+    Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/RC2" ' CV     ' added abs to solve sonvergence if negative data
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
+        
     If ns <= 0 Then
         Cells(6 + sftfit2, 2).FormulaR1C1 = "=AVERAGE(R" & startR & "C100:R" & endR & "C100)"
     Else
         Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
     End If
     
-    SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Cells(4, 2)
-    SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=1 ' max
-    SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=-1 ' min
-    SolverSolve UserFinish:=True
-    SolverFinish KeepFinal:=1
+    [A2:A6].Interior.Color = RGB(156, 204, 101)    '43
+    [B2:B6].Interior.Color = RGB(197, 225, 165)    '35
 End Sub
+
+Function ShirleyIteration(iA As Single, fA As Single, C1 As Variant, C2 As Variant, mode As String) As Variant
+    Dim bs As Single, tA As Single
+    
+    p = UBound(C1)
+    k = 0
+    
+    Do
+        bs = 0
+        tA = fA             ' Iteration mode
+        k = k + 1
+        
+        If mode = "Ab" Then ' for PE
+            For n = 1 To p Step 1
+                bs = bs + (C1(n, 1) - C2(n, 1))
+                C2(n, 1) = C2(1, 1) + (fA * bs)
+            Next
+            
+            fA = fA * (1 + ((C1(p, 1) - C2(p, 1)) / C1(p, 1)))
+        Else
+            For n = p To 1 Step -1
+                bs = bs + (C1(n, 1) - C2(n, 1))
+                C2(n, 1) = C2(p, 1) + (fA * bs)
+            Next
+            
+            fA = fA * (1 + ((C1(1, 1) - C2(1, 1)) / C1(1, 1)))
+        End If
+
+        If k > 100 Or fA > 1 Then
+            MsgBox "Iteration:" + CStr(k) + ", and A:" + CStr(fA), 0, "Shirley BG error, use Poly BG!"
+            Exit Do
+        ElseIf Abs(tA - fA) < iA Then
+            ShirleyIteration = C2
+            a0 = fA
+            Exit Do
+        End If
+    Loop
+End Function
 
 Sub VictoreenBG()
     Cells(1, 1).Value = "Victoreen"
@@ -7109,38 +7120,40 @@ Sub VictoreenBG()
 End Sub
 
 Sub PolynominalShirleyBG()
+    Dim C1 As Variant, C2 As Variant
+    
     Cells(1, 1).Value = "Polynominal"
     Cells(1, 2).Value = "Shirley"
-    Cells(1, 3).Value = "ABG"   ' active only
+    
+    If StrComp(mid$(LCase(Cells(1, 3).Value), 1, 1), "a", 1) = 0 Then
+        Cells(1, 3).Value = "ABG"
+    Else
+        Cells(1, 3).Value = "BG"
+    End If
+    
     Cells(2, 1).Value = "Tolerance"
     Cells(3, 1).Value = "Initial A"
     Cells(4, 1).Value = "Final A"
+    
     Cells(5, 1).Value = "Iteration"
     Cells(6, 1).Value = "Ratio S:P"
     Cells(7, 1).Value = "0th poly"
     Cells(8, 1).Value = "1st poly"
     Cells(9, 1).Value = "2nd poly"
     Cells(10, 1).Value = "3rd poly"
+    
     Cells(20, 101).Value = "Polynominal"
     Cells(20, 102).Value = "Shirley"
     Cells(20, 103).Value = Cells(1, 3).Value
     
-    If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
-        Cells(2, 2).Value = 0.000001
-        If Cells(3, 2).Value > 0.1 Or Cells(3, 2).Value <= 0.0000001 Then Cells(3, 2).Value = 0.001
-    ElseIf Cells(3, 2).Value >= 0.1 Or Cells(3, 2).Value <= 0.000001 Then
-        Cells(3, 2).Value = 0.001
-    End If
-    
-    Cells(4, 2).Value = Cells(3, 2).Value
-    
     For k = 2 To 10
         If Cells(k, 2).Font.Bold = "True" Then
-        ElseIf k = 2 Then
-            If Cells(8, 101).Value = 0 Then Cells(2, 2).Value = 0.000001
-            If Cells(3, 2).Value > 0.1 Or Cells(3, 2).Value <= 0.0000001 Then Cells(3, 2).Value = 0.001
-        ElseIf k = 3 Then
-            If Cells(3, 2).Value >= 0.1 Or Cells(3, 2).Value <= 0.000001 Then Cells(3, 2).Value = 0.001
+            If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
+                Cells(2, 2).Value = 0.0001
+                If Cells(3, 2).Value > 0.1 Or Cells(3, 2).Value <= 0.0001 Then Cells(3, 2).Value = 0.001
+            ElseIf Cells(3, 2).Value >= 0.1 Or Cells(3, 2).Value <= 0.0001 Then
+                Cells(3, 2).Value = 0.001
+            End If
         ElseIf k = 4 Then
             Cells(4, 2).Value = Cells(3, 2).Value
         ElseIf k = 6 Then
@@ -7160,73 +7173,46 @@ Sub PolynominalShirleyBG()
     Range(Cells(startR, 98), Cells(endR, 98)).FillDown
     
     If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
-        If Cells(startR, 1).Value = Cells(21 + sftfit, 1).Value Then
-            Cells(startR - 1, 3).FormulaR1C1 = "=AVERAGE(R[1]C2:R[" & (ns) & "]C2)"
-            Cells(startR, 3).FormulaR1C1 = "=AVERAGE(R[1]C2:R[" & (ns) & "]C2)"
-            Cells(startR - 1, 3).Value = Cells(startR - 1, 3).Value
-            Cells(startR, 3).Value = Cells(startR, 3).Value
-        ElseIf Cells(startR + Int(ns / 2), 1).Value > Cells(11 + sftfit2, 2).Value And Cells(startR, 1).Value <= Cells(11 + sftfit2, 2).Value Then
-            Cells(startR - 1, 3).FormulaR1C1 = "=AVERAGE(RC2:R[" & (ns - 1) & "]C2)"
-            Cells(startR, 3).FormulaR1C1 = "=AVERAGE(RC2:R[" & (ns - 1) & "]C2)"
-        ElseIf Cells(startR + Int(ns / 2), 1).Value <= Cells(11 + sftfit2, 2).Value Then
-            Cells(startR - 1, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (Int(ns / 2)) & "]C2:R[" & (Int(ns / 2) + 1) & "]C2)"
-            Cells(startR, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (Int(ns / 2)) & "]C2:R[" & (Int(ns / 2) + 1) & "]C2)"
-        End If
-        
-        Cells(startR, 99).FormulaR1C1 = "= ABS(RC2 - R[-1]C3)"
-        Cells(startR, 99).Value = Cells(startR, 99).Value
-        
-        If Cells(8, 101).Value = 0 Then
-            For k = startR + 1 To endR Step 1
-                Cells(k, 99).FormulaR1C1 = "= ABS(R[-1]C2 - R[-1]C3)"
-                Cells(k, 3).FormulaR1C1 = "=(R6C2 *(R" & (startR) & "C + ( R4C2 * SUM(R[-1]C99:R" & (startR) & "C99)))) + ((1-R6C2) * (R7C2 + (R8C2 * RC98) + (R9C2 * (RC98)^2) + (R10C2 * (RC98)^3)))"
-            Next
-        End If
-    Else        ' for BE
-        If Cells(endR, 1).Value = Cells(Cells(5, 101).Value + 20 + sftfit, 1).Value Then
-            Cells(endR + 1, 3).FormulaR1C1 = "=AVERAGE(R[-1]C2:R[" & (-ns) & "]C2)"
-            Cells(endR, 3).FormulaR1C1 = "=AVERAGE(R[-1]C2:R[" & (-ns) & "]C2)"
-            Cells(endR + 1, 3).Value = Cells(endR + 1, 3).Value
-            Cells(endR, 3).Value = Cells(endR, 3).Value
-        ElseIf Cells(Cells(5, 101).Value + 20 + sftfit - Int(ns / 2), 1).Value > Cells(11 + sftfit2, 2).Value And Cells(Cells(5, 101).Value + 20 + sftfit, 1).Value <= Cells(11 + sftfit2, 2).Value Then
-            Cells(endR + 1, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (ns - (Cells(5, 101).Value + 20 + sftfit - endR)) & "]C2:R[" & (Cells(5, 101).Value + 20 + sftfit - endR - 1) & "]C2)"
-            Cells(endR, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (ns - (Cells(5, 101).Value + 20 + sftfit - endR)) & "]C2:R[" & (Cells(5, 101).Value + 20 + sftfit - endR - 1) & "]C2)"
-            Cells(endR + 1, 3).Value = Cells(endR + 1, 3).Value
-            Cells(endR, 3).Value = Cells(endR, 3).Value
-        ElseIf Cells(Cells(5, 101).Value + 20 + sftfit - Int(ns / 2), 1).Value <= Cells(11 + sftfit2, 2).Value Then
-            Cells(endR + 1, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (Int(ns / 2) - 1) & "]C2:R[" & (Int(ns / 2)) & "]C2)"
-            Cells(endR, 3).FormulaR1C1 = "=AVERAGE(R[" & -1 * (Int(ns / 2) - 1) & "]C2:R[" & (Int(ns / 2)) & "]C2)"
-            Cells(endR + 1, 3).Value = Cells(endR + 1, 3).Value
-            Cells(endR, 3).Value = Cells(endR, 3).Value
-        End If
-        
-        Cells(endR, 99).FormulaR1C1 = "= ABS(RC2 - R[1]C3)"
-        
-        If Cells(8, 101).Value = 0 Then
-            For k = endR - 1 To startR Step -1
-                Cells(k, 99).FormulaR1C1 = "= ABS(R[1]C2 - R[1]C3)"
-                'Cells(k, 3).FormulaR1C1 = "=R" & (endR + 1) & "C + (R3C2 *( R2C2 * SUM(R[1]C99:R" & (endR) & "C99))) + ((1-R3C2) * (R4C2 * RC98) + (R3C3 * (RC98)^2) + (R5C3 * (RC98)^3))"
-                Cells(k, 3).FormulaR1C1 = "=(R6C2 * (R" & (endR + 1) & "C + ( R4C2 * SUM(R[1]C99:R" & (endR) & "C99)))) + ((1-R6C2) * (R7C2 +(R8C2 * RC98) + (R9C2 * (RC98)^2) + (R10C2 * (RC98)^3)))"
-            Next
-        End If
+        Range(Cells(startR, 3), Cells(endR, 3)) = Cells(startR, 2).Value
+    Else
+        Range(Cells(startR, 3), Cells(endR, 3)) = Cells(endR, 2).Value
     End If
     
-    Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
+    C1 = Range(Cells(startR, 2), Cells(endR, 2))    'C
+    C2 = Range(Cells(startR, 3), Cells(endR, 3))    'A
+    
+    Range(Cells(startR, 99), Cells(endR, 99)) = ShirleyIteration(Cells(2, 2).Value, Cells(3, 2).Value, C1, C2, Cells(20 + sftfit, 2).Value)
+    
+    Cells(4, 2).Value = a0
+    Cells(5, 2).Value = k
+
+    If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
+        Cells(startR, 3).FormulaR1C1 = "=(R6C2*(RC99 - R" & startR & "C99)) + ((1-R6C2) * (R7C2 +(R8C2 * RC98) + (R9C2 * (RC98)^2) + (R10C2 * (RC98)^3)))"
+    Else
+        Cells(startR, 3).FormulaR1C1 = "=(R6C2*(RC99 - R" & endR & "C99)) + ((1-R6C2) * (R7C2 +(R8C2 * RC98) + (R9C2 * (RC98)^2) + (R10C2 * (RC98)^3)))"
+    End If
+    
+    Range(Cells(startR, 3), Cells(endR, 3)).FillDown
+    
+    Cells(20 + sftfit, 98).Value = "norm x"
+    Cells(20 + sftfit, 99).Value = "shirley"
+    
+    Cells(11, 101).Value = "squares"
+    Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
+    Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/((RC2))" ' CV     ' added abs to solve sonvergence if negative data
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
+    
     If ns <= 0 Then
         Cells(6 + sftfit2, 2).FormulaR1C1 = "=AVERAGE(R" & startR & "C100:R" & endR & "C100)"
     Else
         Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
     End If
     
-    SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(4, 2), Cells(10, 2))
+    SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(6, 2), Cells(10, 2))
     SolverAdd CellRef:=Cells(6, 2), Relation:=1, FormulaText:=1 ' max ratio
     SolverAdd CellRef:=Cells(6, 2), Relation:=3, FormulaText:=0 ' min ratio
-    SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=1 ' max A
-    SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=0 ' min A
-    SolverAdd CellRef:=Cells(5, 2), Relation:=2, FormulaText:=1 '
     
-    For k = 4 To 10
+    For k = 6 To 10
         If Cells(k, 2).Font.Bold = "True" Then
             SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
         ElseIf k = 8 Then
@@ -7240,6 +7226,7 @@ Sub PolynominalShirleyBG()
     
     SolverSolve UserFinish:=True
     SolverFinish KeepFinal:=1
+    
     Range(Cells(6, 1), Cells(10, 1)).Interior.Color = RGB(156, 204, 101)   '43
     Range(Cells(6, 2), Cells(10, 2)).Interior.Color = RGB(197, 225, 165)   '35
 End Sub
