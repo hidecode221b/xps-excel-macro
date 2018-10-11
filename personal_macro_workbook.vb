@@ -4418,11 +4418,11 @@ Sub FitCurve()
     Range(Cells(startR, 4), Cells(endR, 4)).FillDown
     
     If startR > 21 + sftfit Then
-        Range(Cells(21 + sftfit, 3), Cells(startR - 2, 4)).ClearContents
+        Range(Cells(21 + sftfit, 3), Cells(startR - 1, 4)).ClearContents
     End If
     
     If endR < numData + 20 + sftfit Then
-        Range(Cells(endR + 2, 3), Cells(numData + 20 + sftfit, 4)).ClearContents
+        Range(Cells(endR + 1, 3), Cells(numData + 20 + sftfit, 4)).ClearContents
     End If
     
     Set rng = Range(Cells(startR, 1), Cells(endR, 1))
@@ -6956,7 +6956,7 @@ Sub ShirleyBG() 'iteration mode
     Cells(1, 3).Value = vbNullString
     
     If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
-        Cells(2, 2).Value = 0.0001
+        Cells(2, 2).Value = 0.000001
         If Cells(3, 2).Value > 0.1 Or Cells(3, 2).Value <= 0.0001 Then Cells(3, 2).Value = 0.001
     ElseIf Cells(3, 2).Value >= 0.1 Or Cells(3, 2).Value <= 0.0001 Then
         Cells(3, 2).Value = 0.001
@@ -7149,7 +7149,7 @@ Sub PolynominalShirleyBG()
     For k = 2 To 10
         If Cells(k, 2).Font.Bold = "True" Then
             If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
-                Cells(2, 2).Value = 0.0001
+                Cells(2, 2).Value = 0.000001
                 If Cells(3, 2).Value > 0.1 Or Cells(3, 2).Value <= 0.0001 Then Cells(3, 2).Value = 0.001
             ElseIf Cells(3, 2).Value >= 0.1 Or Cells(3, 2).Value <= 0.0001 Then
                 Cells(3, 2).Value = 0.001
