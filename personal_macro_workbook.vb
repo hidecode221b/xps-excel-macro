@@ -646,7 +646,7 @@ Sub PlotCLAM2()
             C3(n, 1) = (C2(n, 1) / C4(n, 1))
         Next
     Else
-        If WorksheetFunction.Average(dataIntData) < 0 Then sig = -1
+        If WorksheetFunction.Average(C2) < 0 Then sig = -1
         For n = 1 To numData
             If IsNumeric(C2(n, 1)) = False Then Exit For
             C3(n, 1) = C2(n, 1) * sig * 1
@@ -8336,7 +8336,15 @@ Sub Initial()
             End If
         End If
     End If
-    'Debug.Print Val(Application.Version), Application.OperatingSystem
+'    Debug.Print Val(Application.Version), Application.OperatingSystem
+'    Debug.Print Application.DecimalSeparator, "decimal symbol in Windows", Application.International(xlDecimalSeparator), "actual1"
+    If Application.International(xlDecimalSeparator) = "," Then
+'        MsgBox ("Decimal symbol is comma in Excel.")
+        Application.DecimalSeparator = "."
+        Application.ThousandsSeparator = ","
+        Application.UseSystemSeparators = False
+    End If
+'    Debug.Print Application.DecimalSeparator, "decimal symbol in Windows", Application.International(xlDecimalSeparator), "actual2"
     
     With Application.AddIns
     For n = 1 To .Count
