@@ -6956,7 +6956,7 @@ Sub ShirleyBG() 'iteration mode
     Cells(1, 3).Value = vbNullString
     
     If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
-        Cells(2, 2).Value = 0.000001
+        Cells(2, 2).Value = 0.00001
         If Cells(3, 2).Value > 0.1 Or Cells(3, 2).Value <= 0.0001 Then Cells(3, 2).Value = 0.001
     ElseIf Cells(3, 2).Value >= 0.1 Or Cells(3, 2).Value <= 0.0001 Then
         Cells(3, 2).Value = 0.001
@@ -7031,11 +7031,22 @@ Function ShirleyIteration(iA As Single, fA As Single, C1 As Variant, C2 As Varia
             fA = fA * (1 + ((C1(1, 1) - C2(1, 1)) / C1(1, 1)))
         End If
 
-        If k >= 100 Or fA > 1 Then
-            MsgBox "Iteration over " + CStr(k) + " at A:" + CStr(fA), 0, "Revise tolerance!"
+        If k >= 1000 Then
+            MsgBox "Iteration over " + CStr(k) + " at A:" + CStr(fA), 0, "Revise tolerance or initial A!"
             ShirleyIteration = C2
             a0 = fA
             Exit Do
+        ElseIf Abs(fA) > 10 Then
+            TimeCheck = MsgBox("Iteration stopped at " + CStr(k) + " for A:" + CStr(fA), vbYesNo, "Try Polynomial BG!")
+            Select Case TimeCheck
+                Case vbYes
+                    Cells(1, 1).Value = "p"
+                Case vbNo
+                    MsgBox "Revise tolerance or initial A!"
+                Case Else
+                    
+            End Select
+            End
         ElseIf Abs(tA - fA) < iA Then
             ShirleyIteration = C2
             a0 = fA
