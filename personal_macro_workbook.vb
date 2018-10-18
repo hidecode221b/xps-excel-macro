@@ -6987,7 +6987,11 @@ Sub ShirleyBG() 'iteration mode
     
     Cells(11, 101).Value = "squares"
     Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
-    Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/RC2" ' CV     ' added abs to solve sonvergence if negative data
+    If Cells(2, 101).Value <= 0 Then
+        Cells(startR, 100).FormulaR1C1 = "=(RC2 - RC3)^2" ' CV this is the case for RC3 = 0
+    Else
+        Cells(startR, 100).FormulaR1C1 = "=(((RC2 - RC3)^2)/RC2)" ' CV
+    End If
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
         
     If ns <= 0 Then
@@ -7079,7 +7083,13 @@ Sub VictoreenBG()
     Range(Cells(startR, 99), Cells(endR, 99)).FillDown
     Cells(startR, 3).FormulaR1C1 = "= R2C2 + (R3C2 * RC98) + (R4C2 * (RC98^2)) + (R5C2 * (RC98^3)) + (R6C2 * (RC98^4))"
     Range(Cells(startR, 3), Cells(endR, 3)).FillDown
-    Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
+    Cells(11, 101).Value = "squares"
+    Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
+    If Cells(2, 101).Value <= 0 Then
+        Cells(startR, 100).FormulaR1C1 = "=(RC2 - RC3)^2" ' CV this is the case for RC3 = 0
+    Else
+        Cells(startR, 100).FormulaR1C1 = "=(((RC2 - RC3)^2)/RC2)" ' CV
+    End If
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
     
     If Cells(8, 2).Value = vbNullString Then    ' the same as polynoial BG
@@ -7201,7 +7211,11 @@ Sub PolynominalShirleyBG()
     
     Cells(11, 101).Value = "squares"
     Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
-    Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/((RC2))" ' CV     ' added abs to solve sonvergence if negative data
+    If Cells(2, 101).Value <= 0 Then
+        Cells(startR, 100).FormulaR1C1 = "=(RC2 - RC3)^2" ' CV this is the case for RC3 = 0
+    Else
+        Cells(startR, 100).FormulaR1C1 = "=(((RC2 - RC3)^2)/RC2)" ' CV
+    End If
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
     
     If ns <= 0 Then
@@ -7262,7 +7276,13 @@ Sub TangentArcBG()
     
     Cells(startR, 3).FormulaR1C1 = "=R2C2 + (1-R7C2) * (R6C2 * (RC1 - R4C2)) + R7C2 * (R3C2 * ((0.5) + (1/3.14) * ATAN((RC1 - R4C2)/(R5C2 / 2))))"
     Range(Cells(startR, 3), Cells(endR, 3)).FillDown
-    Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
+    Cells(11, 101).Value = "squares"
+    Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
+    If Cells(2, 101).Value <= 0 Then
+        Cells(startR, 100).FormulaR1C1 = "=(RC2 - RC3)^2" ' CV this is the case for RC3 = 0
+    Else
+        Cells(startR, 100).FormulaR1C1 = "=(((RC2 - RC3)^2)/RC2)" ' CV
+    End If
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
     If ns <= 0 Then
         Cells(6 + sftfit2, 2).FormulaR1C1 = "=AVERAGE(R" & startR & "C100:R" & endR & "C100)"
@@ -7336,10 +7356,12 @@ Sub PolynominalBG()
     Cells(startR, 3).FormulaR1C1 = "=R2C2 + (R3C2 * RC99) + (R4C2 * (RC99)^2) + (R5C2 * (RC99)^3)"
     Range(Cells(startR, 3), Cells(endR, 3)).FillDown
     
-    If Cells(2, 2).Value = 0 Or Cells(startR, 3).Value = 0 Then
+    Cells(11, 101).Value = "squares"
+    Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
+    If Cells(2, 101).Value <= 0 Then
         Cells(startR, 100).FormulaR1C1 = "=(RC2 - RC3)^2" ' CV this is the case for RC3 = 0
     Else
-        Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
+        Cells(startR, 100).FormulaR1C1 = "=(((RC2 - RC3)^2)/RC2)" ' CV
     End If
     
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
@@ -7402,22 +7424,12 @@ Sub PolynominalNormalBG()   ' this is non-normalized x ; used for tau plot (opti
     Cells(startR, 3).FormulaR1C1 = "=R2C2 + (R3C2 * RC1) + (R4C2 * (RC1)^2) + (R5C2 * (RC1)^3)"
     Range(Cells(startR, 3), Cells(endR, 3)).FillDown
     
-    If StrComp(mid$(LCase(Cells(11, 101).Value), 1, 1), "a", 1) = 0 Then ' least absolute value method
-        Cells(11, 101).Value = "absolute"
-        Cells(20 + sftfit, 100).Value = "least absolute"
-        If Cells(2, 2).Value = 0 Or Cells(startR, 3).Value = 0 Then
-            Cells(startR, 100).FormulaR1C1 = "= Abs(RC2 - RC3)" ' CV     ' added abs to solve sonvergence if negative data
-        Else
-            Cells(startR, 100).FormulaR1C1 = "= Abs((RC2 - RC3)/(RC3))" ' CV     ' added abs to solve sonvergence if negative data
-        End If
+    Cells(11, 101).Value = "squares"
+    Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
+    If Cells(2, 101).Value <= 0 Then
+        Cells(startR, 100).FormulaR1C1 = "=(RC2 - RC3)^2" ' CV this is the case for RC3 = 0
     Else
-        Cells(11, 101).Value = "squares"
-        Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
-        If Cells(2, 2).Value = 0 Or Cells(startR, 3).Value = 0 Then
-            Cells(startR, 100).FormulaR1C1 = "=(RC2 - RC3)^2" ' CV this is the case for RC3 = 0
-        Else
-            Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
-        End If
+        Cells(startR, 100).FormulaR1C1 = "=(((RC2 - RC3)^2)/RC2)" ' CV
     End If
 
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
@@ -7516,8 +7528,13 @@ Sub TougaardBG()
     End If
     
     Cells(20 + sftfit, 99).Value = "Toug"
-
-    Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
+    Cells(11, 101).Value = "squares"
+    Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
+    If Cells(2, 101).Value <= 0 Then
+        Cells(startR, 100).FormulaR1C1 = "=(RC2 - RC3)^2" ' CV this is the case for RC3 = 0
+    Else
+        Cells(startR, 100).FormulaR1C1 = "=(((RC2 - RC3)^2)/RC2)" ' CV
+    End If
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
     
     If ns <= 0 Then
@@ -7641,7 +7658,13 @@ Sub PolynominalTougaardBG()
         Next
     End If
     
-    Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
+    Cells(11, 101).Value = "squares"
+    Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
+    If Cells(2, 101).Value <= 0 Then
+        Cells(startR, 100).FormulaR1C1 = "=(RC2 - RC3)^2" ' CV this is the case for RC3 = 0
+    Else
+        Cells(startR, 100).FormulaR1C1 = "=(((RC2 - RC3)^2)/RC2)" ' CV
+    End If
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
     If ns <= 0 Then
         Cells(6 + sftfit2, 2).FormulaR1C1 = "=AVERAGE(R" & startR & "C100:R" & endR & "C100)"
@@ -8035,7 +8058,11 @@ Sub FitEquations()
     Cells((numData + 23 + sftfit), (5 + j)).FormulaR1C1 = "=R[" & (-numData - 2) & "]C + R[" & (-numData - 2) & "]C[" & -j - 2 & "]"    ' Sum of Peaks + BG
     Range(Cells((numData + 23 + sftfit), (4 + n)), Cells((2 * numData + 22 + sftfit), (4 + n))).FillDown
     Cells((numData + 22 + sftfit), (4 + n)).Value = "peaks+BG"
-    Cells(startR, (6 + j)).FormulaR1C1 = "=((RC2 - R[" & (2 + numData) & "]C[-1])^2)/RC2"
+    If Cells(2, 101).Value <= 0 Then
+        Cells(startR, (6 + j)).FormulaR1C1 = "=((RC2 - R[" & (2 + numData) & "]C[-1])^2)"
+    Else
+        Cells(startR, (6 + j)).FormulaR1C1 = "=((RC2 - R[" & (2 + numData) & "]C[-1])^2)/RC2"
+    End If
     Cells(20 + sftfit, (7 + j)).Value = "Residual (%)"
     Cells(startR, (7 + j)).FormulaR1C1 = "=100*(RC2 - R[" & (2 + numData) & "]C[-2])/abs(RC2)"    ' residual percentage
     Cells(20 + sftfit, (8 + j)).Value = "Residual"
