@@ -8363,15 +8363,15 @@ Sub Initial()
             End If
         End If
     End If
+
+    If backSlash <> "/" Then
 '    Debug.Print Val(Application.Version), Application.OperatingSystem
-'    Debug.Print Application.DecimalSeparator, "decimal symbol in Windows", Application.International(xlDecimalSeparator), "actual1"
-    If Application.International(xlDecimalSeparator) = "," Then
-'        MsgBox ("Decimal symbol is comma in Excel.")
-        Application.DecimalSeparator = "."
-        Application.ThousandsSeparator = ","
-        Application.UseSystemSeparators = False
+        If Application.International(xlDecimalSeparator) = "," Then
+            Application.DecimalSeparator = "."
+            Application.ThousandsSeparator = ","
+            Application.UseSystemSeparators = False
+        End If
     End If
-'    Debug.Print Application.DecimalSeparator, "decimal symbol in Windows", Application.International(xlDecimalSeparator), "actual2"
     
     With Application.AddIns
     For n = 1 To .Count
