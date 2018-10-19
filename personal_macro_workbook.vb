@@ -4264,10 +4264,11 @@ Sub FitRange(ByRef strCpa As String)
         Next
     End If
     
-    strBG1 = LCase(mid$(Cells(1, 1).Value, 1, 1))
-    strBG2 = LCase(mid$(Cells(1, 2).Value, 1, 1))
-    
-    If strBG1 = LCase(mid$(Cells(16, 100).Value, 1, 1)) And strBG2 = LCase(mid$(Cells(16, 101).Value, 1, 1)) Then
+    strBG1 = LCase(mid$(Cells(1, 1).Value, 1, 2))
+    strBG2 = LCase(mid$(Cells(1, 2).Value, 1, 2))
+    strBG3 = LCase(mid$(Cells(1, 3).Value, 1, 2))
+
+    If strBG1 = LCase(mid$(Cells(20, 101).Value, 1, 2)) And strBG2 = LCase(mid$(Cells(20, 102).Value, 1, 2)) And strBG3 = LCase(mid$(Cells(20, 103).Value, 1, 2)) Then
         If Cells(8, 101).Value = 0 Then
             strCpa = "initial"
         Else
@@ -4381,7 +4382,7 @@ Sub FitCurve()
     If strErrX = "skip" Then Exit Sub
     Call SolverSetup
     
-    If StrComp(strBG1, "t", 1) <> 0 And StrComp(strBG2, "t", 1) <> 0 And StrComp(strBG1, "e", 1) <> 0 Then
+    If StrComp(strBG1, "to", 1) <> 0 And StrComp(strBG2, "to", 1) <> 0 And StrComp(strBG1, "ef", 1) <> 0 Then
         Range("DG31").CurrentRegion.ClearContents
         Range("DE31").CurrentRegion.ClearContents
     End If
@@ -4390,23 +4391,23 @@ Sub FitCurve()
         Call FitEF
         Call GetOutFit
         Exit Sub
-    ElseIf StrComp(strBG1, "p", 1) = 0 Then
-        If StrComp(strBG2, "s", 1) = 0 Then
+    ElseIf StrComp(strBG1, "po", 1) = 0 Then
+        If StrComp(strBG2, "sh", 1) = 0 Then
             Call PolynominalShirleyBG
-        ElseIf StrComp(strBG2, "t", 1) = 0 Then
+        ElseIf StrComp(strBG2, "to", 1) = 0 Then
             Call PolynominalTougaardBG
-        ElseIf StrComp(strBG2, "n", 1) = 0 Then
+        ElseIf StrComp(strBG2, "no", 1) = 0 Then
             Call PolynominalNormalBG    ' non-normalized x axis
         Else
             Call PolynominalBG
         End If
-    ElseIf StrComp(strBG1, "a", 1) = 0 Then
+    ElseIf StrComp(strBG1, "ar", 1) = 0 Then
         Call TangentArcBG
-    ElseIf StrComp(strBG1, "t", 1) = 0 Then
+    ElseIf StrComp(strBG1, "to", 1) = 0 Then
         Call TougaardBG
-    ElseIf StrComp(strBG1, "v", 1) = 0 Then
+    ElseIf StrComp(strBG1, "vi", 1) = 0 Then
         Call VictoreenBG
-    ElseIf StrComp(strBG1, "e", 1) = 0 Then
+    ElseIf StrComp(strBG1, "ef", 1) = 0 Then
         Call FitEF
         Call GetOutFit
         Exit Sub
@@ -5178,15 +5179,15 @@ Sub GetOutFit()
     If Not Cells(1, 1).Value = "EF" And Cells(8, 101).Value > 0 Then
         Call descriptInitialFit
     ElseIf Cells(1, 1).Value = "EF" Then
-        strBG1 = "e"
+        strBG1 = "ef"
     End If
     
-    If StrComp(strBG1, "p", 1) = 0 Then
-        If StrComp(strBG2, "s", 1) = 0 Then
+    If StrComp(strBG1, "po", 1) = 0 Then
+        If StrComp(strBG2, "sh", 1) = 0 Then
             Cells(5, 2).Value = fileNum
             Cells(5, 1).Value = "Iteration"
             Cells(5, 2).Font.Bold = "False"
-        ElseIf StrComp(strBG2, "t", 1) = 0 Then
+        ElseIf StrComp(strBG2, "to", 1) = 0 Then
         Else
             Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
             Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
@@ -5203,18 +5204,18 @@ Sub GetOutFit()
                 Cells(28, 103).FormulaR1C1 = "=RC100 - RC101"
             End If
         End If
-    ElseIf StrComp(strBG1, "a", 1) = 0 Or StrComp(strBG1, "r", 1) = 0 Then
+    ElseIf StrComp(strBG1, "ar", 1) = 0 Then
         Range(Cells(8, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
         Range(Cells(8, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
         Cells(6, 1).Value = "Slope"
         Cells(7, 1).Value = "ratio L:A"
-    ElseIf StrComp(strBG1, "t", 1) = 0 Then
+    ElseIf StrComp(strBG1, "to", 1) = 0 Then
         'Cells(5, 2).Value = fileNum
         Cells(5, 1).Value = "Norm"
         Cells(5, 2).Font.Bold = "False"
         Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
         Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
-    ElseIf StrComp(strBG1, "v", 1) = 0 Then
+    ElseIf StrComp(strBG1, "vi", 1) = 0 Then
         If Cells(8, 2).Value = vbNullString Then
             Cells(8, 1).Value = "No edge"
         ElseIf Cells(8, 2).Value < Cells(12 + sftfit2, 2).Value And Cells(8, 2).Value > Cells(11 + sftfit2, 2).Value Then
@@ -5224,7 +5225,7 @@ Sub GetOutFit()
         End If
         Range(Cells(10, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
         Range(Cells(10, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
-    ElseIf StrComp(strBG1, "e", 1) = 0 Then
+    ElseIf StrComp(strBG1, "ef", 1) = 0 Then
         Cells(8, 1).Value = "Norm (FD)"
         Cells(6, 1).Value = "Poly2nd"
         Cells(7, 1).Value = "Poly3rd"
@@ -6817,9 +6818,9 @@ Sub descriptFit()
         End If
     Else        ' grating #2, 3, G = 0 for AlKa XPS
         Cells(2, 103).Value = 10       ' max FWHM1 limit
-        Cells(3, 103).Value = 0.5       ' min FWHM1 limit
+        Cells(3, 103).Value = 1       ' min FWHM1 limit
         Cells(4, 103).Value = 10       ' max FWHM2 limit
-        Cells(5, 103).Value = 0.5       ' min FWHM2 limit
+        Cells(5, 103).Value = 1      ' min FWHM2 limit
         Cells(6, 103).Value = 0.999       ' max shape limit
         Cells(7, 103).Value = 0.001       ' min shape limit
 '        Cells(10, 101).Value = 10          ' average points for poly BG
@@ -6876,6 +6877,19 @@ Sub descriptFit()
     Range(Cells(15 + sftfit2 + 1, 5), Cells(15 + sftfit2 + 4, 5)).Interior.Color = RGB(207, 216, 220)
     Range(Cells(21 + sftfit2, 1), Cells(21 + sftfit2, 1)).Interior.Color = RGB(255, 0, 102)
     Range(Cells(21 + sftfit2, 2), Cells(21 + sftfit2, 2)).Interior.Color = RGB(255, 128, 179)
+    
+    With Cells(1, 1).Validation
+        .Delete
+        .Add Type:=xlValidateList, Formula1:="Shirley,Tougaard,Polynominal,Victoreen,Arctan,EF"
+    End With
+    With Cells(1, 2).Validation
+        .Delete
+        .Add Type:=xlValidateList, Formula1:="BG,ABG,Shirley,Tougaard,Normal"
+    End With
+    With Cells(1, 3).Validation
+        .Delete
+        .Add Type:=xlValidateList, Formula1:="BG,ABG"
+    End With
 End Sub
 
 Sub descriptInitialFit()
@@ -7040,7 +7054,7 @@ Function ShirleyIteration(iA As Single, fA As Single, C1 As Variant, C2 As Varia
             TimeCheck = MsgBox("Iteration stopped at " + CStr(k) + " for A:" + CStr(fA), vbYesNo, "Try Polynomial BG!")
             Select Case TimeCheck
                 Case vbYes
-                    Cells(1, 1).Value = "p"
+                    Cells(1, 1).Value = "po"
                 Case vbNo
                     MsgBox "Revise tolerance or initial A!"
                 Case Else
@@ -8342,6 +8356,7 @@ Sub Initial()
     startR = 0
     endR = 0
     g = 0
+    cae = 0
     cmp = -1
     numXPSFactors = 0
     numAESFactors = 0
