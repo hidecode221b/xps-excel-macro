@@ -493,16 +493,21 @@ DeadInTheWater3:
         strAES = "User Defined"   ' default database for AES  "VG qnt"/"Mrocz"
     End If
     
-    If Not ExistSheet(strSheetDataName) Then
-	Call DelDupsheets(strSheetGraphName)
-        Call DelDupsheets(strSheetCheckName)
-        Call DelDupsheets(strSheetFitName)
-        strSheetDataName = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1)
-    End If
-    
     strSheetGraphName = "Graph_" + strSheetDataName
     strSheetCheckName = "Check_" + strSheetDataName
     strSheetFitName = "Fit_" + strSheetDataName
+    
+    If Not ExistSheet(strSheetDataName) Then
+        'TimeCheck = MsgBox("Data sheet " & strSheetDataName & " is not found.", vbExclamation)
+        Call DelDupsheets(strSheetGraphName)
+        Call DelDupsheets(strSheetCheckName)
+        Call DelDupsheets(strSheetFitName)
+        strSheetDataName = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1)
+        strSheetGraphName = "Graph_" + strSheetDataName
+        strSheetCheckName = "Check_" + strSheetDataName
+        strSheetFitName = "Fit_" + strSheetDataName
+        'End
+    End If
 
     Set sheetData = Worksheets(strSheetDataName)
     Worksheets(strSheetDataName).Activate
