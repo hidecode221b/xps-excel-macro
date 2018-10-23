@@ -362,7 +362,7 @@ DeadInTheWater3:
         Else
             strSheetAnaName = "Exc_" + strSheetDataName
             strSheetGraphName = "Cmp_" + strSheetDataName
-            ncomp = Range(Cells(10, 1), Cells(10, 1).End(xlToRight)).Columns.Count / 3
+            ncomp = (Range(Cells(10, 1), Cells(10, 1).End(xlToRight)).Columns.Count / 3) - 1
             Call ExportCmp("")
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         End If
