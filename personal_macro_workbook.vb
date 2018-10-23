@@ -494,6 +494,9 @@ DeadInTheWater3:
     End If
     
     If Not ExistSheet(strSheetDataName) Then
+	Call DelDupsheets(strSheetGraphName)
+        Call DelDupsheets(strSheetCheckName)
+        Call DelDupsheets(strSheetFitName)
         strSheetDataName = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1)
     End If
     
@@ -9932,6 +9935,16 @@ SkipDiffer:
     Differ = dfData
 End Function
 
+Sub DelDupsheets(strSheetName As String) 
+
+    If ExistSheet(strSheetName) Then
+        Application.DisplayAlerts = False
+        Worksheets(strSheetName).Visible = xlSheetVisible
+        Worksheets(strSheetName).Delete
+        Application.DisplayAlerts = True
+    End If
+
+End Sub
 
 ' "Ctrl+Q" is a set of VBA codes based on Windows Excel 2007 for
 ' soft x-ray XPS/XAS data analysis working with a bunch of database files
