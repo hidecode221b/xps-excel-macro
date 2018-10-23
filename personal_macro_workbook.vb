@@ -28,7 +28,7 @@ Sub CLAM2()
         'direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Documents" + backSlash + "XPS" + backSlash
     Else
         ' Windows
-        'direc = "C:" + backSlash + "Users" + backSlash + "Public" + backSlash + "Data" + backSlash ' this is for BOOTCAMP on MacBookAir.
+	'direc = "C:" + backSlash + "Users" + backSlash + "Public" + backSlash + "Data" + backSlash + "XPS" + backSlash ' this is for BOOTCAMP on MacBookAir.
         'direc = "G:" + backSlash + "Data" + backSlash + "Hideki" + backSlash + "XPS" + backSlash    ' this is for Windows PC with HDD storage.
         direc = "D:\Data\Hideki\XPS\"          'default
     End If
@@ -493,13 +493,13 @@ DeadInTheWater3:
         strAES = "User Defined"   ' default database for AES  "VG qnt"/"Mrocz"
     End If
     
-    strSheetGraphName = "Graph_" + strSheetDataName
-    strSheetFitName = "Fit_" + strSheetDataName
-    
     If Not ExistSheet(strSheetDataName) Then
-        TimeCheck = MsgBox("Data sheet " & strSheetDataName & " is not found.", vbExclamation)
-        End
+        strSheetDataName = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1)
     End If
+    
+    strSheetGraphName = "Graph_" + strSheetDataName
+    strSheetCheckName = "Check_" + strSheetDataName
+    strSheetFitName = "Fit_" + strSheetDataName
 
     Set sheetData = Worksheets(strSheetDataName)
     Worksheets(strSheetDataName).Activate
