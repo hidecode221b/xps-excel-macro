@@ -24,7 +24,7 @@ Sub CLAM2()
     backSlash = Application.PathSeparator ' Mac = "/", Win = "\"
     If backSlash = "/" Then    ' location of directory for database
         ' mac
-        direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
+	direc = backSlash + "Users" + backSlash + "hidekinakajima" + backSlash + "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
         'direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Documents" + backSlash + "XPS" + backSlash
     Else
         ' Windows
@@ -1039,6 +1039,7 @@ CheckElemAgain:
         strTest = C2(n, 1) + Left$(C2(n, 2), 2)
         C3(n, 1) = strTest
         
+	'you may have debug error here, because the Dir function does not work on mac. Please specify the correct database location.
         If Dir(direc + "webCross" + backSlash) = vbNullString Then
             q = 0
             GoTo SkipElem
