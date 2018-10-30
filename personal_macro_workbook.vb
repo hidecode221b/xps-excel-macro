@@ -20,15 +20,15 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.38p"                             ' Version of this code.
+    ver = "8.39p"                             ' Version of this code.
     backSlash = Application.PathSeparator ' Mac = "/", Win = "\"
     If backSlash = "/" Then    ' location of directory for database
         ' mac
-	direc = backSlash + "Users" + backSlash + "hidekinakajima" + backSlash + "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
+        direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
         'direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Documents" + backSlash + "XPS" + backSlash
     Else
         ' Windows
-	'direc = "C:" + backSlash + "Users" + backSlash + "Public" + backSlash + "Data" + backSlash + "XPS" + backSlash ' this is for BOOTCAMP on MacBookAir.
+        'direc = "C:" + backSlash + "Users" + backSlash + "Public" + backSlash + "Data" + backSlash ' this is for BOOTCAMP on MacBookAir.
         'direc = "G:" + backSlash + "Data" + backSlash + "Hideki" + backSlash + "XPS" + backSlash    ' this is for Windows PC with HDD storage.
         direc = "D:\Data\Hideki\XPS\"          'default
     End If
@@ -362,7 +362,7 @@ DeadInTheWater3:
         Else
             strSheetAnaName = "Exc_" + strSheetDataName
             strSheetGraphName = "Cmp_" + strSheetDataName
-            ncomp = (Range(Cells(10, 1), Cells(10, 1).End(xlToRight)).Columns.Count / 3) - 1
+            ncomp = Range(Cells(10, 1), Cells(10, 1).End(xlToRight)).Columns.Count / 3
             Call ExportCmp("")
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
         End If
@@ -485,8 +485,8 @@ DeadInTheWater3:
             ActiveSheet.Name = mid$(sh, 1, 25)
             strSheetDataName = mid$(sh, 1, 25)
         Else
-            ActiveSheet.Name = strTest
-            strSheetDataName = strTest
+            'ActiveSheet.Name = strTest
+            'strSheetDataName = strTest
         End If
         
         strCasa = "User Defined"  ' default database for XPS  "VG Avt"/"SC CXRO"
@@ -494,19 +494,12 @@ DeadInTheWater3:
     End If
     
     strSheetGraphName = "Graph_" + strSheetDataName
-    strSheetCheckName = "Check_" + strSheetDataName
     strSheetFitName = "Fit_" + strSheetDataName
     
     If Not ExistSheet(strSheetDataName) Then
-        'TimeCheck = MsgBox("Data sheet " & strSheetDataName & " is not found.", vbExclamation)
-        Call DelDupsheets(strSheetGraphName)
-        Call DelDupsheets(strSheetCheckName)
-        Call DelDupsheets(strSheetFitName)
         strSheetDataName = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1)
         strSheetGraphName = "Graph_" + strSheetDataName
-        strSheetCheckName = "Check_" + strSheetDataName
         strSheetFitName = "Fit_" + strSheetDataName
-        'End
     End If
 
     Set sheetData = Worksheets(strSheetDataName)
@@ -1047,7 +1040,6 @@ CheckElemAgain:
         strTest = C2(n, 1) + Left$(C2(n, 2), 2)
         C3(n, 1) = strTest
         
-	'you may have debug error here, because the Dir function does not work on mac. Please specify the correct database location.
         If Dir(direc + "webCross" + backSlash) = vbNullString Then
             q = 0
             GoTo SkipElem
@@ -5819,7 +5811,24 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
         End If
         
         strSheetDataName = mid$(Target, InStrRev(Target, backSlash) + 1, Len(Target) - InStrRev(Target, backSlash) - 5)
-        If Len(strSheetDataName) > 25 Then strSheetDataName = mid$(strSheetDataName, 1, 25)
+        If ExistSheet(strSheetDataName) = False Then
+            Do
+                strSheetDataName = mid$(strSheetDataName, 1, Len(strSheetDataName) - 1)
+                If Len(strSheetDataName) = 0 Then
+                    For ns = Sheets.Count To 1 Step -1
+                        Sheets(ns).Activate
+                        If StrComp(mid$(ActiveSheet.Name, 1, 6), "Graph_", 1) = 0 Then
+                            strSheetDataName = mid$(ActiveSheet.Name, 7, Len(ActiveSheet.Name) - 6)
+                            MsgBox ("No data sheet is available, but " & ActiveSheet.Name & " is found to be compared.")
+                            Exit For
+                        ElseIf ns = NumSheets Then
+                            MsgBox ("No data or graph sheet are found. Check the worksheet name corresponded to the sheet names.")
+                            GoTo SkipOpen
+                        End If
+                    Next
+                End If
+            Loop Until ExistSheet("Graph_" + strSheetDataName)
+        End If
         
         If StrComp(mid$(strAna, 1, 3), "Fit", 1) = 0 Then    ' FitAnalysis, FitComp, FitRatioAnalysis
             If strAna = "FitRatioAnalysis" Then
@@ -6387,7 +6396,7 @@ SkipOpen:
 End Sub
 
 Sub descriptGraph()
-    Dim strhighpe As String, imax As Integer
+    Dim strhighpe As String, imax As Long
     
     strhighpe = ""
     Cells(2, 1).Value = "PE"
@@ -6480,6 +6489,7 @@ Sub descriptGraph()
         strl(1) = "Po"
         strl(2) = "Pn"
         strl(3) = "Pp"
+        testMacro = "debug"
     ElseIf strMode = "BE/eV" Then
         Cells(2, 2).Value = pe
         Cells(2, 1).Value = "PE"
@@ -6549,6 +6559,7 @@ Sub descriptGraph()
         strl(1) = "Po"
         strl(2) = "Sh"
         strl(3) = "Ab"
+        testMacro = "debug"
     Else
         Cells(11, 2).FormulaR1C1 = "=R2C2 - R3C2 - R4C2 - RC[-1]"
         Cells(10 + (imax), 2).FormulaR1C1 = "=R[-" & (imax - 1) & "]C"
@@ -8941,10 +8952,12 @@ Sub GetNormalize()
         
         Range(Cells(1, (2 + (n * 3))), Cells(1, (3 + (n * 3)))).Interior.ColorIndex = 15
         Range(Cells(2, (1 + (n * 3))), Cells(3, (1 + (n * 3)))).Interior.ColorIndex = 14
-        Range(Cells(2, (2 + (n * 3))), Cells(3, (3 + (n * 3)))).Interior.ColorIndex = 42
+        Range(Cells(2, (2 + (n * 3))), Cells(3, (2 + (n * 3)))).Interior.ColorIndex = 42
+        Range(Cells(2, (3 + (n * 3))), Cells(3, (3 + (n * 3)))).Interior.ColorIndex = 8
         Range(Cells(4, (2 + (n * 3))), Cells(4, (3 + (n * 3)))).Interior.ColorIndex = 15
         Range(Cells(5, (1 + (n * 3))), Cells(8, (1 + (n * 3)))).Interior.ColorIndex = 45
-        Range(Cells(5, (2 + (n * 3))), Cells(8, (3 + (n * 3)))).Interior.ColorIndex = 44
+        Range(Cells(5, (2 + (n * 3))), Cells(8, (2 + (n * 3)))).Interior.ColorIndex = 44
+        Range(Cells(5, (3 + (n * 3))), Cells(8, (3 + (n * 3)))).Interior.ColorIndex = 36
         Range(Cells(9, (1 + (n * 3))), Cells(9, (1 + (n * 3)))).Interior.ColorIndex = 7
         Range(Cells(9, (2 + (n * 3))), Cells(9, (3 + (n * 3)))).Interior.ColorIndex = 38
         
@@ -9049,10 +9062,17 @@ Sub GetNormalize()
             End If
         Else
             If IsEmpty(Cells(2, 5)) Or IsEmpty(Cells(3, 5)) Or IsEmpty(Cells(2, 6)) Or IsEmpty(Cells(3, 6)) Then
-                iniRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value
-                endRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
-                iniRow2 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(6, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
-                endRow2 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(6, 2).Value
+                If StrComp(mid$(Cells(5, 1).Value, 7, 2), "BE", 1) = 0 Then
+                    iniRow1 = Cells(6, 2).Value
+                    endRow1 = Cells(6, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
+                    iniRow2 = Cells(5, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
+                    endRow2 = Cells(5, 2).Value
+                Else
+                    iniRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(6, 2).Value
+                    endRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(6, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
+                    iniRow2 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
+                    endRow2 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value
+                End If
                 Cells(2, 5).Value = iniRow1
                 Cells(3, 5).Value = endRow1
                 Cells(2, 6).Value = iniRow2
@@ -9063,21 +9083,28 @@ Sub GetNormalize()
                 iniRow2 = Cells(2, 6).Value
                 endRow2 = Cells(3, 6).Value
             Else
-                iniRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value
-                endRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
-                iniRow2 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(6, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
-                endRow2 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(6, 2).Value
+                If StrComp(mid$(Cells(5, 1).Value, 7, 2), "BE", 1) = 0 Then
+                    iniRow1 = Cells(6, 2).Value
+                    endRow1 = Cells(6, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
+                    iniRow2 = Cells(5, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
+                    endRow2 = Cells(5, 2).Value
+                Else
+                    iniRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(6, 2).Value
+                    endRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(6, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
+                    iniRow2 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
+                    endRow2 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value
+                End If
                 Cells(2, 5).Value = iniRow1
                 Cells(3, 5).Value = endRow1
                 Cells(2, 6).Value = iniRow2
                 Cells(3, 6).Value = endRow2
             End If
             
-            If iniRow2 = endRow2 Then
+            If iniRow1 = endRow1 Then
                 End
             Else
                 For j = 0 To numData - 1
-                    If iniRow2 <= Cells(11 + (numData * 2) + 8 - j, 2).Value And IsEmpty(Cells(11 + j, 3).Value) = False Then
+                    If iniRow1 <= Cells(11 + (numData * 2) + 8 - j, 2).Value And IsEmpty(Cells(11 + j, 3).Value) = False Then
                         pstart = j + 1
                         Exit For
                     ElseIf j = numData - 1 Then
@@ -9086,7 +9113,7 @@ Sub GetNormalize()
                 Next
                 
                 For j = 0 To numData - 1
-                    If endRow2 <= Cells(11 + (numData * 2) + 8 - j, 2).Value And IsEmpty(Cells(11 + j, 3).Value) = False Then
+                    If endRow1 <= Cells(11 + (numData * 2) + 8 - j, 2).Value And IsEmpty(Cells(11 + j, 3).Value) = False Then
                         pend = j + 1
                         Exit For
                     ElseIf j = numData - 1 Then
@@ -9105,11 +9132,11 @@ Sub GetNormalize()
                 End If
             End If
             
-            If iniRow1 = endRow1 Then
+            If iniRow2 = endRow2 Then
                 End
             Else
                 For j = 0 To numData - 1
-                    If iniRow1 >= Cells(12 + numData + 8 + j, 2).Value And IsEmpty(Cells(11 + j, 3).Value) = False Then
+                    If iniRow2 >= Cells(12 + numData + 8 + j, 2).Value And IsEmpty(Cells(11 + j, 3).Value) = False Then
                         pend = j + 1
                         Exit For
                     ElseIf j = numData - 1 Then
@@ -9118,7 +9145,7 @@ Sub GetNormalize()
                 Next
                 
                 For j = 0 To numData - 1
-                    If endRow1 >= Cells(12 + numData + 8 + j, 2).Value And IsEmpty(Cells(11 + j, 3).Value) = False Then
+                    If endRow2 >= Cells(12 + numData + 8 + j, 2).Value And IsEmpty(Cells(11 + j, 3).Value) = False Then
                         pstart = j + 1
                         Exit For
                     ElseIf j = numData - 1 Then
@@ -9154,7 +9181,7 @@ Sub GetNormalize()
         Cells(11, (3 + (n * 3))).FormulaR1C1 = "=(R5C6+R6C6*R[" & (imax - 1) & "]C[-2]+R7C6*(R[" & (imax - 1) & "]C[-2]^2)+R8C6*(R[" & (imax - 1) & "]C[-2]^3)-R9C2)*R9C3"
         Cells(11, (4 + (n * 3))).FormulaR1C1 = "=R[" & (imax - 1) & "]C1"
         If jc = 0 Then
-            Cells(11, (5 + (n * 3))).FormulaR1C1 = "=R[" & (imax - 1) & "]C4"
+            Cells(11, (5 + (n * 3))).FormulaR1C1 = "=RC4"
         End If
         Cells(11, (6 + (n * 3) - jc)).FormulaR1C1 = "=(R[" & (imax - 1) & "]C[-6] - RC5)/(RC6 - RC5)"
         Range(Cells(11, (1 + (n * 3))), Cells(10 + numData, (6 + (n * 3)))).FillDown
@@ -9940,16 +9967,6 @@ SkipDiffer:
     Differ = dfData
 End Function
 
-Sub DelDupsheets(strSheetName As String) 
-
-    If ExistSheet(strSheetName) Then
-        Application.DisplayAlerts = False
-        Worksheets(strSheetName).Visible = xlSheetVisible
-        Worksheets(strSheetName).Delete
-        Application.DisplayAlerts = True
-    End If
-
-End Sub
 
 ' "Ctrl+Q" is a set of VBA codes based on Windows Excel 2007 for
 ' soft x-ray XPS/XAS data analysis working with a bunch of database files
