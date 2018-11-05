@@ -22,10 +22,8 @@ Option Explicit
 Sub CLAM2()
     ver = "8.39p"                             ' Version of this code.
     backSlash = Application.PathSeparator ' Mac = "/", Win = "\"
-    If backSlash = "/" Then    ' location of directory for database
-        ' mac:  note "apple" should be replaced with your <username>.
-        direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
-        'direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Documents" + backSlash + "XPS" + backSlash
+    If backSlash = "/" Then    ' location of directory for database for mac (Go from menu with option key, and click library)
+        direc = "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
     Else
         ' Windows
         'direc = "C:" + backSlash + "Users" + backSlash + "Public" + backSlash + "Data" + backSlash ' this is for BOOTCAMP on MacBookAir.
@@ -64,7 +62,18 @@ Sub SheetNameAnalysis()
     direc = Replace(direc, "/", backSlash)
     direc = Replace(direc, "*", "")
     
-    If backSlash = "/" Then GoTo DeadInTheWater3
+    If backSlash = "/" Then
+        direc = GetSpecialFolderPath_MacScript & direc
+        CreateFolderinMacOffice2016 ("MyExcelFolder" & backSlash & "XPS" & backSlash)
+        If FileOrFolderExistsOnMac(direc & "UD.xlsx") = False Then
+            TimeCheck = MsgBox("Place the database files into the location: " & direc, 4, "No database files exist")
+            If TimeCheck = 6 Then
+                
+            End If
+            End
+        End If
+        GoTo DeadInTheWater3
+    End If
 
     Set FSO = CreateObject("Scripting.FileSystemObject")
     If FSO.DriveExists(mid$(direc, 1, 2)) = False Then
@@ -1918,7 +1927,7 @@ Sub GetOut()
             Else
                 If IsEmpty(Cells(18, 101).Value) Then Cells(18, 101).FormulaR1C1 = "=Average(R21C2:R" & (20 + numData) & "C2)"
                 If IsNumeric(Cells(18, 101).Value) Then
-                    If Abs(Cells(18, 101).Value) < 0.000001 Then
+                    If Abs(Cells(18, 101).Value) < 1E-06 Then
                         TimeCheck = MsgBox("Fitting does not work properly, because averaged In data is less than 1E-6!")
                     ElseIf Abs(Cells(18, 101).Value) > 1E+29 Then
                         TimeCheck = MsgBox("Fitting does not work properly, because averaged In data is more than 1E+29!")
@@ -5249,7 +5258,7 @@ Sub GetOutFit()
         Cells(6, 2).Value = fileNum
         Cells(6, 1).Value = "Iteration fit"
         Cells(5, 2).Font.Bold = "False"
-		Cells(6, 2).Font.Bold = "False"
+        Cells(6, 2).Font.Bold = "False"
         Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
         Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
     End If
@@ -5537,7 +5546,7 @@ Sub FormatData()   ' this is a template for data loading.
         peX = CInt(mid$(Cells(8, 1).Value, 19, (Len(Cells(8, 1).Value) - 18 - 2)))
         If graphexist = 0 Then
             off = 0
-            multi = 0.000000000001
+            multi = 1E-12
         End If
     ElseIf StrComp(strMode, "Photo", 1) = 0 Then    ' XAS mode for user defined
         strMode = "PE/eV"
@@ -7020,7 +7029,7 @@ Sub ShirleyBG() 'iteration mode
     Cells(1, 3).Value = vbNullString
     
     If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
-        Cells(2, 2).Value = 0.00001
+        Cells(2, 2).Value = 1E-05
         If Cells(3, 2).Value > 0.1 Or Cells(3, 2).Value <= 0.0001 Then Cells(3, 2).Value = 0.001
     ElseIf Cells(3, 2).Value >= 0.1 Or Cells(3, 2).Value <= 0.0001 Then
         Cells(3, 2).Value = 0.001
@@ -7236,7 +7245,7 @@ Sub PolynominalShirleyBG()
     For k = 2 To 10
         If Cells(k, 2).Font.Bold = "True" Then
             If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
-                Cells(2, 2).Value = 0.000001
+                Cells(2, 2).Value = 1E-06
                 If Cells(3, 2).Value > 0.1 Or Cells(3, 2).Value <= 0.0001 Then Cells(3, 2).Value = 0.001
             ElseIf Cells(3, 2).Value >= 0.1 Or Cells(3, 2).Value <= 0.0001 Then
                 Cells(3, 2).Value = 0.001
@@ -7774,16 +7783,16 @@ End Sub
 
 Sub SolverSetup()      ' fair results with moderate time
     SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
-    SolverOptions MaxTime:=20, Iterations:=100, Precision:=0.000001, AssumeLinear _
+    SolverOptions MaxTime:=20, Iterations:=100, Precision:=1E-06, AssumeLinear _
         :=False, StepThru:=False, Estimates:=1, Derivatives:=2, SearchOption:=1, _
         IntTolerance:=5, Scaling:=True, Convergence:=0.0001, AssumeNonNeg:=False
 End Sub
 
 Sub SolverSetup2()      ' Accurate results with quite long time
     SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
-    SolverOptions MaxTime:=100, Iterations:=32767, Precision:=0.0000000001, AssumeLinear _
+    SolverOptions MaxTime:=100, Iterations:=32767, Precision:=1E-10, AssumeLinear _
         :=False, StepThru:=False, Estimates:=2, Derivatives:=2, SearchOption:=2, _
-        IntTolerance:=5, Scaling:=True, Convergence:=0.0000000001, AssumeNonNeg:=False
+        IntTolerance:=5, Scaling:=True, Convergence:=1E-10, AssumeNonNeg:=False
 End Sub
 
 Function ShowTrial(Reason As Integer)
@@ -10186,6 +10195,122 @@ Function Select_File_Or_Files_Mac(ext As String) As Variant
         Select_File_Or_Files_Mac = Split(MyFiles, Chr(10))
     End If
 End Function
+
+Function GetSpecialFolderPath_MacScript() As String
+'Return the path of special folders on you Mac
+'Ron de Bruin, 21-Sept-2017
+'Is working in Excel 2011 and 2016
+    Dim NameFolder As String, specialFolder As String
+
+    NameFolder = "home folder"
+    ' /Users/<username>/
+    If Int(Val(Application.Version)) > 14 Then
+    'You run Mac Excel 2016
+    specialFolder = _
+    MacScript("return POSIX path of (path to " & NameFolder & ") as string")
+    'Replace line needed for the special folders Home and documents
+    specialFolder = _
+    Replace(specialFolder, "/Library/Containers/com.microsoft.Excel/Data", "")
+    Else
+    'You run Mac Excel 2011
+    specialFolder = MacScript("return (path to " & NameFolder & ") as string")
+    End If
+
+    GetSpecialFolderPath_MacScript = specialFolder
+    
+    '***Other folders that you can use are***
+'applications folder
+'desktop folder
+'desktop pictures folder
+'documents folder
+'downloads folder
+'favorites folder
+'Folder Action scripts
+'Fonts
+'Help
+'home folder
+'internet plugins folder from user domain
+'keychain folder
+'library folder
+'modem scripts folder from user domain
+'movies folder
+'music folder
+'Pictures folder
+'preferences
+'printer descriptions from local domain
+'Public folder
+'scripting additions folder
+'scripts folder
+'services folder
+'shared documents
+'shared libraries folder from user domain
+'sites folder
+'startup disk
+'startup items
+'system folder
+'system preferences
+'temporary items
+'trash
+'users folder
+'utilities folder
+'workflows folder
+'voices
+End Function
+
+Function CreateFolderinMacOffice2016(NameFolder As String) As String
+    'Function to create folder if it not exists in the Microsoft Office Folder
+    'Ron de Bruin : 8-Jan-2016
+    Dim OfficeFolder As String
+    Dim PathToFolder As String
+    Dim TestStr As String
+
+    OfficeFolder = MacScript("return POSIX path of (path to desktop folder) as string")
+    OfficeFolder = Replace(OfficeFolder, "/Desktop", "") & _
+        "Library/Group Containers/UBF8T346G9.Office/"
+
+    PathToFolder = OfficeFolder & NameFolder
+
+    On Error Resume Next
+    TestStr = Dir(PathToFolder, vbDirectory)
+    On Error GoTo 0
+    If TestStr = vbNullString Then
+        MkDir PathToFolder
+        'You can use this msgbox line for testing if you want
+        'MsgBox "You find the new folder in this location :" & PathToFolder
+    End If
+    CreateFolderinMacOffice2016 = PathToFolder
+End Function
+
+Function FileOrFolderExistsOnMac(FileOrFolderstr As String) As Boolean
+'Ron de Bruin : 26-June-2015
+'Function to test whether a file or folder exist on a Mac in office 2011 and up
+'Uses AppleScript to avoid the problem with long names in Office 2011,
+'limit is max 32 characters including the extension in 2011.
+    Dim ScriptToCheckFileFolder As String
+    Dim TestStr As String
+
+    If Val(Application.Version) < 15 Then
+        ScriptToCheckFileFolder = "tell application " & Chr(34) & "System Events" & Chr(34) & _
+         "to return exists disk item (" & Chr(34) & FileOrFolderstr & Chr(34) & " as string)"
+        FileOrFolderExistsOnMac = MacScript(ScriptToCheckFileFolder)
+    Else
+        On Error Resume Next
+        TestStr = Dir(FileOrFolderstr, vbDirectory)
+        On Error GoTo 0
+        If Not TestStr = vbNullString Then FileOrFolderExistsOnMac = True
+    End If
+End Function
+
+
+
+
+
+
+
+
+
+
+
 
 
 
