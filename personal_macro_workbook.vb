@@ -23,7 +23,7 @@ Sub CLAM2()
     ver = "8.39p"                             ' Version of this code.
     backSlash = Application.PathSeparator ' Mac = "/", Win = "\"
     If backSlash = "/" Then    ' location of directory for database
-        ' mac
+        ' mac:  note "apple" should be replaced with your <username>.
         direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
         'direc = backSlash + "Users" + backSlash + "apple" + backSlash + "Documents" + backSlash + "XPS" + backSlash
     Else
@@ -33,7 +33,7 @@ Sub CLAM2()
         direc = "D:\Data\Hideki\XPS\"          'default
     End If
     
-    windowSize = 1          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
+    windowSize = 1.3          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
     windowRatio = 4 / 3     ' window width / height, "2/1" for eyes or "4/3" for ppt
     ElemD = "C,O"           ' Default elements to be shown up in the element analysis.
     TimeCheck = "No"        ' "No" only iteration results in fitting, numeric value to suppress any display.
@@ -498,6 +498,9 @@ DeadInTheWater3:
     
     If Not ExistSheet(strSheetDataName) Then
         strSheetDataName = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1)
+        If Not ExistSheet(strSheetDataName) Then
+            ActiveSheet.Name = strSheetDataName
+        End If
         strSheetGraphName = "Graph_" + strSheetDataName
         strSheetFitName = "Fit_" + strSheetDataName
     End If
@@ -1071,6 +1074,7 @@ CheckElemAgain:
             If strl(1) = "Pe" Then         ' XAS mode
                 If C2(n, 3) < 10 Then    ' if PE < 10 eV, ignore it.
                 ElseIf IsNumeric(C1(0)) = False Then
+'                    Debug.Print C1(0), "non numeric"
                 ElseIf CSng(C1(0)) >= C2(n, 3) And q = 0 Then
                     If iRow = 2 Then
                         C3(n, 2) = CSng(C1(0))      ' PE
@@ -1081,12 +1085,19 @@ CheckElemAgain:
 '                        C3(n, 2) = C2(n, 3)        ' PE at interpolation mode
 '                        C3(n, 3) = C3(n, 8) + (C2(n, 3) - C3(n, 7)) * (CSng(C1(2)) - C3(n, 8)) / (CSng(C1(0)) - C3(n, 7)) 'linear interporation
                     End If
+'                    C3(n, 6) = C1(4)      ' asymmetric parameter: beta
                     C3(n, 7) = CSng(C1(0))    ' check original
                     C3(n, 8) = CSng(C1(2))
                     q = 1
                 ElseIf q = 0 Then
-                    C3(n, 7) = C1(0)    ' store the value for interpolation
-                    C3(n, 8) = C1(2)
+                    C3(n, 7) = CSng(C1(0))    ' store the value for interpolation
+                    C3(n, 8) = CSng(C1(2))
+                ElseIf q > 0 And q <= 1 Then    ' up to q value to inspect f2 is higher or not
+                    If C3(n, 8) < CSng(C1(2)) Then  ' check edge is shift
+                        C3(n, 2) = CSng(C1(0))      ' PE
+                        C3(n, 3) = CSng(C1(2))      ' Atomic scattering factor f2 at PE
+                    End If
+                    q = q + 1
                 End If
             Else
                 If C1(0) >= pe And q = 0 And C1(0) <> 1486.6 Then
@@ -5619,13 +5630,15 @@ Sub KeBL()
     Dim C1 As Variant, s As Variant
     
     If graphexist = 0 Then
-        If Cells(1, 2).Value = "AlKa" Then
+        If Cells(1, 2).Value = "AlKa" Then  ' cell to specify the mode of XPS X-ray source
             pe = 1486.6
             multi = 1
         ElseIf Cells(1, 2).Value = "MgKa" Then  ' cell to specify the mode of XPS X-ray source
             pe = 1253.6
             multi = 1
-    ElseIf strMode = "KE/eV" Or strMode = "BE/eV" Then
+        ElseIf strMode = "KE/eV" Or strMode = "BE/eV" Then
+            If StrComp(testMacro, "debug", 1) = 0 Then
+                If peX = 0 Then
                     If IsEmpty(Cells(1, 2).Value) = False Then
                         If StrComp(mid$(Cells(1, 2).Value, 1, 3), "PE:", 1) = 0 And StrComp(mid$(Cells(1, 2).Value, Len(Cells(1, 2).Value) - 1, 2), "eV", 1) = 0 Then
                             If IsNumeric(mid$(Cells(1, 2).Value, 4, Len(Cells(1, 2).Value) - 5)) Then
@@ -5640,8 +5653,25 @@ Sub KeBL()
                     Else
                         peX = Application.InputBox(Title:="Manual input mode", Prompt:="Input a photon energy [eV] or cancel to switch AES mode", Default:=650, Type:=1)
                     End If
+                End If
                 pe = peX
-
+            Else
+                If IsEmpty(Cells(1, 2).Value) = False Then
+                    If StrComp(mid$(Cells(1, 2).Value, 1, 3), "PE:", 1) = 0 And StrComp(mid$(Cells(1, 2).Value, Len(Cells(1, 2).Value) - 1, 2), "eV", 1) = 0 Then
+                        If IsNumeric(mid$(Cells(1, 2).Value, 4, Len(Cells(1, 2).Value) - 5)) Then
+                            peX = CSng(mid$(Cells(1, 2).Value, 4, Len(Cells(1, 2).Value) - 5))
+                            multi = 1
+                        Else
+                            peX = Application.InputBox(Title:="Manual input mode", Prompt:="Input a photon energy [eV] or cancel to switch AES mode", Default:=650, Type:=1)
+                        End If
+                    Else
+                        peX = Application.InputBox(Title:="Manual input mode", Prompt:="Input a photon energy [eV] or cancel to switch AES mode", Default:=650, Type:=1)
+                    End If
+                Else
+                    peX = Application.InputBox(Title:="Manual input mode", Prompt:="Input a photon energy [eV] or cancel to switch AES mode", Default:=650, Type:=1)
+                End If
+                pe = peX
+            End If
             highpe(0) = pe
             If pe <= 0 Then
                 Cells(1, 1).Value = "AE/eV"
