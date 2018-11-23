@@ -8455,6 +8455,12 @@ Sub Initial()
             Application.DecimalSeparator = "."
             Application.ThousandsSeparator = ","
             Application.UseSystemSeparators = False
+        ElseIf StrComp(mid$(1 / 2, 2, 1), ",", 1) = 0 Then
+            MsgBox ("Number format should be changed in control panel." & vbCrLf & vbCrLf & _
+            "Decimal Separator > ." & vbCrLf & "Thousands Separator > ," & vbCrLf & vbCrLf & _
+            "Command prompt > control intl.cpl" & vbCrLf & "Formats - Additional settings - Numbers" _
+            & vbCrLf & "123,456,789.00")
+            End
         End If
     End If
     
