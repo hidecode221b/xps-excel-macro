@@ -299,7 +299,7 @@ DeadInTheWater3:
         ElseIf StrComp(LCase(Cells(1, 1).Value), "norm", 1) = 0 Or StrComp(LCase(Cells(1, 1).Value), "edge", 1) = 0 Or StrComp(LCase(Cells(1, 1).Value), "diff", 1) = 0 Then
             Call GetNormalize
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-        ElseIf StrComp(LCase(mid$(Cells(1, 1).Value, 1, 4)), "auto", 1) = 0 Then
+        ElseIf StrComp(LCase(mid$(Cells(1, 1).Value, 1, 4)), "auto", 1) = 0 Or StrComp(LCase(mid$(Cells(1, 1).Value, 1, 6)), "offset", 1) = 0 Then
             strSheetGraphName = "Graph_" + strSheetDataName
             Call GetAutoScale
             If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
@@ -563,6 +563,15 @@ Sub TargetDataAnalysis()
             Call FitCurve
         ElseIf StrComp(strAna, "chem", 1) = 0 Then
             Call PlotChem
+        ElseIf StrComp(strAna, "elem", 1) = 0 Then
+            Set sheetGraph = Worksheets(strSheetGraphName)
+            If LCase(sheetGraph.Cells(10, 1).Value) = "pe" Then
+                sheetGraph.Cells(10, 3).Value = "De"   'strl(3)
+            Else
+                sheetGraph.Cells(10, 3).Value = "In"   'strl(3)
+            End If
+            Call ElemXPS
+            Call PlotElem
         Else
             Call KeBL            ' KE, BE, PE, GE, QE, AE, ME/eV data setup
             
@@ -861,6 +870,35 @@ CheckElemAgain:
     End If
     
     If ElemD <> "False" Then
+        Set sheetGraph = Worksheets(strSheetGraphName)
+        sheetGraph.Activate
+        numXPSFactors = sheetGraph.Cells(43, para + 12)
+        numAESFactors = sheetGraph.Cells(44, para + 12)
+        If numXPSFactors + numAESFactors > 0 Then
+            With ActiveSheet.ChartObjects(1).Chart
+                For n = .SeriesCollection.Count To 1 Step -1
+                    If .SeriesCollection(n).Name = "XPS peaks in BE" Or .SeriesCollection(n).Name = "AES peaks in BE" Or .SeriesCollection(n).Name = "Chem shft in BE" Then
+                        .SeriesCollection(n).Delete
+                    End If
+                Next n
+            End With
+            
+            If ActiveSheet.ChartObjects.Count > 1 Then
+                With ActiveSheet.ChartObjects(2).Chart
+                    For n = .SeriesCollection.Count To 1 Step -1
+                        If .SeriesCollection(n).Name = "XPS peaks in KE" Or .SeriesCollection(n).Name = "AES peaks in KE" Or .SeriesCollection(n).Name = "Chem shft in KE" Then
+                            .SeriesCollection(n).Delete
+                        End If
+                    Next n
+                End With
+            End If
+
+            sheetGraph.Range(Cells(51, para + 9), Cells(50 + numXPSFactors + numAESFactors, para + 20)).ClearContents
+            Range(Cells(50, para + 24), Cells(51, para + 29).End(xlDown)).ClearContents
+            numXPSFactors = 0
+            numAESFactors = 0
+            numChemFactors = 0
+        End If
         If ElemD = "" Then  ' when you click "OK" without any element in box
             Call descriptHidden2
             Call FitCurve
@@ -1348,7 +1386,7 @@ Sub PlotElem()
         
         With ActiveSheet.ChartObjects(1).Chart
             For n = .SeriesCollection.Count To 1 Step -1
-                If .SeriesCollection(n).Name = "XPS peaks in BE" Or .SeriesCollection(n).Name = "AES peaks in BE" Then
+                If .SeriesCollection(n).Name = "XPS peaks in BE" Or .SeriesCollection(n).Name = "AES peaks in BE" Or .SeriesCollection(n).Name = "Chem shft in BE" Then
                     .SeriesCollection(n).Delete
                 End If
             Next n
@@ -1357,7 +1395,7 @@ Sub PlotElem()
         If ActiveSheet.ChartObjects.Count > 1 Then
             With ActiveSheet.ChartObjects(2).Chart
                 For n = .SeriesCollection.Count To 1 Step -1
-                    If .SeriesCollection(n).Name = "XPS peaks in KE" Or .SeriesCollection(n).Name = "AES peaks in KE" Then
+                    If .SeriesCollection(n).Name = "XPS peaks in KE" Or .SeriesCollection(n).Name = "AES peaks in KE" Or .SeriesCollection(n).Name = "Chem shft in KE" Then
                         .SeriesCollection(n).Delete
                     End If
                 Next n
@@ -1440,7 +1478,7 @@ Sub PlotElem()
     
     If numXPSFactors > 0 Then
         ActiveChart.SeriesCollection.NewSeries
-        With ActiveChart.SeriesCollection(2)   '2
+        With ActiveChart.SeriesCollection(ActiveChart.SeriesCollection.Count)   '(2)
             .ChartType = xlXYScatter
             .XValues = rngElemBeX
             .Values = rngElemBeX.Offset(0, 3)
@@ -1466,7 +1504,7 @@ Sub PlotElem()
 AESmode1:
         
         ActiveChart.SeriesCollection.NewSeries
-        With ActiveChart.SeriesCollection(j * (-1) + 3)
+        With ActiveChart.SeriesCollection(ActiveChart.SeriesCollection.Count)   '(j * (-1) + 3)
             .ChartType = xlXYScatter
             .XValues = rngElemBeA.Offset(0, j)
             .Values = rngElemBeA.Offset(0, 3)
@@ -1508,7 +1546,7 @@ AESmode1:
     
     If numXPSFactors > 0 Then
         ActiveChart.SeriesCollection.NewSeries
-        With ActiveChart.SeriesCollection(2)
+        With ActiveChart.SeriesCollection(ActiveChart.SeriesCollection.Count)   '(2)
             .ChartType = xlXYScatter
             If StrComp(strl(1), "Pe", 1) = 0 Then
                 .XValues = rngElemBeX
@@ -1539,7 +1577,7 @@ AESmode1:
 AESmode2:
 
         ActiveChart.SeriesCollection.NewSeries
-        With ActiveChart.SeriesCollection(j * (-1) + 3)
+        With ActiveChart.SeriesCollection(ActiveChart.SeriesCollection.Count)   '(j * (-1) + 3)
             .ChartType = xlXYScatter
             .XValues = rngElemBeA.Offset(0, 1)
             .Values = rngElemBeA.Offset(0, 3 + j)
@@ -1615,6 +1653,7 @@ Sub PlotChem()
     End If
     
     C3 = Split(ElemD, ",")
+    If UBound(C3) < 0 Then Exit Sub
     ReDim C2(1 To 101, 1 To 6)
     iRow = 1
     
@@ -1962,7 +2001,7 @@ End Sub
 Sub GetAutoScale()
     Dim numDataT As Integer, npts As Integer, pstart As Integer, pend As Integer, jc As Integer, dt As Integer, dc As Integer, rng As Range, rg As Range
     Dim iniRow1 As Single, iniRow2 As Single, endRow1 As Single, endRow2 As Single, strAuto As String, maxv As Single, calv As Single, rngx As Range, strArr() As String, strArre() As String
-    Dim offset0 As Single, multiple0 As Single
+    Dim offset0 As Single, multiple0 As Single, waterfall As Single
     
     strAuto = LCase(Cells(1, 1).Value)
     ' "autop" to run the previous auto command
@@ -1978,7 +2017,7 @@ Sub GetAutoScale()
         Set rngx = Range(Cells(11, (1 + (dt * 3))), Cells(11, (1 + (dt * 3))).End(xlDown))
         numDataT = Application.CountA(rngx)
         
-        If Len(strAuto) > 4 Then
+        If StrComp(mid$(strAuto, 1, 4), "auto", 1) = 0 Then
             'Debug.Print mid$(strAuto, 5, 1), mid$(strAuto, Len(strAuto), 1)
             If StrComp(mid$(strAuto, 5, 1), "(", 1) = 0 And StrComp(mid$(strAuto, Len(strAuto), 1), ")", 1) = 0 Then
                 ' Point range specified in "auto(1,10)" point 1 to 10 from start and end to be calibrated
@@ -2329,17 +2368,23 @@ Sub GetAutoScale()
                     Cells(9, 3 * dt + 3).Value = multiple0 / (Cells(11 + npts, (3 + (dt * 3))).Value - Cells(10 + numDataT - npts, (3 + (dt * 3))).Value)
                 End If
             End If
-        Else ' point calibration in "auto" at start and end points
-            npts = 0
-            jc = 0
-            If StrComp(LCase(Cells(10, 3 * dt + 3).Value), "de", 1) = 0 Then jc = -1 'XAS mode
-            If Cells(11 + npts, (3 + (dt * 3))).Offset(0, jc) > Cells(10 + numDataT - npts, (3 + (dt * 3))).Offset(0, jc) Then  ' PES mode
-                Cells(9, 3 * dt + 2).Value = Cells(10 + numDataT - npts, (3 + (dt * 3))).Offset(0, jc) - offset0
-                Cells(9, 3 * dt + 3).Value = multiple0 / (Cells(11 + npts, (3 + (dt * 3))).Offset(0, jc) - Cells(10 + numDataT - npts, (3 + (dt * 3))).Offset(0, jc))
-            Else    ' XAS mode
-                Cells(9, 3 * dt + 2).Value = Cells(11 + npts, (3 + (dt * 3))).Offset(0, jc) - offset0
-                Cells(9, 3 * dt + 3).Value = multiple0 / (Cells(10 + numDataT - npts, (3 + (dt * 3))).Offset(0, jc) - Cells(11 + npts, (3 + (dt * 3))).Offset(0, jc))
+        ElseIf StrComp(mid$(strAuto, 1, 6), "offset", 1) = 0 Then
+            If IsEmpty(Cells(40, para + 13)) = False Then
+                If IsNumeric(mid$(Cells(40, para + 13), 7, Len(Cells(40, para + 13)) - 6)) Then
+                    waterfall = -1 * mid$(Cells(40, para + 13), 7, Len(Cells(40, para + 13)) - 6)
+                Else
+                    waterfall = 0
+                End If
             End If
+            
+            If IsNumeric(mid$(strAuto, 7, Len(strAuto) - 6)) Then
+                waterfall = waterfall + mid$(strAuto, 7, Len(strAuto) - 6)
+            Else
+                waterfall = waterfall
+            End If
+
+            Cells(9, 3 * dt + 2).Value = Cells(9, 3 * dt + 2).Value - (dt * waterfall / Cells(9, 3 * dt + 3).Value)
+
         End If
         'Debug.Print numData, ncomp, numDataT
     Next
@@ -6683,7 +6728,10 @@ Sub descriptHidden1()
 End Sub
 
 Sub descriptHidden2()
-    If Cells(9, 3).Value <> 0 Then
+    If dblMin = 0 And dblMax = 0 Then
+        dblMin = Cells(41, para + 10).Value
+        dblMax = Cells(42, para + 10).Value
+    ElseIf Cells(9, 3).Value <> 0 Then
         Cells(41, para + 10).Value = (dblMin / Cells(9, 3).Value) + Cells(9, 2).Value
         Cells(42, para + 10).Value = (dblMax / Cells(9, 3).Value) + Cells(9, 2).Value
     Else
@@ -7105,17 +7153,17 @@ Function ShirleyIteration(iA As Single, fA As Single, C1 As Variant, C2 As Varia
         End If
 
         If k >= 1000 Then
-            MsgBox "Iteration over " + CStr(k) + " at A:" + CStr(fA), 0, "Revise tolerance or initial A!"
+            If testMacro <> "debug" Then MsgBox "Iteration over " + CStr(k) + " at A:" + CStr(fA), 0, "Revise tolerance or initial A!"
             ShirleyIteration = C2
             a0 = fA
             Exit Do
         ElseIf Abs(fA) > 10 Then
-            TimeCheck = MsgBox("Iteration stopped at " + CStr(k) + " for A:" + CStr(fA), vbYesNo, "Try Polynomial BG!")
+            If testMacro <> "debug" Then TimeCheck = MsgBox("Iteration stopped at " + CStr(k) + " for A:" + CStr(fA), vbYesNo, "Try Polynomial BG!")
             Select Case TimeCheck
                 Case vbYes
                     Cells(1, 1).Value = "po"
                 Case vbNo
-                    MsgBox "Revise tolerance or initial A!"
+                    If testMacro <> "debug" Then MsgBox "Revise tolerance or initial A!"
                 Case Else
                     
             End Select
