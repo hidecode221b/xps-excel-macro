@@ -28,7 +28,7 @@ Sub CLAM2()
         ' Windows
         'direc = "C:" + backSlash + "Users" + backSlash + "Public" + backSlash + "Data" + backSlash ' this is for BOOTCAMP on MacBookAir.
         'direc = "G:" + backSlash + "Data" + backSlash + "Hideki" + backSlash + "XPS" + backSlash    ' this is for Windows PC with HDD storage.
-        direc = "D:\Data\Hideki\XPS\"          'default
+        direc = "D:\Excel_XPS_macro\DATA\hideki\XPS\"
     End If
     
     windowSize = 1.3          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
@@ -7077,10 +7077,10 @@ Sub ShirleyBG() 'iteration mode
     Cells(1, 3).Value = vbNullString
     
     If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
-        Cells(2, 2).Value = 1E-05
-        If Cells(3, 2).Value > 0.1 Or Cells(3, 2).Value <= 0.0001 Then Cells(3, 2).Value = 0.001
-    ElseIf Cells(3, 2).Value >= 0.1 Or Cells(3, 2).Value <= 0.0001 Then
-        Cells(3, 2).Value = 0.001
+'        Cells(2, 2).Value = 0.0001
+'        Cells(3, 2).Value = 0.001
+        Cells(3, 2).Value = 0.2 * Abs(Cells(startR, 2).Value - Cells(endR, 2).Value) / IntegrationTrapezoid(Range(Cells(startR, 1), Cells(endR, 1)), Range(Cells(startR, 2), Cells(endR, 2)))
+        Cells(2, 2).Value = 0.01 * Cells(3, 2).Value
     End If
 
     Cells(5, 2).Value = 0
@@ -7125,11 +7125,13 @@ Sub ShirleyBG() 'iteration mode
     [B2:B6].Interior.Color = RGB(197, 225, 165)    '35
 End Sub
 
-Function ShirleyIteration(iA As Single, fA As Single, C1 As Variant, C2 As Variant, mode As String) As Variant
-    Dim bs As Single, tA As Single
+Function ShirleyIteration(Tor As Single, iA As Single, C1 As Variant, C2 As Variant, mode As String) As Variant
+    Dim bs As Single, tA As Single, fA As Single, mulFac As Single
     
     p = UBound(C1)
     k = 0
+    mulFac = 0.25
+    fA = iA
     
     Do
         bs = 0
@@ -7139,36 +7141,33 @@ Function ShirleyIteration(iA As Single, fA As Single, C1 As Variant, C2 As Varia
         If mode = "Ab" Then ' for PE
             For n = 1 To p Step 1
                 bs = bs + (C1(n, 1) - C2(n, 1))
-                C2(n, 1) = C2(1, 1) + (fA * bs)
+                C2(n, 1) = C2(1, 1) + (tA * bs)
             Next
             
-            fA = fA * (1 + ((C1(p, 1) - C2(p, 1)) / C1(p, 1)))
+            fA = tA * (1 + mulFac * ((C1(p, 1) - C2(p, 1)) / C1(p, 1)))
         Else
             For n = p To 1 Step -1
                 bs = bs + (C1(n, 1) - C2(n, 1))
-                C2(n, 1) = C2(p, 1) + (fA * bs)
+                C2(n, 1) = C2(p, 1) + (tA * bs)
             Next
             
-            fA = fA * (1 + ((C1(1, 1) - C2(1, 1)) / C1(1, 1)))
+            fA = tA * (1 + mulFac * ((C1(1, 1) - C2(1, 1)) / C1(1, 1)))
         End If
-
+        
         If k >= 1000 Then
             If testMacro <> "debug" Then MsgBox "Iteration over " + CStr(k) + " at A:" + CStr(fA), 0, "Revise tolerance or initial A!"
             ShirleyIteration = C2
             a0 = fA
             Exit Do
-        ElseIf Abs(fA) > 10 Then
-            If testMacro <> "debug" Then TimeCheck = MsgBox("Iteration stopped at " + CStr(k) + " for A:" + CStr(fA), vbYesNo, "Try Polynomial BG!")
-            Select Case TimeCheck
-                Case vbYes
-                    Cells(1, 1).Value = "po"
-                Case vbNo
-                    If testMacro <> "debug" Then MsgBox "Revise tolerance or initial A!"
-                Case Else
-                    
-            End Select
-            End
-        ElseIf Abs(tA - fA) < iA Then
+        ElseIf (Abs(C2(p, 1)) > 1000000 And mode = "Ab") Or (Abs(C2(1, 1)) > 1000000) Then
+            Debug.Print k, mulFac, tA, C2(1, 1), "stop1"
+            strErr = "skip"
+            Exit Function
+        ElseIf Abs(tA) > 100 And Abs(bs) > 100 Then
+            Debug.Print k, mulFac, tA, C2(1, 1), "stop2"
+            strErr = "skip"
+            Exit Function
+        ElseIf Abs(tA - fA) < Tor Then
             ShirleyIteration = C2
             a0 = fA
             Exit Do
@@ -7293,10 +7292,8 @@ Sub PolynominalShirleyBG()
     For k = 2 To 10
         If Cells(k, 2).Font.Bold = "True" Then
             If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
-                Cells(2, 2).Value = 1E-06
-                If Cells(3, 2).Value > 0.1 Or Cells(3, 2).Value <= 0.0001 Then Cells(3, 2).Value = 0.001
-            ElseIf Cells(3, 2).Value >= 0.1 Or Cells(3, 2).Value <= 0.0001 Then
-                Cells(3, 2).Value = 0.001
+                Cells(3, 2).Value = 0.2 * Abs(Cells(startR, 2).Value - Cells(endR, 2).Value) / IntegrationTrapezoid(Range(Cells(startR, 1), Cells(endR, 1)), Range(Cells(startR, 2), Cells(endR, 2)))
+                Cells(2, 2).Value = 0.01 * Cells(3, 2).Value
             End If
         ElseIf k = 4 Then
             Cells(4, 2).Value = Cells(3, 2).Value
@@ -7459,9 +7456,10 @@ Sub PolynominalBG()
                 ElseIf k = 3 Then
                     If Abs(Cells(3, 2).Value) > Abs(Cells(2, 2).Value) Then Cells(3, 2).Value = Cells(2, 2).Value / 2 '0.1
                 ElseIf k = 4 Then
-                    If Abs(Cells(4, 2).Value) > Abs(Cells(2, 2).Value) Then Cells(4, 2).Value = Cells(2, 2).Value / 5 '0.01
+                    Cells(4, 2).Value = 0
                 ElseIf k = 5 Then
-                    If Abs(Cells(5, 2).Value) > Abs(Cells(2, 2).Value) Then Cells(5, 2).Value = Cells(2, 2).Value / 10 '0.001
+                    Cells(5, 2).Value = 0
+                    Cells(5, 2).Font.Bold = "True"
                 End If
             End If
         Next
