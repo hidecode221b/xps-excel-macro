@@ -870,34 +870,36 @@ CheckElemAgain:
     End If
     
     If ElemD <> "False" Then
-        Set sheetGraph = Worksheets(strSheetGraphName)
-        sheetGraph.Activate
-        numXPSFactors = sheetGraph.Cells(43, para + 12)
-        numAESFactors = sheetGraph.Cells(44, para + 12)
-        If numXPSFactors + numAESFactors > 0 Then
-            With ActiveSheet.ChartObjects(1).Chart
-                For n = .SeriesCollection.Count To 1 Step -1
-                    If .SeriesCollection(n).Name = "XPS peaks in BE" Or .SeriesCollection(n).Name = "AES peaks in BE" Or .SeriesCollection(n).Name = "Chem shft in BE" Then
-                        .SeriesCollection(n).Delete
-                    End If
-                Next n
-            End With
-            
-            If ActiveSheet.ChartObjects.Count > 1 Then
-                With ActiveSheet.ChartObjects(2).Chart
+        If ExistSheet(strSheetGraphName) Then
+            Set sheetGraph = Worksheets(strSheetGraphName)
+            sheetGraph.Activate
+            numXPSFactors = sheetGraph.Cells(43, para + 12)
+            numAESFactors = sheetGraph.Cells(44, para + 12)
+            If numXPSFactors + numAESFactors > 0 Then
+                With ActiveSheet.ChartObjects(1).Chart
                     For n = .SeriesCollection.Count To 1 Step -1
-                        If .SeriesCollection(n).Name = "XPS peaks in KE" Or .SeriesCollection(n).Name = "AES peaks in KE" Or .SeriesCollection(n).Name = "Chem shft in KE" Then
+                        If .SeriesCollection(n).Name = "XPS peaks in BE" Or .SeriesCollection(n).Name = "AES peaks in BE" Or .SeriesCollection(n).Name = "Chem shft in BE" Then
                             .SeriesCollection(n).Delete
                         End If
                     Next n
                 End With
+                
+                If ActiveSheet.ChartObjects.Count > 1 Then
+                    With ActiveSheet.ChartObjects(2).Chart
+                        For n = .SeriesCollection.Count To 1 Step -1
+                            If .SeriesCollection(n).Name = "XPS peaks in KE" Or .SeriesCollection(n).Name = "AES peaks in KE" Or .SeriesCollection(n).Name = "Chem shft in KE" Then
+                                .SeriesCollection(n).Delete
+                            End If
+                        Next n
+                    End With
+                End If
+    
+                sheetGraph.Range(Cells(51, para + 9), Cells(50 + numXPSFactors + numAESFactors, para + 20)).ClearContents
+                Range(Cells(50, para + 24), Cells(51, para + 29).End(xlDown)).ClearContents
+                numXPSFactors = 0
+                numAESFactors = 0
+                numChemFactors = 0
             End If
-
-            sheetGraph.Range(Cells(51, para + 9), Cells(50 + numXPSFactors + numAESFactors, para + 20)).ClearContents
-            Range(Cells(50, para + 24), Cells(51, para + 29).End(xlDown)).ClearContents
-            numXPSFactors = 0
-            numAESFactors = 0
-            numChemFactors = 0
         End If
         If ElemD = "" Then  ' when you click "OK" without any element in box
             Call descriptHidden2
@@ -2369,18 +2371,20 @@ Sub GetAutoScale()
                 End If
             End If
         ElseIf StrComp(mid$(strAuto, 1, 6), "offset", 1) = 0 Then
-            If IsEmpty(Cells(40, para + 13)) = False Then
-                If IsNumeric(mid$(Cells(40, para + 13), 7, Len(Cells(40, para + 13)) - 6)) Then
-                    waterfall = -1 * mid$(Cells(40, para + 13), 7, Len(Cells(40, para + 13)) - 6)
-                Else
-                    waterfall = 0
+            If dt = 0 Then
+                If IsEmpty(Cells(40, para + 13)) = False Then
+                    If IsNumeric(mid$(Cells(40, para + 13), 7, Len(Cells(40, para + 13)) - 6)) Then
+                        waterfall = -1 * mid$(Cells(40, para + 13), 7, Len(Cells(40, para + 13)) - 6)
+                    Else
+                        waterfall = 0
+                    End If
                 End If
-            End If
-            
-            If IsNumeric(mid$(strAuto, 7, Len(strAuto) - 6)) Then
-                waterfall = waterfall + mid$(strAuto, 7, Len(strAuto) - 6)
-            Else
-                waterfall = waterfall
+
+                If IsNumeric(mid$(strAuto, 7, Len(strAuto) - 6)) Then
+                    waterfall = waterfall + mid$(strAuto, 7, Len(strAuto) - 6)
+                Else
+                    waterfall = waterfall
+                End If
             End If
 
             Cells(9, 3 * dt + 2).Value = Cells(9, 3 * dt + 2).Value - (dt * waterfall / Cells(9, 3 * dt + 3).Value)
@@ -2390,7 +2394,12 @@ Sub GetAutoScale()
     Next
     
 '    Debug.Print "auto", strAuto
-    Cells(40, para + 11).Value = strAuto
+    If StrComp(mid$(strAuto, 1, 4), "auto", 1) = 0 Then
+        Cells(40, para + 11).Value = strAuto
+        Cells(40, para + 13).Value = vbNullString
+    Else
+        Cells(40, para + 13).Value = strAuto
+    End If
     
     If StrComp(mid$(ActiveSheet.Name, 1, 4), "Cmp_", 1) = 0 Then
         Cells(1, 1).Value = vbNullString
