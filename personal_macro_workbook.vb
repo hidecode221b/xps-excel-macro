@@ -6325,8 +6325,8 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
             Cells(9, (6 + (n * 3))).Value = 1
         End If
 
-        [A9:A9].Interior.ColorIndex = 43
-        [B9:C9].Interior.ColorIndex = 35
+        Cells(9, (4 + (n * 3))).Interior.ColorIndex = 43
+        Range(Cells(9, (5 + (n * 3))), Cells(9, (6 + (n * 3)))).Interior.ColorIndex = 35
         
         imax = numData + 10
         
