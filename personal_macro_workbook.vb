@@ -4667,18 +4667,43 @@ Resolve:
 '        Next
     End If
     
-    If StrComp(strl(1), "Pe", 1) = 0 Or StrComp(strl(1), "Po", 1) = 0 Then
-        SolverAdd CellRef:=Range(Cells(2, 5), Cells(2, (4 + j))), Relation:=3, FormulaText:=Cells(startR, 1).Value
-        SolverAdd CellRef:=Range(Cells(2, 5), Cells(2, (4 + j))), Relation:=1, FormulaText:=Cells(endR, 1).Value
-    Else
-        SolverAdd CellRef:=Range(Cells(2, 5), Cells(2, (4 + j))), Relation:=1, FormulaText:=Cells(startR, 1).Value
-        SolverAdd CellRef:=Range(Cells(2, 5), Cells(2, (4 + j))), Relation:=3, FormulaText:=Cells(endR, 1).Value
-    End If
-    
-    SolverAdd CellRef:=Range(Cells(4, 5), Cells(4, (4 + j))), Relation:=1, FormulaText:=Cells(2, 103).Value    ' width1 max
-    SolverAdd CellRef:=Range(Cells(4, 5), Cells(4, (4 + j))), Relation:=3, FormulaText:=Cells(3, 103).Value    ' width1 min
-    SolverAdd CellRef:=Range(Cells(6, 5), Cells(6, (4 + j))), Relation:=3, FormulaText:=0       ' minimum amplitude (1E-6/dblMin)
     SolverAdd CellRef:=Range(Cells(3, 5), Cells(3, (4 + j))), Relation:=2, FormulaText:=0
+    For n = 1 To j
+        If Cells(2, (4 + n)).Font.Bold = "True" Then
+            SolverAdd CellRef:=Cells(2, (4 + n)), Relation:=2, FormulaText:=Cells(2, (4 + n)).Value
+        ElseIf Cells(2, (4 + n)).Font.Italic = "True" Then
+            SolverAdd CellRef:=Cells(2, (4 + n)), Relation:=1, FormulaText:=Cells(2, (4 + n)) + Cells(8, 103).Value         ' max BE
+            SolverAdd CellRef:=Cells(2, (4 + n)), Relation:=3, FormulaText:=Cells(2, (4 + n)) - Cells(8, 103).Value         ' min BE
+        Else
+            If StrComp(strl(1), "Pe", 1) = 0 Or StrComp(strl(1), "Po", 1) = 0 Then
+                SolverAdd CellRef:=Cells(2, (4 + n)), Relation:=3, FormulaText:=Cells(startR, 1).Value
+                SolverAdd CellRef:=Cells(2, (4 + n)), Relation:=1, FormulaText:=Cells(endR, 1).Value
+            Else
+                SolverAdd CellRef:=Cells(2, (4 + n)), Relation:=1, FormulaText:=Cells(startR, 1).Value
+                SolverAdd CellRef:=Cells(2, (4 + n)), Relation:=3, FormulaText:=Cells(endR, 1).Value
+            End If
+        End If
+        
+        If Cells(4, (4 + n)).Font.Bold = "True" Then
+            SolverAdd CellRef:=Cells(4, (4 + n)), Relation:=2, FormulaText:=Cells(4, (4 + n)).Value
+        Else
+            SolverAdd CellRef:=Cells(4, (4 + n)), Relation:=1, FormulaText:=Cells(2, 103).Value  ' max FWHM1
+            SolverAdd CellRef:=Cells(4, (4 + n)), Relation:=3, FormulaText:=Cells(3, 103).Value  ' min FWHM1
+        End If
+        
+        If Cells(6, (4 + n)).Font.Bold = "True" Then
+            SolverAdd CellRef:=Cells(6, (4 + n)), Relation:=2, FormulaText:=Cells(6, (4 + n)).Value
+        Else
+            SolverAdd CellRef:=Cells(6, (4 + n)), Relation:=1, FormulaText:=Cells(3, 101).Value - Cells(2, 101).Value
+            SolverAdd CellRef:=Cells(6, (4 + n)), Relation:=3, FormulaText:=0   ' minimum amplitude (1E-6/dblMin)
+        End If
+        
+        For k = 8 To 10
+            If Cells(k, (4 + n)).Font.Bold = "True" Then
+                SolverAdd CellRef:=Cells(k, (4 + n)), Relation:=2, FormulaText:=Cells(k, (4 + n))   ' constraint option a-c
+            End If
+        Next
+    Next
         
     For n = 1 To j
         If Cells(7, (4 + n)).Value = 0 Or Cells(7, (4 + n)).Value = "Gauss" Then ' G
@@ -4727,19 +4752,6 @@ Resolve:
 
             SolverAdd CellRef:=Cells(7, (4 + n)), Relation:=1, FormulaText:=Cells(6, 103).Value         ' max shape
             SolverAdd CellRef:=Cells(7, (4 + n)), Relation:=3, FormulaText:=Cells(7, 103).Value         ' min shape
-        End If
-    Next
-
-    For n = 5 To (4 + j)
-        For k = 1 To 9
-            If Cells((k + 1), n).Font.Bold = "True" Then
-                SolverAdd CellRef:=Cells((k + 1), n), Relation:=2, FormulaText:=Cells((k + 1), n)
-            End If
-        Next
-        
-        If Cells(2, n).Font.Italic = "True" Then
-            SolverAdd CellRef:=Cells(2, n), Relation:=1, FormulaText:=Cells(2, n) + Cells(8, 103).Value         ' max BE
-            SolverAdd CellRef:=Cells(2, n), Relation:=3, FormulaText:=Cells(2, n) - Cells(8, 103).Value         ' min BE
         End If
     Next
     
@@ -4795,14 +4807,16 @@ Resolve:
                 For iCol = iRow - 1 To 0 Step -1
                     If IsNumeric(ratio(iRow - iCol)) = True And ratio(iRow - iCol) > 0 Then
                         If iRow - iCol = k Then
-                           SolverAdd CellRef:=Cells(6, n - iRow + k), Relation:=1, FormulaText:=Cells(3, 101).Value - Cells(2, 101).Value
+                           'SolverAdd CellRef:=Cells(6, n - iRow + k), Relation:=1, FormulaText:=Cells(3, 101).Value - Cells(2, 101).Value
                            Cells(15 + sftfit2, n - iCol + 110).Value = ratio(iRow - iCol) / ratio(k)
                         Else
-                           SolverAdd CellRef:=Cells(6, n - iCol), Relation:=2, FormulaText:=Cells(6, n - iRow + k) * ratio(iRow - iCol) / ratio(k)
+                            If Cells(6, n - iCol).Font.Bold = False Then
+                                SolverAdd CellRef:=Cells(6, n - iCol), Relation:=2, FormulaText:=Cells(6, n - iRow + k) * ratio(iRow - iCol) / ratio(k)
+                            End If
                            Cells(15 + sftfit2, n - iCol + 110).Value = ratio(iRow - iCol) / ratio(k)
                         End If
                     ElseIf ratio(iRow - iCol) = "NaN" Then
-                        SolverAdd CellRef:=Cells(6, n - iCol), Relation:=1, FormulaText:=Cells(3, 101).Value - Cells(2, 101).Value
+                        'SolverAdd CellRef:=Cells(6, n - iCol), Relation:=1, FormulaText:=Cells(3, 101).Value - Cells(2, 101).Value
                     Else
                         Range(Cells(15 + sftfit2, 4 + 110), Cells(16, 4 + j + 110)).ClearContents
                         TimeCheck = MsgBox(strErr, vbCritical)
@@ -4820,9 +4834,9 @@ Resolve:
             ReDim Preserve ratio(iRow)
             ratio(iRow) = "NaN"
             iRow = iRow + 1
-            SolverAdd CellRef:=Cells(6, n), Relation:=1, FormulaText:=Cells(3, 101).Value - Cells(2, 101).Value
+            'SolverAdd CellRef:=Cells(6, n), Relation:=1, FormulaText:=Cells(3, 101).Value - Cells(2, 101).Value
         Else
-            SolverAdd CellRef:=Cells(6, n), Relation:=1, FormulaText:=Cells(3, 101).Value - Cells(2, 101).Value
+            'SolverAdd CellRef:=Cells(6, n), Relation:=1, FormulaText:=Cells(3, 101).Value - Cells(2, 101).Value
         End If
     Next
     
@@ -4880,7 +4894,9 @@ Resolve:
                 End If
                 For iCol = iRow - 1 To 0 Step -1
                     If IsNumeric(bediff(iRow - iCol)) = True Then
-                        SolverAdd CellRef:=Cells(2, n - iCol), Relation:=2, FormulaText:=Cells(2, n - iRow) + bediff(iRow - iCol)
+                        If Cells(2, n - iCol).Font.Bold = False Then
+                            SolverAdd CellRef:=Cells(2, n - iCol), Relation:=2, FormulaText:=Cells(2, n - iRow) + bediff(iRow - iCol)
+                        End If
                     ElseIf bediff(iRow - iCol) = "NaN" Then
                     Else
                         TimeCheck = MsgBox(strErr, vbCritical)
@@ -6977,8 +6993,8 @@ Sub descriptFit()
     Cells(14, 104).FormulaR1C1 = "=R14C103"
     Cells(15, 104).FormulaR1C1 = "=R15C103"
     Cells(16, 104).FormulaR1C1 = "=R16C103"
-    [A2:A5].Interior.Color = RGB(156, 204, 101)    '43
-    [B2:B5].Interior.Color = RGB(197, 225, 165)    '35
+    [A2:A6].Interior.Color = RGB(156, 204, 101)    '43
+    [B2:B6].Interior.Color = RGB(197, 225, 165)    '35
     Range(Cells(6 + sftfit2, 1), Cells(6 + sftfit2, 1)).Interior.Color = RGB(102, 187, 106) 'RGB(128, 203, 196) ' RGB(156, 204, 101)    '43
     Range(Cells(6 + sftfit2, 2), Cells(6 + sftfit2, 2)).Interior.Color = RGB(165, 214, 167) 'RGB(178, 223, 219) ' RGB(197, 225, 165)    '35
     Range(Cells(8 + sftfit2, 1), Cells(9 + sftfit2, 1)).Interior.Color = RGB(255, 160, 0) '45
