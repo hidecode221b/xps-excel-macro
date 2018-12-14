@@ -50,7 +50,7 @@ Sub CLAM2()
     sftfit2 = 5
     
     Call SheetNameAnalysis
-    If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+    If Len(strErr) > 0 Then Exit Sub
     
     Call TargetDataAnalysis
 End Sub
@@ -295,14 +295,15 @@ DeadInTheWater3:
             strSheetAnaName = "Exp_" + strSheetDataName
             strSheetGraphName = "Graph_" + strSheetDataName
             Call ExportCmp("")
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
         ElseIf StrComp(LCase(Cells(1, 1).Value), "norm", 1) = 0 Or StrComp(LCase(Cells(1, 1).Value), "edge", 1) = 0 Or StrComp(LCase(Cells(1, 1).Value), "diff", 1) = 0 Then
             Call GetNormalize
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
         ElseIf StrComp(LCase(mid$(Cells(1, 1).Value, 1, 4)), "auto", 1) = 0 Or StrComp(LCase(mid$(Cells(1, 1).Value, 1, 6)), "offset", 1) = 0 Then
             strSheetGraphName = "Graph_" + strSheetDataName
             Call GetAutoScale
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If StrComp(mid$(strErr, 1, 3), "err", 1) = 0 Then MsgBox ("Error in range: " & mid$(strErr, 4, Len(strErr) - 3))
+            If Len(strErr) > 0 Then Exit Sub
         ElseIf StrComp(LCase(mid$(Cells(1, 1).Value, 1, 3)), "leg", 1) = 0 Then
             strSheetGraphName = "Graph_" + strSheetDataName
             Results = vbNullString
@@ -356,8 +357,8 @@ DeadInTheWater3:
             sheetGraph.Activate
             If Cells(43, para + 12).Value <> numXPSFactors Then Call PlotElem
             If Cells(42, para + 12).Value <> numChemFactors Then Call PlotChem
-            strErr = "skip"
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            strErr = "end"
+            If Len(strErr) > 0 Then Exit Sub
         ElseIf StrComp(LCase(mid$(Cells(1, 1).Value, 1, 3)), "leg", 1) = 0 Then
             strSheetGraphName = "Cmp_" + strSheetDataName
             Results = vbNullString
@@ -367,13 +368,13 @@ DeadInTheWater3:
             strSheetGraphName = "Cmp_" + strSheetDataName
             ncomp = Cells(45, para + 10).Value
             Call GetAutoScale
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
         Else
             strSheetAnaName = "Exc_" + strSheetDataName
             strSheetGraphName = "Cmp_" + strSheetDataName
             ncomp = Range(Cells(10, 1), Cells(10, 1).End(xlToRight)).Columns.Count / 3
             Call ExportCmp("")
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
         End If
         
         For k = 0 To CInt(para / 3)
@@ -419,7 +420,7 @@ DeadInTheWater3:
             Application.Calculation = xlCalculationAutomatic
             Application.CutCopyMode = False
             Cells(1, 1).Select
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
         ElseIf LCase(Cells(1, 4).Value) = "debug" Then
             Cells(1, 4).Value = "Name"
             testMacro = "debugFit"
@@ -450,7 +451,7 @@ DeadInTheWater3:
                 strMode = "Do fit"
             End If
             Call FitCurve
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
         End If
     ElseIf InStr(1, sh, "Ana_") > 0 Then
         strSheetDataName = mid$(sh, 5, (Len(sh) - 4))
@@ -575,7 +576,7 @@ Sub TargetDataAnalysis()
         Else
             Call KeBL            ' KE, BE, PE, GE, QE, AE, ME/eV data setup
             
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
             
             If StrComp(strMode, "GE/eV", 1) = 0 Then        ' Grating scan with fixed gap
                 Call EngBL
@@ -583,11 +584,11 @@ Sub TargetDataAnalysis()
                 Call GetOut
             Else
                 Call PlotCLAM2
-                If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+                If Len(strErr) > 0 Then Exit Sub
                 Call ElemXPS
-                If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+                If Len(strErr) > 0 Then Exit Sub
                 Call PlotElem
-                If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+                If Len(strErr) > 0 Then Exit Sub
                 Call FitCurve
             End If
         End If
@@ -597,13 +598,13 @@ Sub TargetDataAnalysis()
             Call GetCompare
         Else
             Call FormatData
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
             Call PlotCLAM2
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
             Call ElemXPS
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
             Call PlotElem
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
             Call FitCurve
         End If
 
@@ -676,6 +677,9 @@ Sub PlotCLAM2()
     End If
 
     Range(Cells(11, 3), Cells((numData + 10), 3)) = C3
+    If Cells(11, 1).Value > Cells(12, 2).Value Then
+        Range(Cells(11, 1), Cells((numData + 10), 3)).Sort key1:=Cells(11, 1), order1:=xlAscending
+    End If
     
     Call descriptGraph
     Call scalecheck
@@ -852,7 +856,7 @@ SkipGraph2:
         Application.DisplayAlerts = True
     End If
     
-    If strl(3) = "Pp" Then strErr = "skip"
+    If strl(3) = "Pp" Then testMacro = "debug"
 End Sub
 
 Sub ElemXPS()
@@ -904,11 +908,9 @@ CheckElemAgain:
         If ElemD = "" Then  ' when you click "OK" without any element in box
             Call descriptHidden2
             Call FitCurve
-            strErr = "skip"
             Exit Sub
         End If
     Else        ' when you click "cancel"
-        strErr = "skip"
         Call GetOut
         Exit Sub
     End If
@@ -929,11 +931,11 @@ CheckElemAgain:
         If Err.Number > 0 Then
             MsgBox "Error in " & Fname, vbOKOnly, "Error code: " & Err.Number
             Call GetOut
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
         ElseIf StrComp(ActiveWorkbook.Name, "UD.xlsx", 1) <> 0 Then
             MsgBox "Error in " & Fname
             Call GetOut
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
         End If
     Else
         Workbooks("UD.xlsx").Activate
@@ -966,7 +968,7 @@ CheckElemAgain:
             Workbooks("UD.xlsx").Close False
         End If
         Call GetOut
-        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+        If Len(strErr) > 0 Then Exit Sub
     End If
     
     If iRow < 2 Then
@@ -1106,7 +1108,7 @@ CheckElemAgain:
         If Dir(Fname) = vbNullString Then
             TimeCheck = MsgBox("File Not Found in " + Fname + "!", vbExclamation, "Database error")
             Call GetOut
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
         End If
         
         If Fname = False Then Exit Sub
@@ -1265,11 +1267,11 @@ SkipXPSnumZero:
         If Err.Number > 0 Then
             MsgBox "Error in " & Fname, vbOKOnly, "Error code: " & Err.Number
             Call GetOut
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
         ElseIf StrComp(ActiveWorkbook.Name, "UD.xlsx", 1) <> 0 Then
             MsgBox "Error in " & Fname
             Call GetOut
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
         End If
     Else
         Workbooks("UD.xlsx").Activate
@@ -1291,7 +1293,7 @@ SkipXPSnumZero:
             Workbooks("UD.xlsx").Close False
         End If
         Call GetOut
-        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+        If Len(strErr) > 0 Then Exit Sub
     End If
     
     If iRow < 2 Then
@@ -1667,7 +1669,7 @@ Sub PlotChem()
         If Dir(Fname) = vbNullString Then
             TimeCheck = MsgBox("File Not Found in " + Fname + "!", vbExclamation, "Database error")
             Call GetOut
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
         End If
         
         If Fname = False Then Exit Sub
@@ -1699,7 +1701,7 @@ Sub PlotChem()
     If numChemFactors = 0 Then
         TimeCheck = MsgBox("No data in " + Fname + "!", vbExclamation, "Database error")
         Call GetOut
-        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+        If Len(strErr) > 0 Then Exit Sub
     End If
     
     Range(Cells(51, para + 24), Cells((numChemFactors + 50), para + 29)) = C2
@@ -1822,9 +1824,7 @@ SkipChemLoad:
         End If
     End If
     
-    strErr = "skip"
     If strAna = "FitComp" Then Exit Sub
-    
     Call GetOut
 End Sub
 
@@ -1857,7 +1857,7 @@ Sub GetCompare()
         Results = ",Po,Pn,Pp,,5," 'for RGA
     Else
         Call GetOut
-        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+        If Len(strErr) > 0 Then Exit Sub
     End If
     
     If Cells(51, para + 9).Value = vbNullString Then
@@ -1885,7 +1885,7 @@ Sub GetCompare()
             TimeCheck = MsgBox("Stop a comparison because you select too many files: " & (UBound(OpenFileName) + ncomp - (ncomp - cmp)) & " over the total limit: " & CInt(para / 3), vbExclamation)
             Cells(1, 4 + (cmp * 3)).Value = vbNullString
             Call GetOut
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
         ElseIf UBound(OpenFileName) > 1 And backSlash = "\" Then
             ' http://www.cpearson.com/excel/SortingArrays.aspx
             ' put the array values on the worksheet
@@ -1918,7 +1918,7 @@ Sub GetCompare()
         TimeCheck = "stop"
         Cells(1, 4 + (cmp * 3)).Value = vbNullString
         Call GetOut
-        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+        If Len(strErr) > 0 Then Exit Sub
     End If
     
     Cells(1, 4 + (cmp * 3)).Value = vbNullString
@@ -1987,16 +1987,15 @@ Sub GetOut()
         On Error GoTo Error1
         ActiveWorkbook.SaveAs Filename:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
     End If
-    
+    strErr = "normal"
     Application.DisplayAlerts = True
-    strErr = "skip"
     Exit Sub
 Error1:
     MsgBox Error(Err)
     wb = mid$(ActiveWorkbook.Name, 1, InStr(ActiveWorkbook.Name, ".") - 1) + "_bk.xlsx"
     ActiveWorkbook.SaveAs Filename:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
     Err.Clear
-    strErr = "skip"
+    strErr = "normal"
     Resume Next
 End Sub
 
@@ -2116,6 +2115,7 @@ Sub GetAutoScale()
                                 pstart = jc + 1
                                 Exit For
                             ElseIf jc = numDataT - 1 Then
+                                strErr = "errAS1: " & vbCrLf & Cells(1, 3 * dt + 2).Value & vbCrLf & strAuto
                                 Exit Sub
                             End If
                         Next
@@ -2125,6 +2125,7 @@ Sub GetAutoScale()
                                 pend = jc + 1
                                 Exit For
                             ElseIf jc = numDataT - 1 Then
+                                strErr = "errAS2: " & vbCrLf & Cells(1, 3 * dt + 2).Value & vbCrLf & strAuto
                                 Exit Sub
                             End If
                         Next
@@ -2145,6 +2146,7 @@ Sub GetAutoScale()
                                 pend = jc + 1
                                 Exit For
                             ElseIf jc = numDataT - 1 Then
+                                strErr = "errAS3: " & vbCrLf & Cells(1, 3 * dt + 2).Value & vbCrLf & strAuto
                                 Exit Sub
                             End If
                         Next
@@ -2154,6 +2156,7 @@ Sub GetAutoScale()
                                 pstart = jc + 1
                                 Exit For
                             ElseIf jc = numDataT - 1 Then
+                                strErr = "errAS4: " & vbCrLf & Cells(1, 3 * dt + 2).Value & vbCrLf & strAuto
                                 Exit Sub
                             End If
                         Next
@@ -2174,6 +2177,7 @@ Sub GetAutoScale()
                                 pstart = jc + 1
                                 Exit For
                             ElseIf jc = numDataT - 1 Then
+                                strErr = "errAS5: " & vbCrLf & Cells(1, 3 * dt + 2).Value & vbCrLf & strAuto
                                 Exit Sub
                             End If
                         Next
@@ -2183,6 +2187,7 @@ Sub GetAutoScale()
                                 pend = jc + 1
                                 Exit For
                             ElseIf jc = numDataT - 1 Then
+                                strErr = "errAS6: " & vbCrLf & Cells(1, 3 * dt + 2).Value & vbCrLf & strAuto
                                 Exit Sub
                             End If
                         Next
@@ -2203,6 +2208,7 @@ Sub GetAutoScale()
                                 pend = jc + 1
                                 Exit For
                             ElseIf jc = numDataT - 1 Then
+                                strErr = "errAS7: " & vbCrLf & Cells(1, 3 * dt + 2).Value & vbCrLf & strAuto
                                 Exit Sub
                             End If
                         Next
@@ -2212,6 +2218,7 @@ Sub GetAutoScale()
                                 pstart = jc + 1
                                 Exit For
                             ElseIf jc = numDataT - 1 Then
+                                strErr = "errAS8: " & vbCrLf & Cells(1, 3 * dt + 2).Value & vbCrLf & strAuto
                                 Exit Sub
                             End If
                         Next
@@ -2406,9 +2413,9 @@ Sub GetAutoScale()
         End
     Else
         Cells(1, 1).Value = "Grating"
-        
+        Cells(1, 1).Select
         If ncomp >= 0 Then
-            strErr = "skip"
+            strErr = "end"
             Call offsetmultiple
         Else
             off = 0
@@ -2467,7 +2474,6 @@ Sub ExportCmp(ByRef strXas As String)
                 End If
         Next
         
-        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
     End If
     
     Application.CutCopyMode = False
@@ -2475,7 +2481,7 @@ Sub ExportCmp(ByRef strXas As String)
     
     If strXas = "Is" Then
     Else
-        strErr = "skip"
+        strErr = "end"
     End If
 End Sub
 
@@ -2525,13 +2531,11 @@ Sub Convert2Txt(ByRef strXas As String)
         numDataF = numDataF + 1
     Next q
     
-    If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
-
     Application.CutCopyMode = False
     
     If strXas = "Is" Or strXas = "Ip" Then
     Else
-        strErr = "skip"
+        strErr = "end"
     End If
 End Sub
 
@@ -2568,7 +2572,7 @@ Sub FitRatioAnalysis()
         If UBound(OpenFileName) > para / 3 Then
             TimeCheck = MsgBox("Stop a comparison because you select too many files: " & UBound(OpenFileName) & " over the total limit: " & para / 3, vbExclamation)
             Call GetOut
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
         ElseIf UBound(OpenFileName) > 1 And backSlash = "\" Then
             ' http://www.cpearson.com/excel/SortingArrays.aspx
             ' put the array values on the worksheet
@@ -2992,7 +2996,7 @@ Sub FitAnalysis()
         If UBound(OpenFileName) > para / 3 Then
             TimeCheck = MsgBox("Stop a comparison because you select too many files: " & UBound(OpenFileName) & " over the total limit: " & para / 3, vbExclamation)
             Call GetOut
-            If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+            If Len(strErr) > 0 Then Exit Sub
         End If
         
         strAna = "FitAnalysis"
@@ -6796,6 +6800,7 @@ Sub descriptFit()
         Cells(3, 1).Value = "Initial A"
         Cells(4, 1).Value = "Final A"
         Cells(5, 1).Value = "Iteration"
+        Cells(6, 1).Value = "Iteration fit"
         Cells(2, 2).Value = 0.0001
         Cells(3, 2).Value = 0.001
     End If
@@ -7186,11 +7191,11 @@ Function ShirleyIteration(Tor As Single, iA As Single, C1 As Variant, C2 As Vari
             Exit Do
         ElseIf (Abs(C2(p, 1)) > 1000000 And mode = "Ab") Or (Abs(C2(1, 1)) > 1000000) Then
             Debug.Print k, mulFac, tA, C2(1, 1), "stop1"
-            strErr = "skip"
+            strErr = "errOverIte"
             Exit Function
         ElseIf Abs(tA) > 100 And Abs(bs) > 100 Then
             Debug.Print k, mulFac, tA, C2(1, 1), "stop2"
-            strErr = "skip"
+            strErr = "errOverA"
             Exit Function
         ElseIf Abs(tA - fA) < Tor Then
             ShirleyIteration = C2
@@ -8807,7 +8812,7 @@ Sub GetNormalize()
         
         sheetGraph.Activate
         
-        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+        If Len(strErr) > 0 Then Exit Sub
         
     ElseIf strNorm = "lcmb" And ncomp >= 2 Then
         n = ncomp   ' means data to be generated on second set of data column
@@ -9034,7 +9039,7 @@ Sub GetNormalize()
         
         sheetGraph.Activate
         
-        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
+        If Len(strErr) > 0 Then Exit Sub
         
     ElseIf strNorm = "edge" And ncomp = 0 Then
         n = 1   ' means data to be generated on second set of data column
@@ -9505,12 +9510,11 @@ Sub GetNormalize()
         End If
         
         sheetGraph.Activate
-        If StrComp(strErr, "skip", 1) = 0 Then Exit Sub
     End If
     
     Cells(1, 1).Select
     Application.CutCopyMode = False
-    strErr = "skip"
+    strErr = "end"
 End Sub
 
 Sub CombineLegend() ' no k is used because from GetCompare Sub
@@ -9576,6 +9580,7 @@ Sub CombineLegend() ' no k is used because from GetCompare Sub
                 End If
                 Cells(2 + n, 3).Value = spr
             Next
+            Cells(2, 2).Select
         Else
             Set sheetSample = Worksheets(strSheetSampleName)
             sheetSample.Activate
@@ -9620,6 +9625,7 @@ Sub CombineLegend() ' no k is used because from GetCompare Sub
     Else
         Cells(1, 1).Value = vbNullString
     End If
+    Cells(1, 1).Select
 End Sub
 
 Sub descriptGConv()
@@ -9632,12 +9638,13 @@ End Sub
 
 Sub debugAll()      ' multiple file analysis in sequence
     Dim be4all() As Variant, am4all() As Variant, fw4all() As Variant, wbX As String, shgX As Worksheet, shfX As Worksheet, strSheetDataNameX As String, numpeakX As Integer
-    Dim Target As Variant, C1 As Variant, C2 As Variant, OpenFileName As Variant, debugMode As String, seriesnum As Integer, SourceRangeColor1 As Long, rng As Range, strNorm As String
+    Dim Target As Variant, C1 As Variant, C2 As Variant, OpenFileName As Variant, debugMode As String, seriesnum As Integer, SourceRangeColor1 As Long, rng As Range, strNorm As String, showError As String
     Dim debugcp As Integer, shf As Worksheet, strTest As String, ElemXbef As String, ElemT As String, AElist As String, AElist1 As String, AElist2 As String
     
     AElist1 = "H,He,Li,Be,B,C,N,O,F,Ne,Na,Mg,Al,Si,P,S,Cl,Ar,K,Ca,Sc,Ti,V,Cr,Mn,Fe,Co,Ni,Cu,Zn,Ga,Ge,As,Se,Br,Kr,Rb,Sr,Y,Zr,Nb,Mo,Tc,Ru,Rh,Pd,Ag,Cd,In,Sn,Sb,Te,I,Xe,Cs,Ba,La"
     AElist2 = "Ce,Pr,Nd,Pm,Sm,Eu,Gd,Tb,Dy,Ho,Er,Tm,Yb,Lu,Hf,Ta,W,Re,Os,Ir,Pt,Au,Hg,Tl,Pb,Bi,Po,At,Rn,Fr,Ra,Ac,Th,Pa,U,Np,Pu,Am,Cm"
     AElist = AElist1 & "," & AElist2
+    showError = vbNullString
     
     If mid$(testMacro, 1, 5) = "debug" Then
         modex = -1
@@ -10000,6 +10007,7 @@ Sub debugAll()      ' multiple file analysis in sequence
             End If
         End If
         
+        If StrComp(mid$(strErr, 1, 3), "err", 1) = 0 Then showError = showError & ActiveWorkbook.Name & ":" & mid$(strErr, 4, Len(strErr) - 3) & vbCrLf
         On Error GoTo SkipOpenDebug
         Workbooks(ActiveWorkbook.Name).Close SaveChanges:=False
 SkipOpenDebug:
@@ -10009,7 +10017,11 @@ SkipOpenDebug:
     Application.ScreenUpdating = True
     Application.EnableEvents = True
     
-    MsgBox "Complete " & idebug & " files in batch processes" & ".", vbInformation
+    If Len(showError) > 0 Then
+        MsgBox "Complete " & idebug & " files in batch processes." & vbCrLf & UBound(Split(showError, vbCrLf)) & " error found in the followings;" & vbCrLf & showError, vbInformation
+    Else
+        MsgBox "Complete " & idebug & " files in batch processes.", vbInformation
+    End If
 End Sub
 
 Sub UDsamples()         ' user defined database examples
