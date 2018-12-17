@@ -4239,7 +4239,7 @@ Sub FitRange(ByRef strCpa As String)
         End If
     End If
     
-    If Cells(8 + sftfit2, 2).Value > 29 Then
+    If Cells(8 + sftfit2, 2).Value > 29 And Cells(8 + sftfit2, 1).Value = "# peaks" Then
         TimeCheck = MsgBox("# of peaks are over 30! Would you like to continue anyway?", 4, "Fitting suggestion")
         If TimeCheck = 6 Then
         Else
@@ -5060,7 +5060,7 @@ ExitIter:
 End Sub
 
 Sub FitEF()
-    Dim rng As Range, dataFit As Range, fcmp As Range
+    Dim rng As Range, dataFit As Range
     
     If startR > 21 + sftfit Then        ' remove =
         If IsEmpty(Cells(startR - 1, 3)) = False Then
@@ -5084,20 +5084,12 @@ Sub FitEF()
         If IsEmpty(Cells(endR, 3)) = True Then Cells(8, 101).Value = 0
     End If
     
-    If Cells(8, 101).Value > 0 Then
-        GoTo SkipInitialEF2
-    ElseIf Cells(8, 101).Value < 0 Then
-        fcmp = Range(Cells(2, 5), Cells(8, 5))
+    If Cells(8, 101).Value = 0 Then
+        Call descriptEFfit1  ' initial parameters before the first fit
+        If strBG2 = "co" Then Call descriptGConv
+    Else
+        'If strBG2 = "co" Then GoTo SkipInitialEF   ' if skip first FD
     End If
-    
-    Range(Cells(1, 3), Cells(15 + sftfit2, 55)).ClearContents
-    Range(Cells(20 + sftfit, 3), Cells((2 * numData + 22 + sftfit), 55)).ClearContents
-    Range(Cells(1, 3), Cells(15 + sftfit2, 55)).Interior.ColorIndex = xlNone
-    
-    Call descriptEFfit1(fcmp)
-    Call descriptGConv
-    
-SkipInitialEF:
     
     Cells(startR, 3).FormulaR1C1 = "= R8C2 * (((R4C2 + R5C2 * (RC[-2] - R2C5))  + (R6C2 * (RC[-2] - R2C5)^2) + (R7C2 * (RC[-2] - R2C5)^3)) +  ((R2C2 + (R3C2 * (RC[-2] - R2C5))) / (1 + EXP(-(RC[-2] - R2C5) * 11604.86 / R4C5))))"
     
@@ -5181,10 +5173,11 @@ SkipInitialEF:
     SolverSolve UserFinish:=True
     SolverFinish KeepFinal:=1
     
-SkipInitialEF2:
+SkipInitialEF:
 
     p = startR + Cells(10, 101).Value
     q = endR - Cells(10, 101).Value
+    If strBG2 = "fi" Then GoTo SkipGCEF
     
     Cells(p, 6).FormulaR1C1 = "= RC100*(R8C5)"
     Range(Cells(p, 6), Cells(q, 6)).FillDown
@@ -5216,6 +5209,7 @@ SkipInitialEF2:
     
     SolverSolve UserFinish:=True
     SolverFinish KeepFinal:=1
+SkipGCEF:
     
     Cells(8, 101).Value = Cells(8, 101).Value + 1     ' means already fit once
     
@@ -5273,8 +5267,6 @@ End Sub
 Sub GetOutFit()
     If Not Cells(1, 1).Value = "EF" And Cells(8, 101).Value > 0 Then
         Call descriptInitialFit
-    ElseIf Cells(1, 1).Value = "EF" Then
-        strBG1 = "ef"
     End If
     
     If StrComp(strBG1, "po", 1) = 0 Then
@@ -5321,6 +5313,9 @@ Sub GetOutFit()
         Range(Cells(10, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
         Range(Cells(10, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
     ElseIf StrComp(strBG1, "ef", 1) = 0 Then
+        If StrComp(strBG2, "fi", 1) = 0 Then
+            Cells(6, 5).Value = 0
+        End If
         Cells(8, 1).Value = "Norm (FD)"
         Cells(6, 1).Value = "Poly2nd"
         Cells(7, 1).Value = "Poly3rd"
@@ -5348,8 +5343,8 @@ Sub GetOutFit()
             Range(Cells(8, (4 + n)), Cells(10, (4 + n))) = vbNullString
             Cells(5, (4 + n)) = vbNullString
         Else
-            If Cells(1, 1).Value = "EF" Then
-                Cells(10, (4 + n)) = vbNullString
+            If Cells(1, 2).Value = "Fit" Or Cells(1, 3).Value = "Fit" Then
+                'Cells(10, (4 + n)) = vbNullString
             Else
                 Range(Cells(8, (4 + n)), Cells(10, (4 + n))) = vbNullString
             End If
@@ -7876,10 +7871,35 @@ Function ShowTrial(Reason As Integer)
     ShowTrial = 0
 End Function
 
-Sub descriptEFfit1(fcmp As Range)
+Sub descriptEFfit1()
+    Range(Cells(1, 3), Cells(15 + sftfit2, 55)).ClearContents
+    Range(Cells(20 + sftfit, 3), Cells((2 * numData + 22 + sftfit), 55)).ClearContents
+    Range(Cells(1, 3), Cells(15 + sftfit2, 55)).Interior.ColorIndex = xlNone
+    
+    Cells(8 + sftfit2, 2).Value = -0.5
+    Cells(9 + sftfit2, 2).Value = 0.5
+    Cells(4, 5).Value = 300     ' temp
+    Cells(4, 5).Font.Bold = "True"
+    Cells(2, 5).Value = 0       ' BE
+    Cells(6, 5).Value = 0.1     ' Gauss width
+    Cells(8, 5).Value = 1       ' Norm GC
+    Cells(2, 2).Value = (Cells(startR, 2) - Cells(endR, 2)) / 2  '(dblMax - dblMin) / 2     ' int dos
+    Cells(3, 2).Value = (Cells(12 + sftfit2, 2) - Cells(11 + sftfit2, 2)) / (Cells(startR, 2) - Cells(endR, 2))     ' slope dos
+    Cells(4, 2).Value = Cells(endR, 2).Value      ' dblMin      ' int bg
+    Cells(5, 2).Value = (Cells(12 + sftfit2, 2) - Cells(11 + sftfit2, 2)) / (Cells(startR, 2) - Cells(endR, 2)) / 5     ' slope bg
+    
     Cells(1, 1).Value = "EF"
-    Cells(1, 2).Value = "fit"
-    Cells(1, 3).Value = vbNullString
+    If Cells(1, 2).Value = "Convoluted" Then
+        Cells(1, 3).Value = "Fit"
+        strBG2 = LCase(mid$(Cells(1, 2).Value, 1, 2))
+        strBG3 = LCase(mid$(Cells(1, 3).Value, 1, 2))
+    Else
+        Cells(1, 2).Value = "Fit"
+        Cells(1, 3).Value = vbNullString
+        strBG2 = LCase(mid$(Cells(1, 2).Value, 1, 2))
+        strBG3 = vbNullString
+    End If
+    
     Cells(2, 1).Value = "Int. DOS"
     Cells(3, 1).Value = "Slope DOS"
     Cells(4, 1).Value = "Int. BG"
@@ -7887,41 +7907,32 @@ Sub descriptEFfit1(fcmp As Range)
     Cells(6, 1).Value = "Poly2nd"
     Cells(7, 1).Value = "Poly3rd"
     Cells(8, 1).Value = "Norm (FD)"
+    
     Cells(5 + sftfit2, 1).Value = "Solve FD"
     Cells(6 + sftfit2, 1).Value = "Solve GC"
     Cells(7 + sftfit2, 1).Value = "EF range"
     Cells(8 + sftfit2, 1).Value = "BE min"
     Cells(9 + sftfit2, 1).Value = "BE max"
     
-    If Cells(8, 101).Value = 0 Then
-        Cells(8 + sftfit2, 2).Value = -0.5
-        Cells(9 + sftfit2, 2).Value = 0.5
-        Cells(4, 5).Value = 300
-        Cells(4, 5).Font.Bold = "True"
-        Cells(2, 5).Value = 0
-        Cells(6, 5).Value = 0.1
-        Cells(8, 5).Value = 1
-    ElseIf Cells(8, 101).Value = -1 Then
-        Range(Cells(2, 5), Cells(8, 5)) = fcmp
-    End If
-    
-    Cells(2, 2).Value = (Cells(startR, 2) - Cells(endR, 2)) / 2  '(dblMax - dblMin) / 2     ' int dos
-    Cells(3, 2).Value = (Cells(12 + sftfit2, 2) - Cells(11 + sftfit2, 2)) / (Cells(startR, 2) - Cells(endR, 2))     ' slope dos
-    Cells(4, 2).Value = Cells(endR, 2).Value      ' dblMin      ' int bg
-    Cells(5, 2).Value = (Cells(12 + sftfit2, 2) - Cells(11 + sftfit2, 2)) / (Cells(startR, 2) - Cells(endR, 2)) / 5     ' slope bg
-'    Cells(6, 2).Value = 0
-'    Cells(7, 2).Value = 0
-    Cells(8, 2).Value = 0
+    Cells(20 + sftfit2, 1).Value = "Figure of merit"
+    Cells(21 + sftfit2, 1).Value = "chi^2*"
+    Cells(22 + sftfit2, 1).Value = "Abbe"
+
     Cells(20 + sftfit, 3).Value = "FitEF (FD)"
     Cells(20 + sftfit, 4).Value = "Least fits (FD)"
-    Cells(20 + sftfit, 5).Value = "Residual (FD)"
-    Cells(20 + sftfit, 6).Value = "FitEF (GC)"
-    Cells(20 + sftfit, 7).Value = "Least fits (GC)"
-    Cells(20 + sftfit, 8).Value = "Residual (GC)"
+    Cells(20 + sftfit, 5).Value = "Residual % (FD)"
+    Cells(20 + sftfit, 6).Value = "Residual (FD)"
+    Cells(20 + sftfit, 7).Value = "Abbe diff (FD)"
+    Cells(20 + sftfit, 8).Value = "FitEF (GC)"
+    Cells(20 + sftfit, 9).Value = "Least fits (GC)"
+    Cells(20 + sftfit, 10).Value = "Residual % (GC)"
+    Cells(20 + sftfit, 11).Value = "Residual (GC)"
+    Cells(20 + sftfit, 12).Value = "Abbe diff (GC)"
+    
     Cells(8, 101).Value = 0     ' 7.45: revised from "-1"
-    Cells(20, 101).Value = "EF"
-    Cells(20, 102).Value = "Fit"
-    Cells(20, 103).Value = vbNullString
+    Cells(20, 101).Value = Cells(1, 1).Value
+    Cells(20, 102).Value = Cells(1, 2).Value
+    Cells(20, 103).Value = Cells(1, 3).Value
 End Sub
 
 Sub descriptEFfit2()
