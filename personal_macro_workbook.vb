@@ -7283,8 +7283,9 @@ Sub VictoreenBG()
     SolverFinish KeepFinal:=1
     [A2:A6].Interior.Color = RGB(156, 204, 101)    '43
     [B2:B6].Interior.Color = RGB(197, 225, 165)    '35
-    [A7:A9].Interior.Color = RGB(159, 168, 218)
-    [B7:B9].Interior.Color = RGB(197, 202, 233)
+    [A7:B7].Interior.Color = xlNone
+    [A8:A9].Interior.Color = RGB(159, 168, 218)
+    [B8:B9].Interior.Color = RGB(197, 202, 233)
 End Sub
 
 Sub PolynominalShirleyBG()
