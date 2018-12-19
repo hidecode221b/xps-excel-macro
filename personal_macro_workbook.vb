@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.39p"                             ' Version of this code.
+    ver = "8.40p"                             ' Version of this code.
     backSlash = Application.PathSeparator ' Mac = "/", Win = "\"
     If backSlash = "/" Then    ' location of directory for database for mac (Go from menu with option key, and click library)
         direc = "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
@@ -4537,15 +4537,7 @@ Sub FitCurve()
     j = Cells(8 + sftfit2, 2).Value 'npa
     Call FormulaCheck
     ActiveSheet.Calculate
-    
-AsymIteration:
-    If IsNumeric(Cells(9 + sftfit2, 2).Value) = False Then
-        Call GetOutFit
-        Exit Sub
-    End If
 
-    ls = Cells(9 + sftfit2, 2).Value
-    p = 0
     fileNum = 0     ' # of iteration
     a0 = 0          ' Check tolerance for amp. ration
     a1 = 0          ' Check tolerance for BE diff.
@@ -4716,38 +4708,19 @@ Resolve:
             SolverAdd CellRef:=Cells(5, (4 + n)), Relation:=2, FormulaText:=0        ' width2
         ElseIf Cells(7, (4 + n)).Value = 1 Or Cells(7, (4 + n)).Value = "Lorentz" Then
             SolverAdd CellRef:=Cells(7, (4 + n)), Relation:=2, FormulaText:=1
-            If Cells(7, (4 + n)).Font.Italic = "True" Then  'Doniach-Sunjic (DS)
-                SolverAdd CellRef:=Cells(8, (4 + n)), Relation:=1, FormulaText:=1
-                SolverAdd CellRef:=Cells(8, (4 + n)), Relation:=3, FormulaText:=0
-                SolverAdd CellRef:=Cells(5, (4 + n)), Relation:=2, FormulaText:=0        ' width2
-                SolverAdd CellRef:=Cells(10, (4 + n)), Relation:=2, FormulaText:=0
-            Else    ' L
-                SolverAdd CellRef:=Range(Cells(8, (4 + n)), Cells(10, (4 + n))), Relation:=2, FormulaText:=0
-                SolverAdd CellRef:=Cells(5, (4 + n)), Relation:=2, FormulaText:=0        ' width2
-            End If
+            SolverAdd CellRef:=Range(Cells(8, (4 + n)), Cells(10, (4 + n))), Relation:=2, FormulaText:=0
+            SolverAdd CellRef:=Cells(5, (4 + n)), Relation:=2, FormulaText:=0        ' width2
         Else
-            If mid$(Cells(11, (4 + n)).Value, 1, 1) = "E" Then
-                SolverAdd CellRef:=Range(Cells(9, (4 + n)), Cells(10, (4 + n))), Relation:=2, FormulaText:=0
-                SolverAdd CellRef:=Cells(5, (4 + n)), Relation:=2, FormulaText:=0        ' width2
-            ElseIf mid$(Cells(11, (4 + n)).Value, 1, 1) = "T" Then       ' MultiPak Asymmetric GL with exp tail
+            If mid$(Cells(11, (4 + n)).Value, 1, 1) = "T" Then       ' MultiPak Asymmetric GL with exp tail
                 SolverAdd CellRef:=Cells(10, (4 + n)), Relation:=2, FormulaText:=0
                 SolverAdd CellRef:=Cells(5, (4 + n)), Relation:=2, FormulaText:=0        ' width2
                 SolverAdd CellRef:=Cells(8, (4 + n)), Relation:=1, FormulaText:=3         ' max a : Tail scale
                 SolverAdd CellRef:=Cells(8, (4 + n)), Relation:=3, FormulaText:=0         ' min a : Tail scale
                 SolverAdd CellRef:=Cells(9, (4 + n)), Relation:=1, FormulaText:=Abs(Cells(6, 101).Value - Cells(7, 101).Value)          ' max b : Tail length
                 SolverAdd CellRef:=Cells(9, (4 + n)), Relation:=3, FormulaText:=1         ' min b : Tail length
-            ElseIf mid$(Cells(11, (4 + n)).Value, 1, 1) = "D" Then
-                    SolverAdd CellRef:=Cells(10, (4 + n)), Relation:=2, FormulaText:=0
-                    SolverAdd CellRef:=Cells(8, (4 + n)), Relation:=1, FormulaText:=1         ' max a
-                    SolverAdd CellRef:=Cells(8, (4 + n)), Relation:=3, FormulaText:=0         ' min a
-                    SolverAdd CellRef:=Cells(9, (4 + n)), Relation:=1, FormulaText:=1         ' max b
-                    SolverAdd CellRef:=Cells(9, (4 + n)), Relation:=3, FormulaText:=0         ' min b
-            ElseIf mid$(Cells(11, (4 + n)).Value, 1, 1) = "U" Then
-                SolverAdd CellRef:=Cells(10, (4 + n)), Relation:=2, FormulaText:=0
-                SolverAdd CellRef:=Cells(8, (4 + n)), Relation:=1, FormulaText:=1         ' max a
-                SolverAdd CellRef:=Cells(8, (4 + n)), Relation:=3, FormulaText:=0         ' min a
-                SolverAdd CellRef:=Cells(9, (4 + n)), Relation:=1, FormulaText:=1         ' max b
-                SolverAdd CellRef:=Cells(9, (4 + n)), Relation:=3, FormulaText:=0         ' min b
+            ElseIf mid$(Cells(11, (4 + n)).Value, 1, 1) = "GL" Then
+                SolverAdd CellRef:=Cells(5, (4 + n)), Relation:=2, FormulaText:=0
+                SolverAdd CellRef:=Range(Cells(8, (4 + n)), Cells(10, (4 + n))), Relation:=2, FormulaText:=0
             Else
                 SolverAdd CellRef:=Range(Cells(8, (4 + n)), Cells(10, (4 + n))), Relation:=2, FormulaText:=0
                 SolverAdd CellRef:=Cells(5, (4 + n)), Relation:=1, FormulaText:=Cells(4, 103).Value        ' width2 max
@@ -4989,32 +4962,9 @@ ExitIter:
 
     Range(Cells(15 + sftfit2, 4 + 110), Cells(16 + sftfit2, 4 + j + 110)).ClearContents
     
-    If Cells(7, (4 + n)).Value < 0.999 And Cells(7, (4 + n)).Value > 0.001 Then
-        For n = 1 To j
-            If Cells(7, (4 + n)).Font.Italic = "True" Then
-                For k = 1 To numData
-                    If Cells((startR - 1 + k), 1).Value < Cells(2, (4 + n)).Value Then
-                        Cells((startR - 1 + k), (4 + n)).FormulaR1C1 = "=R6C * ((R7C) *((((R5C)/2)^2)/((RC[" & (-3 - n) & "]-R2C)^2 + ((R5C)/2)^2)) + (1- R7C) *(EXP(-(1/2)*((RC[" & (-3 - n) & "]-R2C)/(R5C/2.35))^2)))"
-                    Else
-                        Cells((startR - 1 + k), (4 + n)).FormulaR1C1 = "=R6C * ((R7C) *((((R4C)/2)^2)/((RC[" & (-3 - n) & "]-R2C)^2 + ((R4C)/2)^2)) + (1- R7C) *(EXP(-(1/2)*((RC[" & (-3 - n) & "]-R2C)/(R4C/2.35))^2)))"
-                    End If
-                Next
-                p = p + 1
-            End If
-        Next
-        If p > 0 Then
-            If Abs(Cells(9 + sftfit2, 2).Value - ls) > 1 Then GoTo AsymIteration     ' Tolerance = 1
-        End If
-    End If
-    
     For n = 1 To j
         If Cells(7, (4 + n)).Value > 0 And Cells(7, (4 + n)).Value < 1 Then
-            If Cells(7, (4 + n)).Font.Underline = xlUnderlineStyleSingle Then  ' exponential asymmetric blend based Voigt
-                Cells(13 + sftfit2, (4 + n)).Value = vbNullString ' R5C to be exp decay parameter.
-            ElseIf Cells(7, (4 + n)).Font.Underline = xlUnderlineStyleDouble Then   ' Ulrik Gelius mode asymmetric blend based Voigt (GL sum)
-                'Cells(13, (4 + n)).Value = 0    ' used as a b parameter manually adjusted
-                Cells(13 + sftfit2, (4 + n)).Value = vbNullString
-            ElseIf Cells(11, (4 + n)).Value = "GL" Then
+            If Cells(11, (4 + n)).Value = "GL" Or Cells(11, (4 + n)).Value = "TSGL" Then
                 Cells(13 + sftfit2, (4 + n)).Value = vbNullString
             Else
                 Cells(13 + sftfit2, (4 + n)).Value = Cells(5, (4 + n)).Value / Cells(4, (4 + n)).Value
@@ -5026,11 +4976,7 @@ ExitIter:
         ElseIf Cells(7, (4 + n)).Value = 1 Then
             Cells(7, (4 + n)).Value = "Lorentz"
             Cells(13 + sftfit2, (4 + n)).Value = vbNullString
-            If Cells(7, (4 + n)).Font.Italic = "True" Then  'Doniach-Sunjic (DS)
-                ' FWHM2 to be alpha; asymmetric parameter
-            Else
-                Cells(5, (4 + n)).Value = vbNullString
-            End If
+            Cells(5, (4 + n)).Value = vbNullString
         End If
         
         Cells(3, (4 + n)).FormulaR1C1 = "=(R12C101 - R13C101 - R14C101 - R2C)" ' KE
@@ -5333,14 +5279,14 @@ Sub GetOutFit()
     End If
     
     For n = 1 To j
-        If mid$(Cells(11, (4 + n)).Value, 1, 1) = "T" Then
-            Cells(10, (4 + n)) = vbNullString
-            Cells(5, (4 + n)) = vbNullString
-        ElseIf Cells(7, (4 + n)).Value = 0 Or Cells(7, (4 + n)).Value = "Gauss" Or Cells(11, (4 + n)).Value = "GL" Then  ' G
+        If Cells(7, (4 + n)).Value = 0 Or Cells(7, (4 + n)).Value = "Gauss" Or Cells(11, (4 + n)).Value = "GL" Then  ' G
             Range(Cells(8, (4 + n)), Cells(10, (4 + n))) = vbNullString
             Cells(5, (4 + n)) = vbNullString
         ElseIf Cells(7, (4 + n)).Value = 1 Or Cells(7, (4 + n)).Value = "Lorentz" Then
             Range(Cells(8, (4 + n)), Cells(10, (4 + n))) = vbNullString
+            Cells(5, (4 + n)) = vbNullString
+        ElseIf mid$(Cells(11, (4 + n)).Value, 1, 1) = "T" Then
+            Cells(10, (4 + n)) = vbNullString
             Cells(5, (4 + n)) = vbNullString
         Else
             If Cells(1, 2).Value = "Fit" Or Cells(1, 3).Value = "Fit" Then
@@ -8038,12 +7984,6 @@ Sub ProfileAnalyzer()
         coef5 = 0
     End If
     
-    If coef1 = 2 And (strShape = "G" Or strShape = "SGL") Then
-        strShape = "SGL"
-        Cells(9, 103).Value = "Sum"
-        coef4 = 1      ' "sum"
-        coef5 = 0
-    End If
     coef0 = (1000 * coef5 + 100 * coef1 + 10 * coef2 + coef3) * coef4
     
     If strShape = "G" And coef0 <> 0 Then
@@ -8057,11 +7997,7 @@ Sub ProfileAnalyzer()
     ElseIf strShape = "SGL" And coef0 <> 200 Then
         If Not 0 < Cells(7, (4 + n)).Value < 1 Or IsNumeric(Cells(7, (4 + n)).Value) = False Then Cells(7, (4 + n)).Value = 0.2
         Cells(7, (4 + n)).Font.Italic = "False"
-        If coef0 > 1000 Then
-            Cells(9, 103).Value = "MultiPak"
-        Else
-            Cells(9, 103).Value = "Sum"
-        End If
+        Cells(9, 103).Value = "Sum"
         Cells(7, (4 + n)).Font.Underline = xlUnderlineStyleNone
     ElseIf strShape = "TSGL" And coef0 <> 1201 Then
         If Not 0 < Cells(7, (4 + n)).Value < 1 Or IsNumeric(Cells(7, (4 + n)).Value) = False Then Cells(7, (4 + n)).Value = 0.2
