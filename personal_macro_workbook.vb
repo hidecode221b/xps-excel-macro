@@ -1987,7 +1987,11 @@ Sub GetOut()
         On Error GoTo Error1
         ActiveWorkbook.SaveAs Filename:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
     End If
-    strErr = "normal"
+    If strErr = vbNullString Then
+        strErr = "normal"
+    ElseIf StrComp(mid$(strErr, 1, 3), "err", 1) = 0 Then
+        MsgBox ("Error code: " & mid$(strErr, 4, Len(strErr) - 3))
+    End If
     Application.DisplayAlerts = True
     Exit Sub
 Error1:
@@ -1995,7 +1999,11 @@ Error1:
     wb = mid$(ActiveWorkbook.Name, 1, InStr(ActiveWorkbook.Name, ".") - 1) + "_bk.xlsx"
     ActiveWorkbook.SaveAs Filename:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
     Err.Clear
-    strErr = "normal"
+    If strErr = vbNullString Then
+        strErr = "normal"
+    ElseIf StrComp(mid$(strErr, 1, 3), "err", 1) = 0 Then
+        MsgBox ("Error code: " & mid$(strErr, 4, Len(strErr) - 3))
+    End If
     Resume Next
 End Sub
 
@@ -4538,6 +4546,16 @@ Sub FitCurve()
     Call FormulaCheck
     ActiveSheet.Calculate
 
+    If IsNumeric(Cells(9 + sftfit2, 2).Value) = False Then
+        strErr = "errIll-fit-parameters"
+        Call GetOutFit
+        Exit Sub
+    ElseIf Cells(9 + sftfit2, 2).Value > 100 Then
+        strErr = "errOver-fit-parameters"
+        Call GetOutFit
+        Exit Sub
+    End If
+
     fileNum = 0     ' # of iteration
     a0 = 0          ' Check tolerance for amp. ration
     a1 = 0          ' Check tolerance for BE diff.
@@ -5280,6 +5298,8 @@ Sub GetOutFit()
     
     For n = 1 To j
         If Cells(7, (4 + n)).Value = 0 Or Cells(7, (4 + n)).Value = "Gauss" Or Cells(11, (4 + n)).Value = "GL" Then  ' G
+            Cells(7, (4 + n)).Font.Italic = "False"
+            Cells(7, (4 + n)).Font.Underline = xlUnderlineStyleNone
             Range(Cells(8, (4 + n)), Cells(10, (4 + n))) = vbNullString
             Cells(5, (4 + n)) = vbNullString
         ElseIf Cells(7, (4 + n)).Value = 1 Or Cells(7, (4 + n)).Value = "Lorentz" Then
