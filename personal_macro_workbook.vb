@@ -491,12 +491,9 @@ DeadInTheWater3:
             If sheetData.Name = strTest Then flag = True
         Next sheetData
         
-        If flag = True Then
+        If flag = False Then
             ActiveSheet.Name = mid$(sh, 1, 25)
             strSheetDataName = mid$(sh, 1, 25)
-        Else
-            'ActiveSheet.Name = strTest
-            'strSheetDataName = strTest
         End If
         
         strCasa = "User Defined"  ' default database for XPS  "VG Avt"/"SC CXRO"
@@ -677,7 +674,7 @@ Sub PlotCLAM2()
     End If
 
     Range(Cells(11, 3), Cells((numData + 10), 3)) = C3
-    If Cells(11, 1).Value > Cells(12, 2).Value Then
+    If Cells(11, 1).Value > Cells(12, 1).Value Then
         Range(Cells(11, 1), Cells((numData + 10), 3)).Sort key1:=Cells(11, 1), order1:=xlAscending
     End If
     
@@ -4069,6 +4066,7 @@ Sub FitInitialGuess()
             Range(Cells(20 + sftfit, 4), Cells((2 * numData + 22 + sftfit), 55)).ClearContents
             Range(Cells(1, 4), Cells(19 + sftfit2 + 3, 55)).Interior.ColorIndex = xlNone
             Cells(20 + sftfit, 3).Value = "BG"
+            strErr = vbNullString
             Call GetOutFit
             strErrX = "skip"
             Exit Sub
