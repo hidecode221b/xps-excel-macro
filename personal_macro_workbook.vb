@@ -3702,6 +3702,12 @@ Sub FitInitial()
             mySeries.Format.Line.Weight = 1
             If Abs(startEb - endEb) < fitLimit Then
                 mySeries.ChartType = xlXYScatter
+                ' new method to make markers behind the lines
+                mySeries.Format.Line.Visible = msoTrue
+                mySeries.Format.Line.Weight = 1
+                mySeries.Format.Line.Transparency = 0.99    ' new
+                mySeries.Format.Line.ForeColor.RGB = RGB(255, 255, 255) 'white
+                ' end new method here
                 mySeries.MarkerStyle = 8
                 mySeries.MarkerSize = 8
                 mySeries.MarkerForegroundColorIndex = 1
