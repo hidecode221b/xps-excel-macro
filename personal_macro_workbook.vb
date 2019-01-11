@@ -1939,7 +1939,7 @@ Sub GetOut()
     End If
 
     Cells(1, 1).Select
-    If testMacro <> "debug" Then
+    If mid$(testMacro, 1, 5) <> "debug" Then
         Application.ScreenUpdating = True
         Application.EnableEvents = True
     End If
@@ -1975,21 +1975,20 @@ Sub GetOut()
         End If
     End If
     
-    testMacro = vbNullString
     Application.DisplayAlerts = False
-    
     If Len(ActiveWorkbook.Path) < 2 Then
         Application.Dialogs(xlDialogSaveAs).Show
     Else
         On Error GoTo Error1
         ActiveWorkbook.SaveAs Filename:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
     End If
+    Application.DisplayAlerts = True
     If strErr = vbNullString Then
         strErr = "normal"
-    ElseIf StrComp(mid$(strErr, 1, 3), "err", 1) = 0 Then
+    ElseIf StrComp(mid$(strErr, 1, 3), "err", 1) = 0 And mid$(testMacro, 1, 5) <> "debug" Then
         MsgBox ("Error code: " & mid$(strErr, 4, Len(strErr) - 3))
     End If
-    Application.DisplayAlerts = True
+    testMacro = vbNullString
     Exit Sub
 Error1:
     MsgBox Error(Err)
@@ -1998,9 +1997,10 @@ Error1:
     Err.Clear
     If strErr = vbNullString Then
         strErr = "normal"
-    ElseIf StrComp(mid$(strErr, 1, 3), "err", 1) = 0 Then
+    ElseIf StrComp(mid$(strErr, 1, 3), "err", 1) = 0 And mid$(testMacro, 1, 5) <> "debug" Then
         MsgBox ("Error code: " & mid$(strErr, 4, Len(strErr) - 3))
     End If
+    testMacro = vbNullString
     Resume Next
 End Sub
 
@@ -3580,7 +3580,7 @@ Sub FitInitial()
     
     C1 = dataBGraph
     
-    If sheetGraph.Cells(7, 2).Value > 0.001 Then
+    If sheetGraph.Cells(7, 2).Value >= 0.01 Then
         For n = 1 To numData
             C1(n, 1) = Round(C1(n, 1), 3)   ' This makes round en off to third decimal places.
         Next
