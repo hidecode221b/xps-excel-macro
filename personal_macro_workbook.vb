@@ -474,6 +474,8 @@ DeadInTheWater3:
         
         Application.CutCopyMode = False
         End
+    ElseIf InStr(1, sh, "Norm_") > 0 Then
+        strSheetDataName = ActiveSheet.Name
     Else
         If InStr(ActiveWorkbook.Name, ".") < 1 Then
             flag = Application.Dialogs(xlDialogSaveAs).Show
@@ -484,7 +486,7 @@ DeadInTheWater3:
         End If
         
         strTest = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1)
-        strTest = mid$(strTest, 1, 25)
+        strTest = mid$(strTest, 1, 19)
         
         flag = False
         For Each sheetData In Worksheets
@@ -492,8 +494,8 @@ DeadInTheWater3:
         Next sheetData
         
         If flag = False Then
-            ActiveSheet.Name = mid$(sh, 1, 25)
-            strSheetDataName = mid$(sh, 1, 25)
+            ActiveSheet.Name = mid$(sh, 1, 19)
+            strSheetDataName = mid$(sh, 1, 19)
         End If
         
         strCasa = "User Defined"  ' default database for XPS  "VG Avt"/"SC CXRO"
@@ -4713,7 +4715,11 @@ Resolve:
             SolverAdd CellRef:=Cells(6, (4 + n)), Relation:=2, FormulaText:=Cells(6, (4 + n)).Value
         Else
             SolverAdd CellRef:=Cells(6, (4 + n)), Relation:=1, FormulaText:=Cells(3, 101).Value - Cells(2, 101).Value
-            SolverAdd CellRef:=Cells(6, (4 + n)), Relation:=3, FormulaText:=0   ' minimum amplitude (1E-6/dblMin)
+            If Cells(2, 101).Value < 0.0000000001 Then
+                SolverAdd CellRef:=Cells(6, (4 + n)), Relation:=3, FormulaText:=Cells(2, 101).Value    ' amplitude min
+            Else
+                SolverAdd CellRef:=Cells(6, (4 + n)), Relation:=3, FormulaText:=0.000001    ' amplitude min
+            End If
         End If
         
         For k = 8 To 10
