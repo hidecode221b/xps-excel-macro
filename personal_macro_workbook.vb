@@ -4755,8 +4755,12 @@ Resolve:
                 SolverAdd CellRef:=Cells(5, (4 + n)), Relation:=3, FormulaText:=Cells(5, 103).Value         ' width2 min
             End If
 
-            SolverAdd CellRef:=Cells(7, (4 + n)), Relation:=1, FormulaText:=Cells(6, 103).Value         ' max shape
-            SolverAdd CellRef:=Cells(7, (4 + n)), Relation:=3, FormulaText:=Cells(7, 103).Value         ' min shape
+            If Cells(7, (4 + n)).Font.Bold = True Then
+                SolverAdd CellRef:=Cells(7, (4 + n)), Relation:=2, FormulaText:=Cells(7, (4 + n)).Value         ' fix shape
+            Else
+                SolverAdd CellRef:=Cells(7, (4 + n)), Relation:=1, FormulaText:=Cells(6, 103).Value         ' max shape
+                SolverAdd CellRef:=Cells(7, (4 + n)), Relation:=3, FormulaText:=Cells(7, 103).Value         ' min shape
+            End If
         End If
     Next
     
