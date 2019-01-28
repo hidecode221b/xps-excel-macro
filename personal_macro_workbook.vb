@@ -3958,7 +3958,7 @@ Sub FitInitialGuess()
                 End If
                 
                 C3(2, j) = C1(n, 3)
-                C3(6, j) = C2(n, 2)
+                C3(6, j) = C2(n, 2) - Cells(2, 101).Value
                 C3(9 + sftfit2, j) = C2(n, 1)
                 C3(7 + sftfit2, j) = C2(n, 4) ' beta
             End If
@@ -4030,7 +4030,7 @@ Sub FitInitialGuess()
                 End If
                 
                 C3(2, j) = C1(n, 3)   ' BE
-                C3(6, j) = C2(n, 2)   ' Amp.
+                C3(6, j) = C2(n, 2) - Cells(2, 101).Value      ' Amp.
                 C3(9 + sftfit2, j) = C2(n, 1) ' sensitivity
                 C3(7 + sftfit2, j) = C2(n, 4) ' beta
             End If
@@ -4556,7 +4556,7 @@ Sub FitCurve()
         strErr = "errIll-fit-parameters"
         Call GetOutFit
         Exit Sub
-    ElseIf Cells(9 + sftfit2, 2).Value > 100 Then
+    ElseIf Cells(9 + sftfit2, 2).Value > 1000 Then
         strErr = "errOver-fit-parameters"
         Call GetOutFit
         Exit Sub
@@ -7254,8 +7254,8 @@ Sub VictoreenBG()
         If Cells(k, 2).Font.Bold = "True" Then
             SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
         Else
-            SolverAdd CellRef:=Cells(k, 2), Relation:=3, FormulaText:=-1 ' min
-            SolverAdd CellRef:=Cells(k, 2), Relation:=1, FormulaText:=1 ' max
+            'SolverAdd CellRef:=Cells(k, 2), Relation:=3, FormulaText:=-1 ' min
+            'SolverAdd CellRef:=Cells(k, 2), Relation:=1, FormulaText:=1 ' max
         End If
     Next
 
