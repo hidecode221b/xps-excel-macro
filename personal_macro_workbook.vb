@@ -676,8 +676,10 @@ Sub PlotCLAM2()
     End If
 
     Range(Cells(11, 3), Cells((numData + 10), 3)) = C3
-    If Cells(11, 1).Value > Cells(12, 1).Value Then
-        Range(Cells(11, 1), Cells((numData + 10), 3)).Sort key1:=Cells(11, 1), order1:=xlAscending
+    If StrComp(strMode, "BE/eV", 1) <> 0 Then
+        If Cells(11, 1).Value > Cells(12, 1).Value Then
+            Range(Cells(11, 1), Cells((numData + 10), 3)).Sort key1:=Cells(11, 1), order1:=xlAscending
+        End If
     End If
     
     Call descriptGraph
@@ -7105,7 +7107,7 @@ Sub ShirleyBG() 'iteration mode
     End If
     
     C1 = Range(Cells(startR, 2), Cells(endR, 2))    'C
-    C2 = Range(Cells(startR, 3), Cells(endR, 3))    'A
+    C2 = Range(Cells(startR, 2), Cells(endR, 2))    'A
     
     Range(Cells(startR, 3), Cells(endR, 3)) = ShirleyIteration(Cells(2, 2).Value, Cells(3, 2).Value, C1, C2, Cells(20 + sftfit, 2).Value)
     Cells(4, 2).Value = a0
