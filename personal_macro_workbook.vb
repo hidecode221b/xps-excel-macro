@@ -6312,14 +6312,10 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
         Cells(1, (5 + (n * 3))).Value = Target
         Cells(9, (4 + (n * 3))).Value = "Offset/multp"
         Cells(9, (5 + (n * 3))).Value = 0
-            
-        If WorksheetFunction.Round(Cells(2, (5 + (n * 3))), 1) = 1486.6 And StrComp(mid$(strAna, 1, 3), "Fit", 1) <> 0 Then
-            Cells(9, (6 + (n * 3))).Value = 0.001
-        ElseIf WorksheetFunction.Round(Cells(2, (5 + (n * 3))), 1) = 1468.8 Then    ' fix mis-spelling for Alka PE
+        Cells(9, (6 + (n * 3))).Value = 1
+        
+        If WorksheetFunction.Round(Cells(2, (5 + (n * 3))), 1) = 1468.8 Then    ' fix mis-spelling for Alka PE
             Cells(2, (5 + (n * 3))).Value = 1486.6
-            Cells(9, (6 + (n * 3))).Value = 0.001
-        Else
-            Cells(9, (6 + (n * 3))).Value = 1
         End If
 
         Cells(9, (4 + (n * 3))).Interior.ColorIndex = 43
