@@ -1909,11 +1909,20 @@ Sub GetCompare()
         Application.Calculation = xlCalculationAutomatic
         
         Workbooks(wb).Sheets(strSheetGraphName).Activate
-        If Not (ncmp - cmp) = 0 Then Call offsetmultiple
-        If ncomp > cmp Then
-            Cells(45, para + 10).Value = ncomp  ' total number of data compared but less than cmp
+        If ncmp > 0 Then Call offsetmultiple
+        
+        If cmp + 1 > ncomp Then ' if comp command is in the new column.
+            ncmp = ncomp + (ncmp - cmp)
+        ElseIf cmp + 1 <= ncomp Then    ' if comp command is within the existed data
+            If ncomp - (cmp + 1) + 1 < ncmp - cmp Then  ' if selected comp data is over the previous ncomp
+                ncmp = ncomp + ((ncmp - cmp) - (ncomp - (cmp + 1) + 1))
+            End If
+        End If
+        
+        If ncomp > ncmp Then
+            Cells(45, para + 10).Value = ncomp ' total number of data compared but less than cmp, ncomp is original
         Else
-            Cells(45, para + 10).Value = ncmp   ' total number of data compared over cmp
+            Cells(45, para + 10).Value = ncmp ' total number of data compared over cmp, actual compared data
         End If
     Else
         TimeCheck = "stop"
@@ -7082,8 +7091,8 @@ Sub ShirleyBG() 'iteration mode
     If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
 '        Cells(2, 2).Value = 0.0001
 '        Cells(3, 2).Value = 0.001
-        Cells(3, 2).Value = 0.2 * Abs(Cells(startR, 2).Value - Cells(endR, 2).Value) / IntegrationTrapezoid(Range(Cells(startR, 1), Cells(endR, 1)), Range(Cells(startR, 2), Cells(endR, 2)))
-        Cells(2, 2).Value = 0.01 * Cells(3, 2).Value
+        Cells(3, 2).Value = Abs(Cells(startR, 2).Value - Cells(endR, 2).Value) / IntegrationTrapezoid(Range(Cells(startR, 1), Cells(endR, 1)), Range(Cells(startR, 2), Cells(endR, 2)))
+        Cells(2, 2).Value = 0.001 * Cells(3, 2).Value
     End If
 
     Cells(5, 2).Value = 0
@@ -7103,7 +7112,7 @@ Sub ShirleyBG() 'iteration mode
     End If
     
     C1 = Range(Cells(startR, 2), Cells(endR, 2))    'C
-    C2 = Range(Cells(startR, 2), Cells(endR, 2))    'A
+    C2 = Range(Cells(startR, 3), Cells(endR, 3))    'A
     
     Range(Cells(startR, 3), Cells(endR, 3)) = ShirleyIteration(Cells(2, 2).Value, Cells(3, 2).Value, C1, C2, Cells(20 + sftfit, 2).Value)
     Cells(4, 2).Value = a0
@@ -7165,10 +7174,16 @@ Function ShirleyIteration(Tor As Single, iA As Single, C1 As Variant, C2 As Vari
         ElseIf (Abs(C2(p, 1)) > 1000000 And mode = "Ab") Or (Abs(C2(1, 1)) > 1000000) Then
             Debug.Print k, mulFac, tA, C2(1, 1), "stop1"
             strErr = "errOverIte"
+            Cells(1, 2).Value = "ABG"
+            strBG2 = "ab"
+            Cells(8, 101).Value = 0
             Exit Function
         ElseIf Abs(tA) > 100 And Abs(bs) > 100 Then
             Debug.Print k, mulFac, tA, C2(1, 1), "stop2"
             strErr = "errOverA"
+            Cells(1, 2).Value = "ABG"
+            strBG2 = "ab"
+            Cells(8, 101).Value = 0
             Exit Function
         ElseIf Abs(tA - fA) < Tor Then
             ShirleyIteration = C2
@@ -10219,6 +10234,8 @@ Function Select_File_Or_Files_Mac(ext As String) As Variant
         FileFormat = "{""org.openxmlformats.spreadsheetml.sheet""}"
     ElseIf ext = "csv" Then
         FileFormat = "{""public.plain-text"","" public.comma-separated-values-text""}"
+    ElseIf ext = "txt" Or ext = "mca" Then
+        FileFormat = "{""public.plain-text""}"
     End If
 
     ' Set to True if you only want to be able to select one file
