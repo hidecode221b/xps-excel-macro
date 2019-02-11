@@ -474,7 +474,7 @@ DeadInTheWater3:
         
         Application.CutCopyMode = False
         End
-    ElseIf InStr(1, sh, "Norm_") > 0 Then
+    ElseIf InStr(1, sh, "Norm_") > 0 Or InStr(1, sh, "Edge_") > 0 Or InStr(1, sh, "Diff_") > 0 Then
         strSheetDataName = ActiveSheet.Name
     Else
         If InStr(ActiveWorkbook.Name, ".") < 1 Then
@@ -9052,31 +9052,6 @@ Sub GetNormalize()
             jc = 0
         End If
         
-        sheetGraph.Cells(1, (2 + (n * 3))) = "Pre edge"
-        sheetGraph.Cells(1, (3 + (n * 3))) = "Post edge"
-        sheetGraph.Cells(2, (1 + (n * 3))) = "Start, eV"
-        sheetGraph.Cells(3, (1 + (n * 3))) = "End, eV"
-        sheetGraph.Cells(4, (2 + (n * 3))) = "Polynominal coeff"
-        sheetGraph.Cells(5, (1 + (n * 3))) = "a0"
-        sheetGraph.Cells(6, (1 + (n * 3))) = "a1"
-        sheetGraph.Cells(7, (1 + (n * 3))) = "a2"
-        sheetGraph.Cells(8, (1 + (n * 3))) = "a3"
-        sheetGraph.Cells(9, (1 + (n * 3))) = "chi^2"
-        sheetGraph.Cells(10, (1 + (n * 3))) = Cells(10, 2 - jc).Value
-        sheetGraph.Cells(10, (2 + (n * 3))) = "Pre-edge"
-        sheetGraph.Cells(10, (3 + (n * 3))) = "Post-edge"
-        
-        Range(Cells(1, (2 + (n * 3))), Cells(1, (3 + (n * 3)))).Interior.ColorIndex = 15
-        Range(Cells(2, (1 + (n * 3))), Cells(3, (1 + (n * 3)))).Interior.ColorIndex = 14
-        Range(Cells(2, (2 + (n * 3))), Cells(3, (2 + (n * 3)))).Interior.ColorIndex = 42
-        Range(Cells(2, (3 + (n * 3))), Cells(3, (3 + (n * 3)))).Interior.ColorIndex = 8
-        Range(Cells(4, (2 + (n * 3))), Cells(4, (3 + (n * 3)))).Interior.ColorIndex = 15
-        Range(Cells(5, (1 + (n * 3))), Cells(8, (1 + (n * 3)))).Interior.ColorIndex = 45
-        Range(Cells(5, (2 + (n * 3))), Cells(8, (2 + (n * 3)))).Interior.ColorIndex = 44
-        Range(Cells(5, (3 + (n * 3))), Cells(8, (3 + (n * 3)))).Interior.ColorIndex = 36
-        Range(Cells(9, (1 + (n * 3))), Cells(9, (1 + (n * 3)))).Interior.ColorIndex = 7
-        Range(Cells(9, (2 + (n * 3))), Cells(9, (3 + (n * 3)))).Interior.ColorIndex = 38
-        
         sheetGraph.Range(Cells(1, (4 + (n * 3))), Cells((2 * (numData + 10)) - 1, (6 + (n * 3)))).Clear
         Set rng = Range(Cells(11, (k + 1 - jc + ((0) * 3))), Cells(11, (k + 1 - jc + (0 * 3))).End(xlDown))
         numData = Application.CountA(rng)   ' first data set
@@ -9281,14 +9256,41 @@ Sub GetNormalize()
             End If
         End If
         
-        Cells(5, 5).Value = Pre_offset
-        Cells(6, 5).Value = Pre_slope
-        Cells(5, 6).Value = Post_offset
-        Cells(6, 6).Value = Post_slope
-        Cells(7, 5).Value = 0
-        Cells(8, 5).Value = 0
-        Cells(7, 6).Value = 0
-        Cells(8, 6).Value = 0
+        If sheetGraph.Cells(1, (2 + (n * 3))) <> "Pre edge" Then
+            Cells(5, 5).Value = Pre_offset
+            Cells(6, 5).Value = Pre_slope
+            Cells(5, 6).Value = Post_offset
+            Cells(6, 6).Value = Post_slope
+            Cells(7, 5).Value = 0
+            Cells(8, 5).Value = 0
+            Cells(7, 6).Value = 0
+            Cells(8, 6).Value = 0
+            
+            sheetGraph.Cells(1, (2 + (n * 3))) = "Pre edge"
+            sheetGraph.Cells(1, (3 + (n * 3))) = "Post edge"
+            sheetGraph.Cells(2, (1 + (n * 3))) = "Start, eV"
+            sheetGraph.Cells(3, (1 + (n * 3))) = "End, eV"
+            sheetGraph.Cells(4, (2 + (n * 3))) = "Polynominal coeff"
+            sheetGraph.Cells(5, (1 + (n * 3))) = "a0"
+            sheetGraph.Cells(6, (1 + (n * 3))) = "a1"
+            sheetGraph.Cells(7, (1 + (n * 3))) = "a2"
+            sheetGraph.Cells(8, (1 + (n * 3))) = "a3"
+            sheetGraph.Cells(9, (1 + (n * 3))) = "chi^2"
+            sheetGraph.Cells(10, (1 + (n * 3))) = Cells(10, 2 - jc).Value
+            sheetGraph.Cells(10, (2 + (n * 3))) = "Pre-edge"
+            sheetGraph.Cells(10, (3 + (n * 3))) = "Post-edge"
+            
+            Range(Cells(1, (2 + (n * 3))), Cells(1, (3 + (n * 3)))).Interior.ColorIndex = 15
+            Range(Cells(2, (1 + (n * 3))), Cells(3, (1 + (n * 3)))).Interior.ColorIndex = 14
+            Range(Cells(2, (2 + (n * 3))), Cells(3, (2 + (n * 3)))).Interior.ColorIndex = 42
+            Range(Cells(2, (3 + (n * 3))), Cells(3, (3 + (n * 3)))).Interior.ColorIndex = 8
+            Range(Cells(4, (2 + (n * 3))), Cells(4, (3 + (n * 3)))).Interior.ColorIndex = 15
+            Range(Cells(5, (1 + (n * 3))), Cells(8, (1 + (n * 3)))).Interior.ColorIndex = 45
+            Range(Cells(5, (2 + (n * 3))), Cells(8, (2 + (n * 3)))).Interior.ColorIndex = 44
+            Range(Cells(5, (3 + (n * 3))), Cells(8, (3 + (n * 3)))).Interior.ColorIndex = 36
+            Range(Cells(9, (1 + (n * 3))), Cells(9, (1 + (n * 3)))).Interior.ColorIndex = 7
+            Range(Cells(9, (2 + (n * 3))), Cells(9, (3 + (n * 3)))).Interior.ColorIndex = 38
+        End If
         
         imax = numData + 10
         
