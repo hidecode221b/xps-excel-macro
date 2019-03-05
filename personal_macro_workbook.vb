@@ -7167,10 +7167,11 @@ Function ShirleyIteration(Tor As Single, iA As Single, C1 As Variant, C2 As Vari
         End If
         
         If k >= 1000 Then
-            If testMacro <> "debug" Then MsgBox "Iteration over " + CStr(k) + " at A:" + CStr(fA), 0, "Revise tolerance or initial A!"
-            ShirleyIteration = C2
-            a0 = fA
-            Exit Do
+            strErr = "errOverIte"
+            Cells(1, 2).Value = "ABG"
+            strBG2 = "ab"
+            Cells(8, 101).Value = 0
+            Exit Function
         ElseIf (Abs(C2(p, 1)) > 1000000 And mode = "Ab") Or (Abs(C2(1, 1)) > 1000000) Then
             Debug.Print k, mulFac, tA, C2(1, 1), "stop1"
             strErr = "errOverIte"
