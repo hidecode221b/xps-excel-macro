@@ -8511,6 +8511,7 @@ Sub Initial()
 
     If Val(Application.Version) < 15 Then   ' if excel version < 2013, make single instance from multiple ones.
         If backSlash <> "/" Then
+            Debug.Print InstanceCount, "# of instance"  ' it is required to skip bug in Excel2007 (20190321)
             If (InStr(ActiveWorkbook.Name, ".txt") > 0 Or InStr(ActiveWorkbook.Name, ".csv") > 0) And InstanceCount > 1 Then
                 Call ExcelRenew ' regenerate xlsx file from text opened with different insstance
             ElseIf StrComp(ActiveSheet.Name, "renew", 1) = 0 Then
@@ -8594,11 +8595,16 @@ Sub ExcelRenew()
         .Workbooks.Open Fname
         .Run ("PERSONAL.XLSB!CLAM2")
     End With
+
+    With nxlApp
+        .Application.DisplayAlerts = True
+        .Application.EnableEvents = True
+        .Application.ScreenUpdating = True
+    End With
     
     Set xlApp = Nothing
     Set nxlApp = Nothing
     
-    Application.DisplayAlerts = True
     End
 ' http://www.access-programmers.co.uk/forums/showthread.php?t=253555
 End Sub
