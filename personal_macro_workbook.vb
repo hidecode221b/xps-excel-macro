@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.40p"                             ' Version of this code.
+    ver = "8.41p"                             ' Version of this code.
     backSlash = Application.PathSeparator ' Mac = "/", Win = "\"
     If backSlash = "/" Then    ' location of directory for database for mac (Go from menu with option key, and click library)
         direc = "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
@@ -1888,20 +1888,21 @@ Sub GetCompare()
             Call GetOut
             If Len(strErr) > 0 Then Exit Sub
         ElseIf UBound(OpenFileName) > 1 And backSlash = "\" Then
-            ' http://www.cpearson.com/excel/SortingArrays.aspx
-            ' put the array values on the worksheet
-            Cells(50, para + 25).Value = "List comps"
-            Set rng = ActiveSheet.Cells(51, para + 25).Resize(UBound(OpenFileName) - LBound(OpenFileName) + 1, 1)
-            rng = Application.Transpose(OpenFileName)
-            ' sort the range
-            rng.Sort key1:=rng, order1:=xlAscending, MatchCase:=False
-            
-            ' load the worksheet values back into the array
-            For q = 1 To rng.Rows.Count
-                OpenFileName(q) = rng(q, 1)
-            Next q
-            
-            Range(Cells(50, para + 25), Cells(50 + UBound(OpenFileName), para + 25)).ClearContents
+'            ' http://www.cpearson.com/excel/SortingArrays.aspx
+'            ' put the array values on the worksheet
+'            Cells(50, para + 25).Value = "List comps"
+'            Set rng = ActiveSheet.Cells(51, para + 25).Resize(UBound(OpenFileName) - LBound(OpenFileName) + 1, 1)
+'            rng = Application.Transpose(OpenFileName)
+'
+'            ' sort the range
+'            rng.Sort key1:=rng, order1:=xlAscending, MatchCase:=False
+'
+'            ' load the worksheet values back into the array
+'            For q = 1 To rng.Rows.Count
+'                OpenFileName(q) = rng(q, 1)
+'            Next q
+'
+'            Range(Cells(50, para + 25), Cells(50 + UBound(OpenFileName), para + 26)).ClearContents
         End If
         
         Application.Calculation = xlCalculationManual
@@ -4080,7 +4081,7 @@ Sub FitInitialGuess()
         Else
             TimeCheck = 0
             j = 0
-            Cells(8, 101).Value = 0     ' -1
+            Cells(8, 101).Value = -1
             Range(Cells(1, 4), Cells(15 + sftfit2 + 4, 55)).ClearContents
             Range(Cells(20 + sftfit, 4), Cells((2 * numData + 22 + sftfit), 55)).ClearContents
             Range(Cells(1, 4), Cells(19 + sftfit2 + 3, 55)).Interior.ColorIndex = xlNone
@@ -4565,10 +4566,12 @@ Sub FitCurve()
 
     If IsNumeric(Cells(9 + sftfit2, 2).Value) = False Then
         strErr = "errIll-fit-parameters"
+        Cells(8, 101).Value = -1
         Call GetOutFit
         Exit Sub
-    ElseIf Cells(9 + sftfit2, 2).Value > 1000 Then
+    ElseIf Cells(9 + sftfit2, 2).Value > 10000 Then
         strErr = "errOver-fit-parameters"
+        Cells(8, 101).Value = -1
         Call GetOutFit
         Exit Sub
     End If
@@ -5254,7 +5257,7 @@ SkipGCEF:
 End Sub
 
 Sub GetOutFit()
-    If Not Cells(1, 1).Value = "EF" And Cells(8, 101).Value > 0 Then
+    If Not Cells(1, 1).Value = "EF" And Cells(8, 101).Value <> 0 Then
         Call descriptInitialFit
     End If
     
@@ -7068,8 +7071,8 @@ Sub descriptInitialFit()
     
     Cells(21 + sftfit + numData, 5 + j) = IntegrationTrapezoid(Range(Cells(21 + sftfit, 1), Cells(20 + sftfit + numData, 1)), Range(Cells(21 + sftfit, 5 + j), Cells(20 + sftfit + numData, 5 + j)))
     Range(Cells(11, 104), Cells(16, 104)).ClearContents
-    If ActiveSheet.ChartObjects.Count = 2 Then GoTo SkipBarPlot
     
+    If ActiveSheet.ChartObjects.Count <= 2 Or Cells(8, 101).Value < 0 Then GoTo SkipBarPlot
     ActiveSheet.ChartObjects(3).Activate
     With ActiveSheet.ChartObjects(3)
         With .Chart.Axes(xlValue, xlPrimary)
