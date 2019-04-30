@@ -5110,8 +5110,8 @@ Sub FitEF()
     If Cells(3, 2).Font.Bold = "True" Then  ' Slope dos
         SolverAdd CellRef:=Cells(3, 2), Relation:=2, FormulaText:=Cells(3, 2)
     Else
-        SolverAdd CellRef:=Cells(3, 2), Relation:=1, FormulaText:=10
-        SolverAdd CellRef:=Cells(3, 2), Relation:=3, FormulaText:=0
+        SolverAdd CellRef:=Cells(3, 2), Relation:=1, FormulaText:=Abs(Cells(startR, 2).Value - Cells(endR, 2).Value) / (Cells(startR, 1).Value - Cells(endR, 1).Value)
+        SolverAdd CellRef:=Cells(3, 2), Relation:=3, FormulaText:=-1 * Abs(Cells(startR, 2).Value - Cells(endR, 2).Value) / (Cells(startR, 1).Value - Cells(endR, 1).Value)
     End If
 
     If Cells(4, 2).Font.Bold = "True" Then  ' Int BG
@@ -5124,8 +5124,8 @@ Sub FitEF()
     If Cells(5, 2).Font.Bold = "True" Then  ' slope bg
         SolverAdd CellRef:=Cells(5, 2), Relation:=2, FormulaText:=Cells(5, 2)
     Else
-        SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=10
-        SolverAdd CellRef:=Cells(5, 2), Relation:=3, FormulaText:=0
+        SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=Abs(Cells(startR, 2).Value - Cells(endR, 2).Value) / (Cells(startR, 1).Value - Cells(endR, 1).Value)
+        SolverAdd CellRef:=Cells(5, 2), Relation:=3, FormulaText:=-1 * Abs(Cells(startR, 2).Value - Cells(endR, 2).Value) / (Cells(startR, 1).Value - Cells(endR, 1).Value)
     End If
     
     SolverAdd CellRef:=Cells(8, 2), Relation:=3, FormulaText:=0.0001    ' Norm fd
@@ -9780,22 +9780,25 @@ Sub debugAll()      ' multiple file analysis in sequence
                 ElseIf Len(strTest) >= 18 And InStr(13, strTest, "stop") > 0 And mid$(strTest, 7, 1) = "_" And mid$(strTest, 12, 1) = "_" Then
                     ElemX = mid$(strTest, 13, Len(strTest) - 12 - 5 - 2)    ' 12 for data&time, 5 for _stop, 2 for orbit
                     If InStr(1, AElist, ElemX) = 0 Then ElemX = vbNullString
-                ElseIf InStrRev(strTest, "_") > 0 Then
+                ElseIf Len(strTest) >= 15 And InStrRev(strTest, "_") > 0 Then
                     ElemT = mid$(strTest, InStrRev(strTest, "_") + 1, Len(strTest) - InStrRev(strTest, "_"))
                     
-                    If mid$(ElemT, Len(ElemT) - 1, 1) Like "[0-9]" And IsNumeric(mid$(ElemT, 1, Len(ElemT) - 2)) = False Then
-                        If mid$(ElemT, 1, Len(ElemT) - 2) <> "Su" Then
-                            ElemX = mid$(ElemT, 1, Len(ElemT) - 2)
-                            If InStr(1, AElist, ElemX) = 0 Then ElemX = vbNullString
+                    If StrComp(ElemT, "ig", 1) = 0 Or Len(ElemT) < 3 Or Len(ElemT) > 5 Then
+                        ElemX = ElemXbef
+                    Else
+                        If mid$(ElemT, Len(ElemT) - 1, 1) Like "[0-9]" And IsNumeric(mid$(ElemT, 1, Len(ElemT) - 2)) = False Then
+                            If mid$(ElemT, 1, Len(ElemT) - 2) <> "Su" Then
+                                ElemX = mid$(ElemT, 1, Len(ElemT) - 2)
+                                If InStr(1, AElist, ElemX) = 0 Then ElemX = vbNullString
+                            Else
+                                ElemX = ElemXbef
+                            End If
+                        ElseIf mid$(ElemT, Len(ElemT) - 2, 1) Like "[0-9]" And IsNumeric(mid$(ElemT, 1, Len(ElemT) - 3)) = False Then
+                            ElemX = mid$(ElemT, 1, Len(ElemT) - 3)  ' it forms Cu2p3
                         Else
                             ElemX = ElemXbef
                         End If
-                    ElseIf mid$(ElemT, Len(ElemT) - 2, 1) Like "[0-9]" And IsNumeric(mid$(ElemT, 1, Len(ElemT) - 3)) = False Then
-                        ElemX = mid$(ElemT, 1, Len(ElemT) - 3)  ' it forms Cu2p3
-                    Else
-                        ElemX = ElemXbef
                     End If
-                    'ElemX = mid$(strTest, 13, Len(strTest) - 23)
                 Else
                     ElemX = ElemXbef
                 End If
