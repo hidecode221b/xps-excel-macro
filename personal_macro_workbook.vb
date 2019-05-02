@@ -593,22 +593,21 @@ Sub TargetDataAnalysis()
         End If
     Else
         strMode = mid$(Cells(2, 1).Value, 1, 5)
-        If cmp >= 0 Then
-            Call GetCompare
-        Else
-            Call FormatData
-            If Len(strErr) > 0 Then Exit Sub
-            Call PlotCLAM2
-            If Len(strErr) > 0 Then Exit Sub
-            Call ElemXPS
-            If Len(strErr) > 0 Then Exit Sub
-            Call PlotElem
-            If Len(strErr) > 0 Then Exit Sub
-            Call FitCurve
+        If StrComp(strMode, "CLAM2", 1) = 0 Then
+            If cmp >= 0 Then
+                Call GetCompare
+            Else
+                Call FormatData
+                If Len(strErr) > 0 Then Exit Sub
+                Call PlotCLAM2
+                If Len(strErr) > 0 Then Exit Sub
+                Call ElemXPS
+                If Len(strErr) > 0 Then Exit Sub
+                Call PlotElem
+                If Len(strErr) > 0 Then Exit Sub
+                Call FitCurve
+            End If
         End If
-
-        If StrComp(TimeCheck, "yes", 1) = 0 Then TimeCheck = "yes2"
-        Call GetOut
     End If
 End Sub
 
@@ -1943,8 +1942,7 @@ Sub GetCompare()
 End Sub
 
 Sub GetOut()
-    If Not Cells(8, 101).Value = 0 Then
-    Else
+    If Cells(8, 101).Value = 0 Then
         If ExistSheet(strSheetFitName) And strAna = "FitRatioAnalysis" Then
             Worksheets(strSheetFitName).Activate
         ElseIf ExistSheet(strSheetGraphName) Then
@@ -1979,7 +1977,7 @@ Sub GetOut()
             Else
                 If IsEmpty(Cells(18, 101).Value) Then Cells(18, 101).FormulaR1C1 = "=Average(R21C2:R" & (20 + numData) & "C2)"
                 If IsNumeric(Cells(18, 101).Value) Then
-                    If Abs(Cells(18, 101).Value) < 1E-06 Then
+                    If Abs(Cells(18, 101).Value) < 0.000001 Then
                         TimeCheck = MsgBox("Fitting does not work properly, because averaged In data is less than 1E-6!")
                     ElseIf Abs(Cells(18, 101).Value) > 1E+29 Then
                         TimeCheck = MsgBox("Fitting does not work properly, because averaged In data is more than 1E+29!")
@@ -4374,13 +4372,13 @@ Sub FitRange(ByRef strCpa As String)
     strBG3 = LCase(mid$(Cells(1, 3).Value, 1, 2))
 
     If strBG1 = LCase(mid$(Cells(20, 101).Value, 1, 2)) And strBG2 = LCase(mid$(Cells(20, 102).Value, 1, 2)) And strBG3 = LCase(mid$(Cells(20, 103).Value, 1, 2)) Then
-        If Cells(8, 101).Value = 0 Then
+        If Cells(8, 101).Value <= 0 Then
             strCpa = "initial"
         Else
             strCpa = "repeat"
         End If
     Else
-        If Cells(8, 101).Value = 0 Then
+        If Cells(8, 101).Value <= 0 Then
             strCpa = "initial"
         Else
             Cells(8, 101).Value = 0
@@ -4487,13 +4485,13 @@ Sub FitCurve()
     If strErrX = "skip" Then Exit Sub
     Call SolverSetup
     
-    If StrComp(strBG1, "to", 1) <> 0 And StrComp(strBG2, "to", 1) <> 0 And StrComp(strBG1, "ef", 1) <> 0 Then
+    If StrComp(strBG1, "to", 1) <> 0 And StrComp(strBG2, "to", 1) <> 0 Then
         Range("DG31").CurrentRegion.ClearContents
         Range("DE31").CurrentRegion.ClearContents
     End If
         
-    If Cells(11 + sftfit2, 2).Value < 0 And Cells(12 + sftfit2, 2).Value > 0 And (Cells(12 + sftfit2, 2).Value - Cells(11 + sftfit2, 2).Value) < 6 And mid$(Cells(sftfit2 + 25, 1).Value, 1, 1) = "B" Then
-        Call FitEF
+    If StrComp(strBG1, "si", 1) = 0 Then    ' change from ef to si
+        Call FitSigmoid ' single sigmoid for cutoff
         Call GetOutFit
         Exit Sub
     ElseIf StrComp(strBG1, "po", 1) = 0 Then
@@ -4512,10 +4510,6 @@ Sub FitCurve()
         Call TougaardBG
     ElseIf StrComp(strBG1, "vi", 1) = 0 Then
         Call VictoreenBG
-    ElseIf StrComp(strBG1, "ef", 1) = 0 Then
-        Call FitEF
-        Call GetOutFit
-        Exit Sub
     Else
         Call ShirleyBG
     End If
@@ -4552,7 +4546,9 @@ Sub FitCurve()
     End With
     
     If strCpa = "repeat" Then
-        
+    ElseIf Cells(8, 101) < 0 Then
+        Call GetOutFit
+        Exit Sub
     Else
         Call FitInitialGuess
         If strErrX = "skip" Then Exit Sub
@@ -4667,7 +4663,18 @@ Resolve:
             End If
         End If
     ElseIf StrComp(Cells(1, 1).Value, "Shirley", 1) = 0 Then
-        SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Shirley
+        If StrComp(Cells(1, 2).Value, "ABG", 1) = 0 Then
+            SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j))) ' active Shirley
+            Call ShirleyActiveSetup ' (simultaneous mode)
+            
+            For k = 2 To 6
+                SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
+            Next
+            SolverAdd CellRef:=Cells(9, 2), Relation:=2, FormulaText:=Cells(9, 2)
+            SolverAdd CellRef:=Cells(10, 2), Relation:=2, FormulaText:=Cells(10, 2)
+        Else
+            SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j)))  ' static Shirley
+        End If
     ElseIf StrComp(Cells(1, 1).Value, "Tougaard") = 0 Then
         SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Tougaard
     ElseIf StrComp(Cells(1, 1).Value, "Victoreen", 1) = 0 Then
@@ -5051,9 +5058,9 @@ ExitIter:
     Call GetOutFit
 End Sub
 
-Sub FitEF()
+Sub FitSigmoid()
     Dim rng As Range, dataFit As Range
-    
+
     If startR > 21 + sftfit Then        ' remove =
         If IsEmpty(Cells(startR - 1, 3)) = False Then
             Range(Cells(21 + sftfit, 3), Cells(startR - 1, 5)).ClearContents
@@ -5077,21 +5084,48 @@ Sub FitEF()
     End If
     
     If Cells(8, 101).Value = 0 Then
-        Call descriptEFfit1  ' initial parameters before the first fit
+        Call descriptSigfit  ' initial parameters before the first fit
+        Debug.Print strBG2, "strBG2"
         If strBG2 = "co" Then Call descriptGConv
-    Else
-        'If strBG2 = "co" Then GoTo SkipInitialEF   ' if skip first FD
     End If
-    
-    Cells(startR, 3).FormulaR1C1 = "= R8C2 * (((R4C2 + R5C2 * (RC[-2] - R2C5))  + (R6C2 * (RC[-2] - R2C5)^2) + (R7C2 * (RC[-2] - R2C5)^3)) +  ((R2C2 + (R3C2 * (RC[-2] - R2C5))) / (1 + EXP(-(RC[-2] - R2C5) * 11604.86 / R4C5))))"
-    
+
+'   single sigmoid
+    If Cells(startR, 2).Value > Cells(endR, 2).Value Then   ' equivalent to EF
+        Cells(startR, 3).FormulaR1C1 = "= (((R2C2 + R3C2 * (RC[-2] - R2C5)) + (R4C2 * (RC[-2] - R2C5)^2) + (R5C2 * (RC[-2] - R2C5)^3)) +  ((R2C3 + (R3C3 * (RC[-2] - R2C5))  + (R4C3 * (RC[-2] - R2C5)^2) + (R5C3 * (RC[-2] - R2C5)^3)) / (1 + EXP(-(RC[-2] - R2C5) * 11604.86 / R4C5))))"
+    Else    ' in case work function cutoff
+        Cells(startR, 3).FormulaR1C1 = "= (((R2C2 + R3C2 * (RC[-2] - R2C5)) + (R4C2 * (RC[-2] - R2C5)^2) + (R5C2 * (RC[-2] - R2C5)^3)) + ((R2C3 + (R3C3 * (RC[-2] - R2C5))  + (R4C3 * (RC[-2] - R2C5)^2) + (R5C3 * (RC[-2] - R2C5)^3)) / (1 + EXP((RC[-2] - R2C5) * 11604.86 / R4C5))))"
+    End If
+
     Range(Cells(startR, 3), Cells(endR, 3)).FillDown
     Cells(startR, 4).FormulaR1C1 = "=((RC[-2] - RC[-1])^2)"
     Range(Cells(startR, 4), Cells(endR, 4)).FillDown
-    Cells(5 + sftfit2, 2).FormulaR1C1 = "=SUM(R" & startR & "C4:R" & endR & "C4)"
-    Cells(startR, 5).FormulaR1C1 = "=(RC[-3] - RC[-2])"
-    Range(Cells(startR, 5), Cells(endR, 5)).FillDown
     
+    Cells(startR, 5).FormulaR1C1 = "=(RC[-3] - RC[-2])"     ' residual
+    Range(Cells(startR, 5), Cells(endR, 5)).FillDown
+    Cells(20 + sftfit, 5).Value = "Residual (%)"
+
+    Cells(startR, 5).FormulaR1C1 = "=100*(RC2 - RC3)/abs(RC2)"    ' residual percentage
+    Range(Cells(startR, 5), Cells(endR, 5)).FillDown
+    Cells(20 + sftfit, 6).Value = "Residual"
+    Cells(startR, 6).FormulaR1C1 = "=(RC2 - RC3)"   ' residual
+    Range(Cells(startR, 6), Cells(endR, 6)).FillDown
+
+    Cells(20 + sftfit, 7).Value = "Abbe diff"
+    Cells(startR, 7).FormulaR1C1 = "=(R[1]C[-1] - RC[-1])"    ' Abbe
+    Range(Cells(startR, 7), Cells(endR - 1, 7)).FillDown
+
+    Cells(21 + sftfit2, 2).FormulaR1C1 = "=(SUM(R" & (21 + sftfit) & "C4:R" & (20 + sftfit + numData) & "C4)) /(" & (endR - startR + 1) & ")" 'Sum of LS4
+    Cells(22 + sftfit2, 2).FormulaR1C1 = "=(0.5 * sumsq(R" & startR & "C7:R" & endR - 1 & "C7)/sumsq(R" & startR & "C6:R" & endR & "C6))"
+    Cells(23 + sftfit2, 2).FormulaR1C1 = "=SUM(R" & startR & "C6:R" & endR & "C6)/SUM(R" & startR & "C2:R" & endR & "C2)"  ' fractional misfit (R-factor)
+    Cells(24 + sftfit2, 2).FormulaR1C1 = "=1-((abs(" & (startR - endR) & "))/(abs(" & (startR - endR) & ")-1-R16C101))*SUMSQ(R" & startR & "C6:R" & endR & "C6)/SUMSQ(R" & startR & "C2:R" & endR & "C2)"  ' R-Squared
+
+    If Cells(5 + sftfit2, 1).Font.Italic = "True" Then ' Abbe criterion
+        Cells(5 + sftfit2, 2).FormulaR1C1 = "=1-(0.5 * sumsq(R" & startR & "C7:R" & endR - 1 & "C7)/sumsq(R" & startR & "C6:R" & endR & "C6))"
+        ' Abbe uses a difference from 1 because the unity indicates goodness of fit!
+    Else    ' reduced chi squared
+        Cells(5 + sftfit2, 2).Value = "=SUM(R" & startR & "C4:R" & endR & "C4)/(" & Abs(startR - endR) + 1 & ")"
+    End If
+
     For Each rng In Range(Cells(2, 3), Cells(6, 4)).Cells
         If IsNumeric(rng.Value) = False Then
             rng.Value = 0
@@ -5100,34 +5134,63 @@ Sub FitEF()
     
     Call SolverSetup
     SolverOk SetCell:=Cells(5 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(8, 5))
-    If Cells(2, 2).Font.Bold = "True" Then  ' Int. Dos
+    
+    If Cells(2, 3).Font.Bold = "True" Then  ' Int. Dos
+        SolverAdd CellRef:=Cells(2, 3), Relation:=2, FormulaText:=Cells(2, 3)
+    Else
+        SolverAdd CellRef:=Cells(2, 3), Relation:=1, FormulaText:=2 * Abs(Cells(3, 101).Value - Cells(2, 101).Value)
+        SolverAdd CellRef:=Cells(2, 3), Relation:=3, FormulaText:=0
+    End If
+
+    If Cells(3, 3).Font.Bold = "True" Then  ' Slope dos
+        SolverAdd CellRef:=Cells(3, 3), Relation:=2, FormulaText:=Cells(3, 3)
+    Else
+        SolverAdd CellRef:=Cells(3, 3), Relation:=1, FormulaText:=Abs(Cells(3, 101).Value - Cells(2, 101).Value)
+        SolverAdd CellRef:=Cells(3, 3), Relation:=3, FormulaText:=-1 * Abs(Cells(3, 101).Value - Cells(2, 101).Value)
+    End If
+
+    If Cells(4, 3).Font.Bold = "True" Then  ' 3rd dos
+        SolverAdd CellRef:=Cells(4, 3), Relation:=2, FormulaText:=Cells(4, 3)
+    Else
+'        SolverAdd CellRef:=Cells(4, 3), Relation:=1, FormulaText:=Abs(Cells(3, 3)) / 10
+'        SolverAdd CellRef:=Cells(4, 3), Relation:=3, FormulaText:=-1 * Abs(Cells(3, 3)) / 10
+    End If
+    
+    If Cells(5, 3).Font.Bold = "True" Then  ' 4th dos
+        SolverAdd CellRef:=Cells(5, 3), Relation:=2, FormulaText:=Cells(5, 3)
+    Else
+'        SolverAdd CellRef:=Cells(5, 3), Relation:=1, FormulaText:=Abs(Cells(4, 2)) / 10
+'        SolverAdd CellRef:=Cells(5, 3), Relation:=3, FormulaText:=-1 * Abs(Cells(4, 2)) / 10
+    End If
+    
+    If Cells(2, 2).Font.Bold = "True" Then  ' Int BG
         SolverAdd CellRef:=Cells(2, 2), Relation:=2, FormulaText:=Cells(2, 2)
     Else
-        SolverAdd CellRef:=Cells(2, 2), Relation:=1, FormulaText:=Abs(Cells(3, 101).Value - Cells(2, 101).Value)
+        SolverAdd CellRef:=Cells(2, 2), Relation:=1, FormulaText:=Cells(2, 101).Value * 2
         SolverAdd CellRef:=Cells(2, 2), Relation:=3, FormulaText:=0
     End If
 
-    If Cells(3, 2).Font.Bold = "True" Then  ' Slope dos
+    If Cells(3, 2).Font.Bold = "True" Then  ' slope bg
         SolverAdd CellRef:=Cells(3, 2), Relation:=2, FormulaText:=Cells(3, 2)
     Else
-        SolverAdd CellRef:=Cells(3, 2), Relation:=1, FormulaText:=Abs(Cells(startR, 2).Value - Cells(endR, 2).Value) / (Cells(startR, 1).Value - Cells(endR, 1).Value)
-        SolverAdd CellRef:=Cells(3, 2), Relation:=3, FormulaText:=-1 * Abs(Cells(startR, 2).Value - Cells(endR, 2).Value) / (Cells(startR, 1).Value - Cells(endR, 1).Value)
+        SolverAdd CellRef:=Cells(3, 2), Relation:=1, FormulaText:=10
+        SolverAdd CellRef:=Cells(3, 2), Relation:=3, FormulaText:=-10
     End If
 
-    If Cells(4, 2).Font.Bold = "True" Then  ' Int BG
+    If Cells(4, 2).Font.Bold = "True" Then  ' poly 2nd bg
         SolverAdd CellRef:=Cells(4, 2), Relation:=2, FormulaText:=Cells(4, 2)
     Else
-        SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=Cells(2, 101).Value * 2
-        SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=0
+'        SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=Abs(Cells(3, 2)) / 10
+'        SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=-1 * Abs(Cells(3, 2)) / 10
     End If
 
-    If Cells(5, 2).Font.Bold = "True" Then  ' slope bg
+    If Cells(5, 2).Font.Bold = "True" Then  ' poly 3rd bg
         SolverAdd CellRef:=Cells(5, 2), Relation:=2, FormulaText:=Cells(5, 2)
     Else
-        SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=Abs(Cells(startR, 2).Value - Cells(endR, 2).Value) / (Cells(startR, 1).Value - Cells(endR, 1).Value)
-        SolverAdd CellRef:=Cells(5, 2), Relation:=3, FormulaText:=-1 * Abs(Cells(startR, 2).Value - Cells(endR, 2).Value) / (Cells(startR, 1).Value - Cells(endR, 1).Value)
+'        SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=Abs(Cells(4, 2)) / 10
+'        SolverAdd CellRef:=Cells(5, 2), Relation:=3, FormulaText:=-1 * Abs(Cells(4, 2)) / 10
     End If
-    
+
     SolverAdd CellRef:=Cells(8, 2), Relation:=3, FormulaText:=0.0001    ' Norm fd
 
     If Cells(2, 5).Font.Bold = "True" Then  ' BE
@@ -5147,52 +5210,80 @@ Sub FitEF()
     End If
     
     SolverAdd CellRef:=Cells(5, 5), Relation:=2, FormulaText:=Cells(5, 5)
-
     SolverAdd CellRef:=Cells(6, 5), Relation:=2, FormulaText:=0.1   ' Gauss width
-
-    For k = 2 To 8
-        If Cells(k, 2).Font.Bold = "True" Then
-            SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
-        End If
-    Next
-
-    For k = 2 To 6
-        If Cells(k, 5).Font.Bold = "True" Then
-            SolverAdd CellRef:=Cells(k, 5), Relation:=2, FormulaText:=Cells(k, 5)
-        End If
-    Next
-
     SolverSolve UserFinish:=True
     SolverFinish KeepFinal:=1
     
-SkipInitialEF:
+SkipInitialSig:
 
     p = startR + Cells(10, 101).Value
     q = endR - Cells(10, 101).Value
-    If strBG2 = "fi" Then GoTo SkipGCEF
     
-    Cells(p, 6).FormulaR1C1 = "= RC100*(R8C5)"
-    Range(Cells(p, 6), Cells(q, 6)).FillDown
-    Cells(p, 7).FormulaR1C1 = "=((RC2 - RC[-1])^2)"
-    Range(Cells(p, 7), Cells(q, 7)).FillDown
-    Cells(6 + sftfit2, 2).FormulaR1C1 = "=SUM(R" & p & "C7:R" & q & "C7)"
-    Cells(p, 8).FormulaR1C1 = "=(RC2 - RC[-2])"
+    If strBG2 = "fi" Then GoTo SkipGCSig
+    
+    Cells(p, 8).FormulaR1C1 = "= RC100*(R8C5)"
     Range(Cells(p, 8), Cells(q, 8)).FillDown
-    Range(Cells(startR, 6), Cells(p - 1, 8)).ClearContents
-    Range(Cells(q + 1, 6), Cells(endR, 8)).ClearContents
+    Cells(p, 9).FormulaR1C1 = "=((RC2 - RC[-1])^2)"
+    Range(Cells(p, 9), Cells(q, 9)).FillDown
+    Cells(6 + sftfit2, 2).FormulaR1C1 = "=SUM(R" & p & "C9:R" & q & "C9)/(" & Abs(p - q) + 1 & ")"
+    Cells(p, 10).FormulaR1C1 = "=(RC2 - RC[-2])"
+    Range(Cells(p, 10), Cells(q, 10)).FillDown
+    Range(Cells(startR, 8), Cells(p - 1, 12)).ClearContents
+    Range(Cells(q + 1, 8), Cells(endR, 12)).ClearContents
+    Cells(20 + sftfit, 10).Value = "Residual (%)"
+    Cells(p, 10).FormulaR1C1 = "=100*(RC2 - RC8)/abs(RC2)"    ' residual percentage
+    Range(Cells(p, 10), Cells(q, 10)).FillDown
+    Cells(20 + sftfit, 11).Value = "Residual"
+    Cells(p, 11).FormulaR1C1 = "=(RC2 - RC8)"   ' residual
+    Range(Cells(p, 11), Cells(q, 11)).FillDown
+    Cells(20 + sftfit, 12).Value = "Abbe diff"
+    Cells(p, 12).FormulaR1C1 = "=(R[1]C[-1] - RC[-1])"    ' Abbe
+    Range(Cells(p, 12), Cells(q - 1, 12)).FillDown
+
+    Cells(21 + sftfit2, 2).FormulaR1C1 = "=(SUM(R" & p & "C9:R" & q & "C9)) /(" & Abs(p - q) + 1 & ")" 'Sum of LS4
+    Cells(22 + sftfit2, 2).FormulaR1C1 = "=(0.5 * sumsq(R" & p & "C12:R" & q - 1 & "C12)/sumsq(R" & p & "C11:R" & q & "C11))"
+
+    If Cells(6 + sftfit2, 1).Font.Italic = "True" Then ' Abb criterion
+        Cells(6 + sftfit2, 2).FormulaR1C1 = "=1-(0.5 * sumsq(R" & p & "C12:R" & q - 1 & "C12)/sumsq(R" & p & "C11:R" & q & "C11))"
+        ' Abbe uses a difference from 1 because the unity indicates goodness of fit!
+    Else    ' reduced chi squared
+        Cells(6 + sftfit2, 2).Value = "=SUM(R" & p & "C9:R" & q & "C9)/(" & Abs(p - q) + 1 & ")"
+    End If
 
     If Cells(6, 5).Value <= 0.01 Then Cells(6, 5).Value = 1
     
-    Call SolverSetup
-    SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(8, 5))
-    SolverAdd CellRef:=Cells(6, 5), Relation:=3, FormulaText:=Cells(7, 103)   ' min      Gaussian width to be convoluted
+    Call SolverSetup2
+    
+    If Cells(6 + sftfit2, 1).Font.Bold = "True" Then
+        SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(8, 5))
+        
+        SolverAdd CellRef:=Cells(3, 3), Relation:=1, FormulaText:=Abs(Cells(3, 101).Value - Cells(2, 101).Value)    ' slope dos
+        SolverAdd CellRef:=Cells(3, 2), Relation:=1, FormulaText:=10    ' slope bg
+        SolverAdd CellRef:=Cells(3, 3), Relation:=3, FormulaText:=-1 * Abs(Cells(3, 101).Value - Cells(2, 101).Value)   ' 'slope dos
+        SolverAdd CellRef:=Cells(3, 2), Relation:=3, FormulaText:=-10   ' slope bg
+        SolverAdd CellRef:=Cells(2, 3), Relation:=1, FormulaText:=2 * Abs(Cells(3, 101).Value - Cells(2, 101).Value)    ' int dos
+        SolverAdd CellRef:=Cells(2, 3), Relation:=3, FormulaText:=0 ' int dos
+        SolverAdd CellRef:=Cells(8, 2), Relation:=3, FormulaText:=0.0001
+        SolverAdd CellRef:=Cells(2, 2), Relation:=1, FormulaText:=Cells(2, 101).Value * 2   ' int bg
+        SolverAdd CellRef:=Cells(2, 2), Relation:=3, FormulaText:=0 'int bg
+    
+        For k = 2 To 8
+            If Cells(k, 2).Font.Bold = "True" Then
+                SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
+            End If
+        Next
+    Else
+        SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(8, 5))
+    End If
+    
+    SolverAdd CellRef:=Cells(6, 5), Relation:=3, FormulaText:=10 * Cells(7, 103) ' min      Gaussian width to be convoluted
     SolverAdd CellRef:=Cells(6, 5), Relation:=1, FormulaText:=Cells(6, 103)   ' max
     SolverAdd CellRef:=Cells(2, 5), Relation:=3, FormulaText:=Cells(8 + sftfit2, 2)   ' min
     SolverAdd CellRef:=Cells(2, 5), Relation:=1, FormulaText:=Cells(9 + sftfit2, 2)   ' max
     SolverAdd CellRef:=Cells(4, 5), Relation:=1, FormulaText:=10000
     SolverAdd CellRef:=Cells(4, 5), Relation:=3, FormulaText:=1
     SolverAdd CellRef:=Cells(8, 5), Relation:=3, FormulaText:=0
-
+    
     For k = 2 To 8
         If Cells(k, 5).Font.Bold = "True" Then
             SolverAdd CellRef:=Cells(k, 5), Relation:=2, FormulaText:=Cells(k, 5)
@@ -5201,11 +5292,13 @@ SkipInitialEF:
     
     SolverSolve UserFinish:=True
     SolverFinish KeepFinal:=1
-SkipGCEF:
+    
+    ' end second solver
+SkipGCSig:
     
     Cells(8, 101).Value = Cells(8, 101).Value + 1     ' means already fit once
     
-    Call descriptEFfit2
+    Call descriptEndfit
     
     If Cells(8, 101).Value > 1 Then Exit Sub
     
@@ -5228,14 +5321,14 @@ SkipGCEF:
     With ActiveChart.SeriesCollection(3)
         .ChartType = xlXYScatterLinesNoMarkers
         .XValues = dataFit
-        .Values = dataFit.Offset(, 5)
+        .Values = dataFit.Offset(, 7)
         .Border.ColorIndex = 41
         .Format.Line.Weight = 3
-        .Name = "='" & ActiveSheet.Name & "'!R" & (20 + sftfit) & "C6"
+        .Name = "='" & ActiveSheet.Name & "'!R" & (20 + sftfit) & "C8"
     End With
     
     ActiveSheet.ChartObjects(2).Activate
-    ActiveSheet.ChartObjects(2).Chart.Axes(xlValue, xlPrimary).AxisTitle.Text = "Residual"
+    ActiveSheet.ChartObjects(2).Chart.Axes(xlValue, xlPrimary).AxisTitle.Text = "Residual (%)"
     With ActiveChart.SeriesCollection(1)
         .ChartType = xlXYScatterLinesNoMarkers
         .XValues = rng
@@ -5249,15 +5342,78 @@ SkipGCEF:
     With ActiveChart.SeriesCollection(2)
         .ChartType = xlXYScatterLinesNoMarkers
         .XValues = dataFit
-        .Values = dataFit.Offset(, 7)
+        .Values = dataFit.Offset(, 9)
         .Border.ColorIndex = 43
         .Format.Line.Weight = 3
-        .Name = "='" & ActiveSheet.Name & "'!R" & (20 + sftfit) & "C8"
+        .Name = "='" & ActiveSheet.Name & "'!R" & (20 + sftfit) & "C10"
     End With
 End Sub
 
+Sub descriptEndfit()
+    Dim rng As Range, dataFit As Range, dataCheck As Range, dataIntCheck As Range
+    
+    j = 1
+    Cells(1, 5).Value = "Inf_1"
+    Cells(1, 4).Value = "Name"
+    Cells(2, 4).Value = "BE"
+    Cells(3, 4).Value = "KE"
+    Cells(4, 4).Value = "Temp"
+    Cells(5, 4).Value = "Width(FD)"
+    Cells(6, 4).Value = "Width(GC)"
+    Cells(7, 4).Value = "Total"
+    Cells(8, 4).Value = "Norm (GC)"
+    
+    Cells(3, 5).FormulaR1C1 = "=(" & (pe - wf - char) & " - R2C)" ' KE
+    Cells(5, 5).FormulaR1C1 = "=(4.39 * R4C/11604)" ' Width     ' kT = 0.02585 eV at 300 K, 10-90% of electrons in 4.39 kT
+    Cells(7, 5).FormulaR1C1 = "=sqrt(R5C5^2 + R6C5^2)" ' Width
+
+    Cells(1, 4).Value = "Name"
+    Cells(2, 4).Value = "BE"
+    Cells(3, 4).Value = "KE"
+    Cells(4, 4).Value = "Temp"
+    Cells(5, 4).Value = "Width(FD)"
+    Cells(6, 4).Value = "Width(GC)"
+    Cells(7, 4).Value = "Total"
+    Cells(8, 4).Value = "Norm (GC)"
+    
+    Cells(3, 5).FormulaR1C1 = "=(" & (pe - wf - char) & " - R2C)" ' KE
+    Cells(5, 5).FormulaR1C1 = "=(4.39 * R4C/11604)" ' Width     ' kT = 0.02585 eV at 300 K, 10-90% of electrons in 4.39 kT
+    Cells(7, 5).FormulaR1C1 = "=sqrt(R5C5^2 + R6C5^2)" ' Width
+    'Range(Cells(4, 3), Cells(5, 3)).ClearContents
+    
+    Set rng = Range(Cells(startR, 1), Cells(endR, 1))
+    Set dataFit = Range(Cells(p, 1), Cells(q, 1))
+    
+    Cells(13, 103).FormulaR1C1 = "=R12C103 + (R12C103 - R15C103)*1.5"
+    Cells(12, 103).FormulaR1C1 = "=PERCENTILE(R" & (p) & "C10:R" & (q) & "C10,0.75) "
+    Cells(16, 103).FormulaR1C1 = "=PERCENTILE(R" & (p) & "C10:R" & (q) & "C10,0.5) "
+    Cells(15, 103).FormulaR1C1 = "=PERCENTILE(R" & (p) & "C10:R" & (q) & "C10,0.25) "
+    Cells(14, 103).FormulaR1C1 = "=R15C103 - (R12C103 - R15C103)*1.5"
+    Cells(17, 103).FormulaR1C1 = "=Average(R" & (p) & "C10:R" & (q) & "C10) "
+    Cells(18, 103).FormulaR1C1 = "=PERCENTILE(R" & (p) & "C10:R" & (q) & "C10,0) "
+    Cells(19, 103).FormulaR1C1 = "=PERCENTILE(R" & (p) & "C10:R" & (q) & "C10,1) "
+    
+    Range(Cells(11, 104), Cells(16, 104)).ClearContents '.Delete
+    
+    If ActiveSheet.ChartObjects.Count <= 2 Then GoTo SkipBarPlotEF
+    
+    ActiveSheet.ChartObjects(3).Activate
+    With ActiveSheet.ChartObjects(3)
+        With .Chart.Axes(xlValue, xlPrimary)
+            .MinimumScale = ActiveSheet.ChartObjects(2).Chart.Axes(xlValue, xlPrimary).MinimumScale
+            .MaximumScale = ActiveSheet.ChartObjects(2).Chart.Axes(xlValue, xlPrimary).MaximumScale
+        End With
+
+    End With
+    
+SkipBarPlotEF:
+    
+    Set dataData = rng
+    Set dataIntData = dataFit
+End Sub
+
 Sub GetOutFit()
-    If Not Cells(1, 1).Value = "EF" And Cells(8, 101).Value <> 0 Then
+    If Not strBG2 = "fi" And Not strBG3 = "fi" And Cells(8, 101).Value > 0 Then
         Call descriptInitialFit
     End If
     
@@ -5304,24 +5460,28 @@ Sub GetOutFit()
         End If
         Range(Cells(10, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
         Range(Cells(10, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
-    ElseIf StrComp(strBG1, "ef", 1) = 0 Then
+    ElseIf StrComp(strBG1, "si", 1) = 0 Then
         If StrComp(strBG2, "fi", 1) = 0 Then
             Cells(6, 5).Value = 0
         End If
-        Cells(8, 1).Value = "Norm (FD)"
-        Cells(6, 1).Value = "Poly2nd"
-        Cells(7, 1).Value = "Poly3rd"
-        Cells(5, 1).Value = "Slope BG"
+
         Range(Cells(9, 4), Cells(19 + sftfit2, 5)).ClearContents
         Range(Cells(9, 4), Cells(19 + sftfit2, 5)).Interior.ColorIndex = xlNone
         Range(Cells(9, 1), Cells(9, 2)).ClearContents
+        Range(Cells(6, 1), Cells(7, 3)).ClearContents
+        Range(Cells(6, 1), Cells(7, 3)).Interior.ColorIndex = xlNone
     Else
         Cells(6, 2).Value = fileNum
         Cells(6, 1).Value = "Iteration fit"
         Cells(5, 2).Font.Bold = "False"
         Cells(6, 2).Font.Bold = "False"
-        Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
-        Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
+        If strBG2 = "ab" Then
+'            Range(Cells(10, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
+'            Range(Cells(10, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
+        Else
+            Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
+            Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
+        End If
     End If
     
     For n = 1 To j
@@ -5347,8 +5507,11 @@ Sub GetOutFit()
     
     Cells(7 + sftfit2, 1).Value = "Peak fit"
     Cells(7 + sftfit2, 2).Value = vbNullString
-    Range(Cells(2, 3), Cells(7 + sftfit2, 3)).ClearContents
-    Range(Cells(2, 3), Cells(7 + sftfit2, 3)).Interior.ColorIndex = xlNone
+    If Cells(1, 1).Value = "Sigmoid" Or Cells(1, 2).Value = "Sigmoid" Or Cells(1, 1).Value = "UDF" Then
+    Else
+        Range(Cells(2, 3), Cells(7 + sftfit2, 3)).ClearContents
+        Range(Cells(2, 3), Cells(7 + sftfit2, 3)).Interior.ColorIndex = xlNone
+    End If
     Cells(1, 1).Select
     
     Application.Calculation = xlCalculationAutomatic
@@ -5609,7 +5772,7 @@ Sub FormatData()   ' this is a template for data loading.
         peX = CInt(mid$(Cells(8, 1).Value, 19, (Len(Cells(8, 1).Value) - 18 - 2)))
         If graphexist = 0 Then
             off = 0
-            multi = 1E-12
+            multi = 0.000000000001
         End If
     ElseIf StrComp(strMode, "Photo", 1) = 0 Then    ' XAS mode for user defined
         strMode = "PE/eV"
@@ -7002,15 +7165,15 @@ Sub descriptFit()
     
     With Cells(1, 1).Validation
         .Delete
-        .Add Type:=xlValidateList, Formula1:="Shirley,Tougaard,Polynominal,Victoreen,Arctan,EF"
+        .Add Type:=xlValidateList, Formula1:="Shirley,Tougaard,Polynominal,Victoreen,Arctan,Sigmoid"
     End With
     With Cells(1, 2).Validation
         .Delete
-        .Add Type:=xlValidateList, Formula1:="BG,ABG,Shirley,Tougaard,Normal"
+        .Add Type:=xlValidateList, Formula1:="BG,ABG,Shirley,Tougaard,Normal,Convoluted"
     End With
     With Cells(1, 3).Validation
         .Delete
-        .Add Type:=xlValidateList, Formula1:="BG,ABG"
+        .Add Type:=xlValidateList, Formula1:="BG,ABG,Fit"
     End With
 End Sub
 
@@ -7088,8 +7251,8 @@ Sub ShirleyBG() 'iteration mode
     Dim C1 As Variant, C2 As Variant
     
     Cells(1, 1).Value = "Shirley"
-    Cells(1, 2).Value = "BG"
-    Cells(1, 3).Value = vbNullString
+'    Cells(1, 2).Value = "BG"
+'    Cells(1, 3).Value = vbNullString
     
     If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
 '        Cells(2, 2).Value = 0.0001
@@ -7106,7 +7269,7 @@ Sub ShirleyBG() 'iteration mode
     
     Cells(20, 101).Value = "Shirley"
     Cells(20, 102).Value = Cells(1, 2).Value
-    Cells(20, 103).Value = vbNullString
+    Cells(20, 103).Value = Cells(1, 3).Value
     
     If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
         Range(Cells(startR, 3), Cells(endR, 3)) = Cells(startR, 2).Value
@@ -7196,6 +7359,59 @@ Function ShirleyIteration(Tor As Single, iA As Single, C1 As Variant, C2 As Vari
         End If
     Loop
 End Function
+
+Sub ShirleyActiveSetup()    ' simultaneous mode
+    If Cells(8, 101).Value = 0 Then
+        Cells(1, 2).Value = "ABG"
+        Cells(1, 3).Value = vbNullString
+        Cells(20, 102).Value = Cells(1, 2).Value
+        Cells(20, 103).Value = Cells(1, 3).Value
+        Cells(7, 1).Value = "I_start"
+        Cells(8, 1).Value = "I_end"
+        If Cells(7, 2).Font.Bold = "False" Then Cells(7, 2).Value = Cells(startR, 2).Value
+        If Cells(8, 2).Font.Bold = "False" Then Cells(8, 2).Value = Cells(endR, 2).Value
+        Cells(9, 1).Value = "Sf. eV-1"
+        Cells(10, 1).Value = "% Sf varied"
+        Cells(9, 2).FormulaR1C1 = "=Abs(R7C2-R8C2)/Abs(R16C2-R17C2)"    ' eV-1
+        Cells(10, 2).Value = 40
+    End If
+    
+    If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
+        For k = startR To endR Step 1
+            Cells(k, 3).FormulaR1C1 = "=R7C2 + (R8C2 - R7C2) * Sum(R" & startR & "C" & (5 + j) & ":R" & k & "C" & (5 + j) & ")/Sum(R" & startR & "C" & (5 + j) & ":R" & endR & "C" & (5 + j) & ")"
+        Next
+    Else        ' for BE
+        For k = endR To startR Step -1
+            Cells(k, 3).FormulaR1C1 = "=R8C2 + (R7C2 - R8C2) * Sum(R" & k & "C" & (5 + j) & ":R" & endR & "C" & (5 + j) & ")/Sum(R" & startR & "C" & (5 + j) & ":R" & endR & "C" & (5 + j) & ")"
+        Next
+    End If
+    
+    If Cells(7, 2).Font.Bold = "True" Then
+        SolverAdd CellRef:=Cells(7, 2), Relation:=2, FormulaText:=Cells(7, 2).Value
+    Else
+        If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
+            SolverAdd CellRef:=Cells(7, 2), Relation:=1, FormulaText:=Cells(endR, 2).Value * (1 + Cells(10, 2).Value / 100) ' max
+            SolverAdd CellRef:=Cells(7, 2), Relation:=3, FormulaText:=Cells(endR, 2).Value * (1 - Cells(10, 2).Value / 100) ' min
+        Else
+            SolverAdd CellRef:=Cells(7, 2), Relation:=1, FormulaText:=Cells(startR, 2).Value * (1 + Cells(10, 2).Value / 100) ' max
+            SolverAdd CellRef:=Cells(7, 2), Relation:=3, FormulaText:=Cells(startR, 2).Value * (1 - Cells(10, 2).Value / 100) ' min
+        End If
+    End If
+    If Cells(8, 2).Font.Bold = "True" Then
+        SolverAdd CellRef:=Cells(8, 2), Relation:=2, FormulaText:=Cells(8, 2).Value
+    Else
+        If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
+            SolverAdd CellRef:=Cells(8, 2), Relation:=1, FormulaText:=Cells(startR, 2).Value * (1 + Cells(10, 2).Value / 100) ' max
+            SolverAdd CellRef:=Cells(8, 2), Relation:=3, FormulaText:=Cells(startR, 2).Value * (1 - Cells(10, 2).Value / 100) ' min
+        Else
+            SolverAdd CellRef:=Cells(8, 2), Relation:=1, FormulaText:=Cells(endR, 2).Value * (1 + Cells(10, 2).Value / 100) ' max
+            SolverAdd CellRef:=Cells(8, 2), Relation:=3, FormulaText:=Cells(endR, 2).Value * (1 - Cells(10, 2).Value / 100) ' min
+        End If
+    End If
+    
+    [A7:A10].Interior.Color = RGB(156, 204, 101)    '43
+    [B7:B10].Interior.Color = RGB(197, 225, 165)    '35
+End Sub
 
 Sub VictoreenBG()
     Cells(1, 1).Value = "Victoreen"
@@ -7492,6 +7708,7 @@ Sub PolynominalBG()
     
     If StrComp(mid$(LCase(Cells(1, 2).Value), 1, 1), "a", 1) = 0 Then
         Cells(1, 2).Value = "ABG"
+        ns = 0
     Else
         Cells(1, 2).Value = "BG"
     End If
@@ -7850,18 +8067,18 @@ Sub PolynominalTougaardBG()
     [B2:B10].Interior.Color = RGB(197, 225, 165)    '35
 End Sub
 
-Sub SolverSetup()      ' fair results with moderate time
+Sub SolverSetup()      ' simple results with quick time
     SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
-    SolverOptions MaxTime:=20, Iterations:=100, Precision:=1E-06, AssumeLinear _
-        :=False, StepThru:=False, Estimates:=1, Derivatives:=2, SearchOption:=1, _
+    SolverOptions MaxTime:=10, Iterations:=100, Precision:=0.0001, AssumeLinear _
+        :=False, StepThru:=False, Estimates:=1, Derivatives:=1, SearchOption:=1, _
         IntTolerance:=5, Scaling:=True, Convergence:=0.0001, AssumeNonNeg:=False
 End Sub
 
 Sub SolverSetup2()      ' Accurate results with quite long time
     SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
-    SolverOptions MaxTime:=100, Iterations:=32767, Precision:=1E-10, AssumeLinear _
+    SolverOptions MaxTime:=100, Iterations:=32767, Precision:=0.0000000001, AssumeLinear _
         :=False, StepThru:=False, Estimates:=2, Derivatives:=2, SearchOption:=2, _
-        IntTolerance:=5, Scaling:=True, Convergence:=1E-10, AssumeNonNeg:=False
+        IntTolerance:=5, Scaling:=True, Convergence:=0.0000000001, AssumeNonNeg:=False
 End Sub
 
 Function ShowTrial(Reason As Integer)
@@ -7869,24 +8086,25 @@ Function ShowTrial(Reason As Integer)
     ShowTrial = 0
 End Function
 
-Sub descriptEFfit1()
+Sub descriptSigfit()
     Range(Cells(1, 3), Cells(15 + sftfit2, 55)).ClearContents
     Range(Cells(20 + sftfit, 3), Cells((2 * numData + 22 + sftfit), 55)).ClearContents
     Range(Cells(1, 3), Cells(15 + sftfit2, 55)).Interior.ColorIndex = xlNone
     
-    Cells(8 + sftfit2, 2).Value = -0.5
-    Cells(9 + sftfit2, 2).Value = 0.5
-    Cells(4, 5).Value = 300     ' temp
+    Cells(8 + sftfit2, 2).Value = Cells(16, 2).Value
+    Cells(9 + sftfit2, 2).Value = Cells(17, 2).Value
+    Cells(4, 5).Value = 1000     ' temp
     Cells(4, 5).Font.Bold = "True"
-    Cells(2, 5).Value = 0       ' BE
+    Cells(2, 5).Value = Abs(Cells(16, 2).Value - Cells(17, 2).Value) / 2     ' BE
     Cells(6, 5).Value = 0.1     ' Gauss width
     Cells(8, 5).Value = 1       ' Norm GC
-    Cells(2, 2).Value = (Cells(startR, 2) - Cells(endR, 2)) / 2  '(dblMax - dblMin) / 2     ' int dos
-    Cells(3, 2).Value = (Cells(12 + sftfit2, 2) - Cells(11 + sftfit2, 2)) / (Cells(startR, 2) - Cells(endR, 2))     ' slope dos
-    Cells(4, 2).Value = Cells(endR, 2).Value      ' dblMin      ' int bg
-    Cells(5, 2).Value = (Cells(12 + sftfit2, 2) - Cells(11 + sftfit2, 2)) / (Cells(startR, 2) - Cells(endR, 2)) / 5     ' slope bg
     
-    Cells(1, 1).Value = "EF"
+    Cells(2, 3).Value = Abs(Cells(startR, 2) - Cells(endR, 2)) / 2  '(dblMax - dblMin) / 2     ' int dos
+    Cells(3, 3).Value = Abs(Cells(startR, 2) - Cells(endR, 2)) / (Cells(12 + sftfit2, 2) - Cells(11 + sftfit2, 2))   ' slope dos
+    Cells(2, 2).Value = Cells(startR, 2).Value      ' dblMin      ' int bg
+    Cells(3, 2).Value = Abs(Cells(startR, 2) - Cells(endR, 2)) / (Cells(12 + sftfit2, 2) - Cells(11 + sftfit2, 2)) / 500     ' slope bg
+    
+    Cells(1, 1).Value = "Sigmoid"
     If Cells(1, 2).Value = "Convoluted" Then
         Cells(1, 3).Value = "Fit"
         strBG2 = LCase(mid$(Cells(1, 2).Value, 1, 2))
@@ -7898,12 +8116,13 @@ Sub descriptEFfit1()
         strBG3 = vbNullString
     End If
     
-    Cells(2, 1).Value = "Int. DOS"
-    Cells(3, 1).Value = "Slope DOS"
-    Cells(4, 1).Value = "Int. BG"
-    Cells(5, 1).Value = "Slope BG"
-    Cells(6, 1).Value = "Poly2nd"
-    Cells(7, 1).Value = "Poly3rd"
+    Cells(2, 1).Value = "Int BG/DOS"
+    Cells(3, 1).Value = "Slope BG/DOS"
+    Cells(4, 1).Value = "Poly2 BG/DOS"
+    Cells(5, 1).Value = "Poly3 BG/DOS"
+    Cells(6, 1).Value = "Poly4 BG/DOS"
+    Cells(7, 1).Value = "Poly5 BG/DOS"
+
     Cells(8, 1).Value = "Norm (FD)"
     
     Cells(5 + sftfit2, 1).Value = "Solve FD"
@@ -7915,76 +8134,38 @@ Sub descriptEFfit1()
     Cells(20 + sftfit2, 1).Value = "Figure of merit"
     Cells(21 + sftfit2, 1).Value = "chi^2*"
     Cells(22 + sftfit2, 1).Value = "Abbe"
+    Cells(23 + sftfit2, 1).Value = "R-factor (Fractional misfit)"
+    Cells(24 + sftfit2, 1).Value = "R^2* (Adjusted R-squared)"
 
-    Cells(20 + sftfit, 3).Value = "FitEF (FD)"
+    Cells(20 + sftfit, 3).Value = "FitSig (FD)"
     Cells(20 + sftfit, 4).Value = "Least fits (FD)"
     Cells(20 + sftfit, 5).Value = "Residual % (FD)"
     Cells(20 + sftfit, 6).Value = "Residual (FD)"
     Cells(20 + sftfit, 7).Value = "Abbe diff (FD)"
-    Cells(20 + sftfit, 8).Value = "FitEF (GC)"
-    Cells(20 + sftfit, 9).Value = "Least fits (GC)"
-    Cells(20 + sftfit, 10).Value = "Residual % (GC)"
-    Cells(20 + sftfit, 11).Value = "Residual (GC)"
-    Cells(20 + sftfit, 12).Value = "Abbe diff (GC)"
     
     Cells(8, 101).Value = 0     ' 7.45: revised from "-1"
+    Cells(16, 101).Value = 3    ' # of fit parameters
     Cells(20, 101).Value = Cells(1, 1).Value
     Cells(20, 102).Value = Cells(1, 2).Value
     Cells(20, 103).Value = Cells(1, 3).Value
-End Sub
-
-Sub descriptEFfit2()
-    Dim rng As Range, dataFit As Range, dataCheck As Range, dataIntCheck As Range
     
-    j = 1
-    Cells(1, 4).Value = "Name"
-    Cells(2, 4).Value = "BE"
-    Cells(3, 4).Value = "KE"
-    Cells(4, 4).Value = "Temp"
-    Cells(5, 4).Value = "Width(FD)"
-    Cells(6, 4).Value = "Width(GC)"
-    Cells(7, 4).Value = "Total"
-    Cells(8, 4).Value = "Norm (GC)"
-    Cells(1, 5).Value = "EF"
-    Cells(3, 5).FormulaR1C1 = "=(" & (pe - wf - char) & " - R2C)" ' KE
-    Cells(5, 5).FormulaR1C1 = "=(4.39 * R4C/11604)" ' Width     ' kT = 0.02585 eV at 300 K, 10-90% of electrons in 4.39 kT
-    Cells(7, 5).FormulaR1C1 = "=sqrt(R5C5^2 + R6C5^2)" ' Width
     Cells(1, 4).Interior.Color = RGB(77, 150, 200)    '33
     Range(Cells(2, 4), Cells(8, 4)).Interior.Color = RGB(77, 208, 225)    '33
     Cells(1, 5).Interior.Color = RGB(77, 182, 172)
     Range(Cells(2, 5), Cells(8, 5)).Interior.Color = RGB(178, 235, 242)   '34
-    Range(Cells(6, 1), Cells(8, 1)).Interior.Color = RGB(156, 204, 101)   '43
-    Range(Cells(6, 2), Cells(8, 2)).Interior.Color = RGB(197, 225, 165)   '35
+    Range(Cells(8, 1), Cells(8, 1)).Interior.Color = RGB(156, 204, 101)   '43
+    Range(Cells(8, 2), Cells(8, 2)).Interior.Color = RGB(197, 225, 165)   '35
+    Range(Cells(2, 3), Cells(8, 3)).Interior.Color = RGB(197, 200, 165)   '35
+
     Cells(5 + sftfit2, 1).Interior.Color = RGB(102, 187, 106) 'RGB(128, 203, 196) ' RGB(156, 204, 101)    '43
     Cells(5 + sftfit2, 2).Interior.Color = RGB(165, 214, 167) 'RGB(178, 223, 219) ' RGB(197, 225, 165)    '35
     
-    Set rng = Range(Cells(startR, 1), Cells(endR, 1))
-    Set dataFit = Range(Cells(p, 1), Cells(q, 1))
+    Range(Cells(21 + sftfit2, 1), Cells(22 + sftfit2, 1)).Interior.Color = RGB(255, 0, 102)
+    Range(Cells(21 + sftfit2, 2), Cells(22 + sftfit2, 2)).Interior.Color = RGB(255, 128, 179)
     
-    Cells(13, 103).FormulaR1C1 = "=R12C103 + (R12C103 - R15C103)*1.5"
-    Cells(12, 103).FormulaR1C1 = "=PERCENTILE(R" & (p) & "C8:R" & (q) & "C8,0.75) "
-    Cells(16, 103).FormulaR1C1 = "=PERCENTILE(R" & (p) & "C8:R" & (q) & "C8,0.5) "
-    Cells(15, 103).FormulaR1C1 = "=PERCENTILE(R" & (p) & "C8:R" & (q) & "C8,0.25) "
-    Cells(14, 103).FormulaR1C1 = "=R15C103 - (R12C103 - R15C103)*1.5"
-    Cells(17, 103).FormulaR1C1 = "=Average(R" & (p) & "C8:R" & (q) & "C8) "
-    Cells(18, 103).FormulaR1C1 = "=PERCENTILE(R" & (p) & "C8:R" & (q) & "C8,0) "
-    Cells(19, 103).FormulaR1C1 = "=PERCENTILE(R" & (p) & "C8:R" & (q) & "C8,1) "
-    
-    Range(Cells(11, 104), Cells(16, 104)).ClearContents '.Delete
-    If ActiveSheet.ChartObjects.Count = 2 Then GoTo SkipBarPlotEF
-    
-    ActiveSheet.ChartObjects(3).Activate
-    With ActiveSheet.ChartObjects(3)
-        With .Chart.Axes(xlValue, xlPrimary)
-            .MinimumScale = ActiveSheet.ChartObjects(2).Chart.Axes(xlValue, xlPrimary).MinimumScale
-            .MaximumScale = ActiveSheet.ChartObjects(2).Chart.Axes(xlValue, xlPrimary).MaximumScale
-        End With
-    End With
-    
-SkipBarPlotEF:
-    
-    Set dataData = rng
-    Set dataIntData = dataFit
+    If Not (Cells(11, 1).Comment Is Nothing) Then Cells(11, 1).Comment.Delete
+    If Not (Cells(13, 1).Comment Is Nothing) Then Cells(13, 1).Comment.Delete
+    If Not (Cells(14, 1).Comment Is Nothing) Then Cells(14, 1).Comment.Delete
 End Sub
 
 Sub ProfileAnalyzer()
@@ -10401,6 +10582,10 @@ Function FileOrFolderExistsOnMac(FileOrFolderstr As String) As Boolean
         If Not TestStr = vbNullString Then FileOrFolderExistsOnMac = True
     End If
 End Function
+
+
+
+
 
 
 
