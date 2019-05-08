@@ -4565,11 +4565,11 @@ Sub FitCurve()
         Cells(8, 101).Value = -1
         Call GetOutFit
         Exit Sub
-    ElseIf Cells(9 + sftfit2, 2).Value > 10000 Then
-        strErr = "errOver-fit-parameters"
-        Cells(8, 101).Value = -1
-        Call GetOutFit
-        Exit Sub
+    ElseIf Cells(9 + sftfit2, 2).Value > 100000 Then
+'        strErr = "errOver-fit-parameters"
+'        Cells(8, 101).Value = -1
+'        Call GetOutFit
+'        Exit Sub
     End If
 
     fileNum = 0     ' # of iteration
@@ -7102,10 +7102,10 @@ Sub descriptFit()
             Cells(8, 103).Value = Abs(Cells(7, 101).Value - Cells(6, 101).Value) / (100)
         End If
     Else        ' grating #2, 3, G = 0 for AlKa XPS
-        Cells(2, 103).Value = 10       ' max FWHM1 limit
-        Cells(3, 103).Value = 1       ' min FWHM1 limit
-        Cells(4, 103).Value = 10       ' max FWHM2 limit
-        Cells(5, 103).Value = 1      ' min FWHM2 limit
+        Cells(2, 103).Value = 3       ' max FWHM1 limit
+        Cells(3, 103).Value = 0.5       ' min FWHM1 limit
+        Cells(4, 103).Value = 3       ' max FWHM2 limit
+        Cells(5, 103).Value = 0.5      ' min FWHM2 limit
         Cells(6, 103).Value = 0.999       ' max shape limit
         Cells(7, 103).Value = 0.001       ' min shape limit
 '        Cells(10, 101).Value = 10          ' average points for poly BG
@@ -9832,6 +9832,8 @@ Sub debugAll()      ' multiple file analysis in sequence
     AElist1 = "H,He,Li,Be,B,C,N,O,F,Ne,Na,Mg,Al,Si,P,S,Cl,Ar,K,Ca,Sc,Ti,V,Cr,Mn,Fe,Co,Ni,Cu,Zn,Ga,Ge,As,Se,Br,Kr,Rb,Sr,Y,Zr,Nb,Mo,Tc,Ru,Rh,Pd,Ag,Cd,In,Sn,Sb,Te,I,Xe,Cs,Ba,La"
     AElist2 = "Ce,Pr,Nd,Pm,Sm,Eu,Gd,Tb,Dy,Ho,Er,Tm,Yb,Lu,Hf,Ta,W,Re,Os,Ir,Pt,Au,Hg,Tl,Pb,Bi,Po,At,Rn,Fr,Ra,Ac,Th,Pa,U,Np,Pu,Am,Cm"
     AElist = AElist1 & "," & AElist2
+    
+   AESlist = "KLL,LMM,MNN,NOO,KVV,LVV,MVV,NVV,OVV"
     showError = vbNullString
     
     If mid$(testMacro, 1, 5) = "debug" Then
@@ -9962,24 +9964,34 @@ Sub debugAll()      ' multiple file analysis in sequence
                     ElemX = mid$(strTest, 13, Len(strTest) - 12 - 5 - 2)    ' 12 for data&time, 5 for _stop, 2 for orbit
                     If InStr(1, AElist, ElemX) = 0 Then ElemX = vbNullString
                 ElseIf Len(strTest) >= 15 And InStrRev(strTest, "_") > 0 Then
-                    ElemT = mid$(strTest, InStrRev(strTest, "_") + 1, Len(strTest) - InStrRev(strTest, "_"))
-                    
-                    If StrComp(ElemT, "ig", 1) = 0 Or Len(ElemT) < 3 Or Len(ElemT) > 5 Then
-                        ElemX = ElemXbef
-                    Else
-                        If mid$(ElemT, Len(ElemT) - 1, 1) Like "[0-9]" And IsNumeric(mid$(ElemT, 1, Len(ElemT) - 2)) = False Then
-                            If mid$(ElemT, 1, Len(ElemT) - 2) <> "Su" Then
-                                ElemX = mid$(ElemT, 1, Len(ElemT) - 2)
-                                If InStr(1, AElist, ElemX) = 0 Then ElemX = vbNullString
+                    strElem = Split(strTest, "_")
+                    For q = 0 To UBound(strElem)
+                        ElemT = strElem(q)
+                        If StrComp(ElemT, "ig", 1) = 0 Or Len(ElemT) < 3 Or Len(ElemT) > 5 Then
+                            ElemX = ElemXbef
+                        Else
+                            If mid$(ElemT, Len(ElemT) - 1, 1) Like "[0-9]" And IsNumeric(mid$(ElemT, 1, Len(ElemT) - 2)) = False Then
+                                If mid$(ElemT, 1, Len(ElemT) - 2) <> "Su" Then
+                                    ElemX = mid$(ElemT, 1, Len(ElemT) - 2)
+                                    If InStr(1, AElist, ElemX) = 0 Then
+                                        ElemX = ElemXbef
+                                    Else
+                                        Exit For
+                                    End If
+                                Else
+                                    ElemX = ElemXbef
+                                End If
+                            ElseIf mid$(ElemT, Len(ElemT) - 2, 1) Like "[0-9]" And IsNumeric(mid$(ElemT, 1, Len(ElemT) - 3)) = False Then
+                                ElemX = mid$(ElemT, 1, Len(ElemT) - 3)  ' it forms Cu2p3
+                                Exit For
+                            ElseIf InStr(1, AESlist, ElemX) > 0 Then
+                                ElemX = mid$(ElemT, 1, Len(ElemT) - 3)  ' it forms ZnLMM
+                                Exit For
                             Else
                                 ElemX = ElemXbef
                             End If
-                        ElseIf mid$(ElemT, Len(ElemT) - 2, 1) Like "[0-9]" And IsNumeric(mid$(ElemT, 1, Len(ElemT) - 3)) = False Then
-                            ElemX = mid$(ElemT, 1, Len(ElemT) - 3)  ' it forms Cu2p3
-                        Else
-                            ElemX = ElemXbef
                         End If
-                    End If
+                    Next
                 Else
                     ElemX = ElemXbef
                 End If
