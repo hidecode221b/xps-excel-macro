@@ -21,7 +21,11 @@ Option Explicit
     
 Sub CLAM2()
     ver = "8.41p"                             ' Version of this code.
-    If Application.OperatingSystem Like "*Mac*" Then backSlash = "/" ' Mac = "/", Win = "\"
+    If Application.OperatingSystem Like "*Mac*" Then
+        backSlash = "/"
+    Else
+        backSlash = "\"
+    End If
     If backSlash = "/" Then    ' location of directory for database for mac (Go from menu with option key, and click library)
         direc = "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
     Else
@@ -5495,7 +5499,7 @@ Sub GetOutFit()
             Range(Cells(8, (4 + n)), Cells(10, (4 + n))) = vbNullString
             Cells(5, (4 + n)) = vbNullString
         ElseIf mid$(Cells(11, (4 + n)).Value, 1, 1) = "S" Then
-            Range(Cells(8, (4 + n)), Cells(10 - ps, (4 + n))) = vbNullString
+            Range(Cells(8, (4 + n)), Cells(10, (4 + n))) = vbNullString
             'Debug.Print "SGL"
         ElseIf mid$(Cells(11, (4 + n)).Value, 1, 1) = "T" Then
             Cells(10, (4 + n)) = vbNullString
