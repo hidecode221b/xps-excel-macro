@@ -21,7 +21,7 @@ Option Explicit
     
 Sub CLAM2()
     ver = "8.41p"                             ' Version of this code.
-    backSlash = Application.PathSeparator ' Mac = "/", Win = "\"
+    If Application.OperatingSystem Like "*Mac*" Then backSlash = "/" ' Mac = "/", Win = "\"
     If backSlash = "/" Then    ' location of directory for database for mac (Go from menu with option key, and click library)
         direc = "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
     Else
@@ -2003,6 +2003,7 @@ Sub GetOut()
     testMacro = vbNullString
     Exit Sub
 Error1:
+    If Application.OperatingSystem Like "*Mac*" Then End
     MsgBox Error(Err)
     wb = mid$(ActiveWorkbook.Name, 1, InStr(ActiveWorkbook.Name, ".") - 1) + "_bk.xlsx"
     ActiveWorkbook.SaveAs Filename:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
@@ -5493,9 +5494,13 @@ Sub GetOutFit()
         ElseIf Cells(7, (4 + n)).Value = 1 Or Cells(7, (4 + n)).Value = "Lorentz" Then
             Range(Cells(8, (4 + n)), Cells(10, (4 + n))) = vbNullString
             Cells(5, (4 + n)) = vbNullString
+        ElseIf mid$(Cells(11, (4 + n)).Value, 1, 1) = "S" Then
+            Range(Cells(8, (4 + n)), Cells(10 - ps, (4 + n))) = vbNullString
+            'Debug.Print "SGL"
         ElseIf mid$(Cells(11, (4 + n)).Value, 1, 1) = "T" Then
             Cells(10, (4 + n)) = vbNullString
             Cells(5, (4 + n)) = vbNullString
+            'Debug.Print "TSGL"
         Else
             If Cells(1, 2).Value = "Fit" Or Cells(1, 3).Value = "Fit" Then
                 'Cells(10, (4 + n)) = vbNullString
@@ -9828,7 +9833,9 @@ Sub debugAll()      ' multiple file analysis in sequence
     Dim be4all() As Variant, am4all() As Variant, fw4all() As Variant, wbX As String, shgX As Worksheet, shfX As Worksheet, strSheetDataNameX As String, numpeakX As Integer
     Dim Target As Variant, C1 As Variant, C2 As Variant, OpenFileName As Variant, debugMode As String, seriesnum As Integer, SourceRangeColor1 As Long, rng As Range, strNorm As String, showError As String
     Dim debugcp As Integer, shf As Worksheet, strTest As String, ElemXbef As String, ElemT As String, AElist As String, AElist1 As String, AElist2 As String
+    Dim strElem() As String, AESlist As String
     
+    If Application.OperatingSystem Like "*Mac*" Then backSlash = "/"
     AElist1 = "H,He,Li,Be,B,C,N,O,F,Ne,Na,Mg,Al,Si,P,S,Cl,Ar,K,Ca,Sc,Ti,V,Cr,Mn,Fe,Co,Ni,Cu,Zn,Ga,Ge,As,Se,Br,Kr,Rb,Sr,Y,Zr,Nb,Mo,Tc,Ru,Rh,Pd,Ag,Cd,In,Sn,Sb,Te,I,Xe,Cs,Ba,La"
     AElist2 = "Ce,Pr,Nd,Pm,Sm,Eu,Gd,Tb,Dy,Ho,Er,Tm,Yb,Lu,Hf,Ta,W,Re,Os,Ir,Pt,Au,Hg,Tl,Pb,Bi,Po,At,Rn,Fr,Ra,Ac,Th,Pa,U,Np,Pu,Am,Cm"
     AElist = AElist1 & "," & AElist2
