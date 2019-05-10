@@ -1996,6 +1996,7 @@ Sub GetOut()
         Application.Dialogs(xlDialogSaveAs).Show
     Else
         On Error GoTo Error1
+        If Application.OperatingSystem Like "*Mac*" Then grantFileAccess (Array(ActiveWorkbook.Path + backSlash + wb))
         ActiveWorkbook.SaveAs Filename:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
     End If
     Application.DisplayAlerts = True
@@ -2007,9 +2008,10 @@ Sub GetOut()
     testMacro = vbNullString
     Exit Sub
 Error1:
-    If Application.OperatingSystem Like "*Mac*" Then End
+
     MsgBox Error(Err)
     wb = mid$(ActiveWorkbook.Name, 1, InStr(ActiveWorkbook.Name, ".") - 1) + "_bk.xlsx"
+    If Application.OperatingSystem Like "*Mac*" Then grantFileAccess (Array(ActiveWorkbook.Path + backSlash + wb))
     ActiveWorkbook.SaveAs Filename:=wbpath + backSlash + wb, FileFormat:=xlOpenXMLWorkbook
     Err.Clear
     If strErr = vbNullString Then
@@ -9873,6 +9875,7 @@ Sub debugAll()      ' multiple file analysis in sequence
     If modex <= -2 Then
         If backSlash = "/" Then
             OpenFileName = Select_File_Or_Files_Mac("xlsx")
+            grantFileAccess (OpenFileName)
         Else
             If mid$(ActiveWorkbook.Path, 1, 1) <> "\" Then
                 ChDrive mid$(ActiveWorkbook.Path, 1, 1)
@@ -9883,6 +9886,7 @@ Sub debugAll()      ' multiple file analysis in sequence
     Else
         If backSlash = "/" Then
             OpenFileName = Select_File_Or_Files_Mac("csv")
+            grantFileAccess (OpenFileName)
         Else
             If modex <= -1 Then
                  If mid$(ActiveWorkbook.Path, 1, 1) <> "\" Then
@@ -10606,7 +10610,10 @@ Function FileOrFolderExistsOnMac(FileOrFolderstr As String) As Boolean
     End If
 End Function
 
-
+Function grantFileAccess(filePermissionCandidates)
+'https://warwick.ac.uk/fac/sci/systemsbiology/staff/dyer/software/excelvbafileopen/
+  grantFileAccess = GrantAccessToMultipleFiles(filePermissionCandidates) 'returns true if access granted, false otherwise_
+End Function
 
 
 
