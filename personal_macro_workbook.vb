@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.41p"                             ' Version of this code.
+    ver = "8.42p"                             ' Version of this code.
     If Application.OperatingSystem Like "*Mac*" Then
         backSlash = "/"
     Else
@@ -123,7 +123,6 @@ DeadInTheWater1:
 DeadInTheWater2:
                 TimeCheck = MsgBox("Database Not Found in " + direc + "!" + vbCrLf + "Would you like to continue?", 4, "Database error")
                 If TimeCheck = 6 Then
-                    testMacro = "debug"
                     ElemX = ""
                     On Error GoTo DeadInTheWater1
                     C1 = Split(direc, backSlash)
