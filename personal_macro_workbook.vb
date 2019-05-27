@@ -1338,14 +1338,14 @@ SkipXPSnumZero:
                 C2(j, 1) = C1(q, 1)       ' Element
                 C2(j, 2) = C1(q, 2)       ' Transition
                 C2(j, 4) = C1(q, 3)       ' KE
-                C2(j, 7) = C1(q, 4 + aesoffset)       ' AES RSF
+                C2(j, 7) = CSng(C1(q, 4 + aesoffset))       ' AES RSF
                 C2(j, 11) = rtoe          ' atomic element ratio
                 j = j + 1
             ElseIf LCase(Elem) = "all" And q > 1 Then
                 C2(j, 1) = C1(q, 1)       ' Element
                 C2(j, 2) = C1(q, 2)       ' Transition
                 C2(j, 4) = C1(q, 3)       ' KE
-                C2(j, 7) = C1(q, 4 + aesoffset)       ' AES RSF
+                C2(j, 7) = CSng(C1(q, 4 + aesoffset))       ' AES RSF
                 C2(j, 11) = rtoe          ' atomic element ratio
                 j = j + 1
             End If
