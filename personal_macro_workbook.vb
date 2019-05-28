@@ -491,14 +491,11 @@ DeadInTheWater3:
         strTest = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1)
         strTest = mid$(strTest, 1, 19)
         
-        flag = False
-        For Each sheetData In Worksheets
-            If sheetData.Name = strTest Then flag = True
-        Next sheetData
-        
-        If flag = False Then
-            ActiveSheet.Name = mid$(sh, 1, 19)
+        If Not ExistSheet(strTest) Then
+            ActiveSheet.Name = mid$(sh, 1, 19) ' follow the name of work sheet
             strSheetDataName = mid$(sh, 1, 19)
+            'ActiveSheet.Name = strTest ' follow the name of work book
+            'strSheetDataName = strTest
         End If
         
         strCasa = "User Defined"  ' default database for XPS  "VG Avt"/"SC CXRO"
@@ -508,14 +505,7 @@ DeadInTheWater3:
     strSheetGraphName = "Graph_" + strSheetDataName
     strSheetFitName = "Fit_" + strSheetDataName
     
-    If Not ExistSheet(strSheetDataName) Then
-        strSheetDataName = mid$(ActiveWorkbook.Name, 1, InStrRev(ActiveWorkbook.Name, ".") - 1)
-        If Not ExistSheet(strSheetDataName) Then
-            ActiveSheet.Name = strSheetDataName
-        End If
-        strSheetGraphName = "Graph_" + strSheetDataName
-        strSheetFitName = "Fit_" + strSheetDataName
-    End If
+    If Not ExistSheet(strSheetDataName) Then End
 
     Set sheetData = Worksheets(strSheetDataName)
     Worksheets(strSheetDataName).Activate
@@ -1338,14 +1328,14 @@ SkipXPSnumZero:
                 C2(j, 1) = C1(q, 1)       ' Element
                 C2(j, 2) = C1(q, 2)       ' Transition
                 C2(j, 4) = C1(q, 3)       ' KE
-                C2(j, 7) = CSng(C1(q, 4 + aesoffset))       ' AES RSF
+                C2(j, 7) = C1(q, 4 + aesoffset)       ' AES RSF
                 C2(j, 11) = rtoe          ' atomic element ratio
                 j = j + 1
             ElseIf LCase(Elem) = "all" And q > 1 Then
                 C2(j, 1) = C1(q, 1)       ' Element
                 C2(j, 2) = C1(q, 2)       ' Transition
                 C2(j, 4) = C1(q, 3)       ' KE
-                C2(j, 7) = CSng(C1(q, 4 + aesoffset))       ' AES RSF
+                C2(j, 7) = C1(q, 4 + aesoffset)       ' AES RSF
                 C2(j, 11) = rtoe          ' atomic element ratio
                 j = j + 1
             End If
