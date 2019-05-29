@@ -494,19 +494,19 @@ DeadInTheWater3:
         If Not ExistSheet(strTest) Then
             ActiveSheet.Name = mid$(sh, 1, 19) ' follow the name of work sheet
             strSheetDataName = mid$(sh, 1, 19)
-            'ActiveSheet.Name = strTest ' follow the name of work book
-            'strSheetDataName = strTest
+        Else
+            strSheetDataName = strTest
         End If
         
         strCasa = "User Defined"  ' default database for XPS  "VG Avt"/"SC CXRO"
         strAES = "User Defined"   ' default database for AES  "VG qnt"/"Mrocz"
     End If
     
+    If Not ExistSheet(strSheetDataName) Then End
+    
     strSheetGraphName = "Graph_" + strSheetDataName
     strSheetFitName = "Fit_" + strSheetDataName
     
-    If Not ExistSheet(strSheetDataName) Then End
-
     Set sheetData = Worksheets(strSheetDataName)
     Worksheets(strSheetDataName).Activate
     wb = ActiveWorkbook.Name
@@ -1949,33 +1949,13 @@ Sub GetOut()
         Application.EnableEvents = True
     End If
     
-    If StrComp("Fit", mid$(ActiveSheet.Name, 1, 3)) = 0 And IsNumeric(TimeCheck) = False And Cells(1, 1) <> "EF" Then 'Cells(9, 1).Value = "Solve LSM" Then
-        If IsNumeric(Cells(9 + sftfit2, 2)) Then
-            If fileNum >= Cells(17, 101).Value And Cells(9 + sftfit2, 2).Value < 10 Then   ' limit in # of iteration
-                If a1 = a2 Then
-                    TimeCheck = MsgBox("Tolerance result; " & vbCrLf & "Amp. ratio: " & a0 & " > " & a2 & ".", vbExclamation, "Iteration over " & fileNum & " !")
-                ElseIf a0 = 0 Then
-                    TimeCheck = MsgBox("Tolerance result; " & vbCrLf & "BE diff.: " & a1 & " > " & a2 & ".", vbExclamation, "Iteration over " & fileNum & " !")
-                Else
-                    TimeCheck = MsgBox("Tolerance results; " & vbCrLf & "Amp. ratio: " & a0 & " < " & a2 & vbCrLf & "BE diff.: " & a1 & " > " & a2 & ".", vbExclamation, "Iteration over " & fileNum & " !")
-                End If
-            ElseIf fileNum > 1 And Cells(9 + sftfit2, 2).Value < 10 Then
-                If a1 = 0 Then
-                    TimeCheck = MsgBox("Tolerance result; " & vbCrLf & "Amp. ratio: " & a0 & " < " & a2 & ".", vbInformation, "Iteration: " & fileNum)
-                ElseIf a0 = 0 Then
-                    TimeCheck = MsgBox("Tolerance result; " & vbCrLf & "BE diff.: " & a1 & " < " & a2 & ".", vbInformation, "Iteration: " & fileNum)
-                Else
-                    TimeCheck = MsgBox("Tolerance results; " & vbCrLf & "Amp. ratio: " & a0 & " < " & a2 & vbCrLf & "BE diff.: " & a1 & " < " & a2 & ".", vbInformation, "Iteration: " & fileNum)
-                End If
-            Else
-                If IsEmpty(Cells(18, 101).Value) Then Cells(18, 101).FormulaR1C1 = "=Average(R21C2:R" & (20 + numData) & "C2)"
-                If IsNumeric(Cells(18, 101).Value) Then
-                    If Abs(Cells(18, 101).Value) < 0.000001 Then
-                        TimeCheck = MsgBox("Fitting does not work properly, because averaged In data is less than 1E-6!")
-                    ElseIf Abs(Cells(18, 101).Value) > 1E+29 Then
-                        TimeCheck = MsgBox("Fitting does not work properly, because averaged In data is more than 1E+29!")
-                    End If
-                End If
+    If StrComp("Fit", mid$(ActiveSheet.Name, 1, 3)) = 0 And IsNumeric(TimeCheck) = False Then
+        If IsEmpty(Cells(18, 101).Value) Then Cells(18, 101).FormulaR1C1 = "=Average(R21C2:R" & (20 + numData) & "C2)"
+        If IsNumeric(Cells(18, 101).Value) Then
+            If Abs(Cells(18, 101).Value) < 0.000001 Then
+                TimeCheck = MsgBox("Fitting does not work properly, because averaged In data is less than 1E-6!")
+            ElseIf Abs(Cells(18, 101).Value) > 1E+29 Then
+                TimeCheck = MsgBox("Fitting does not work properly, because averaged In data is more than 1E+29!")
             End If
         End If
     End If
