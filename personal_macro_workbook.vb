@@ -4490,6 +4490,7 @@ Sub FitCurve()
         Call ShirleyBG
     End If
     
+    If strErrX = "skip" Then Exit Sub
     Cells(startR, 4).FormulaR1C1 = "=RC[-2] - RC[-1]"
     Range(Cells(startR, 4), Cells(endR, 4)).FillDown
     
@@ -7237,7 +7238,14 @@ Sub ShirleyBG() 'iteration mode
     If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
 '        Cells(2, 2).Value = 0.0001
 '        Cells(3, 2).Value = 0.001
-        Cells(3, 2).Value = Abs(Cells(startR, 2).Value - Cells(endR, 2).Value) / IntegrationTrapezoid(Range(Cells(startR, 1), Cells(endR, 1)), Range(Cells(startR, 2), Cells(endR, 2)))
+        If IntegrationTrapezoid(Range(Cells(startR, 1), Cells(endR, 1)), Range(Cells(startR, 2), Cells(endR, 2))) <> 0 Then
+            Cells(3, 2).Value = Abs(Cells(startR, 2).Value - Cells(endR, 2).Value) / IntegrationTrapezoid(Range(Cells(startR, 1), Cells(endR, 1)), Range(Cells(startR, 2), Cells(endR, 2)))
+        Else
+            'strErr = "errZero-denominator"
+            Call GetOutFit
+            sheetFit.Activate
+            Exit Sub
+        End If
         Cells(2, 2).Value = 0.001 * Cells(3, 2).Value
     End If
 
