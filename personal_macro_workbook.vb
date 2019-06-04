@@ -4360,6 +4360,8 @@ Sub FitRange(ByRef strCpa As String)
             Cells(8, 101).Value = 0
             strCpa = "repeat"
         End If
+        
+        Range(Cells(2, 2), Cells(10, 2)).Font.Bold = "False"
     End If
     
     For Each rng In Range(Cells(2, 3), Cells(7 + sftfit2, 4)).Cells
@@ -5428,6 +5430,7 @@ Sub GetOutFit()
         Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
         Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
     ElseIf StrComp(strBG1, "vi", 1) = 0 Then
+        Cells(7, 2).Value = vbNullString
         If Cells(8, 2).Value = vbNullString Then
             Cells(8, 1).Value = "No edge"
         ElseIf Cells(8, 2).Value < Cells(12 + sftfit2, 2).Value And Cells(8, 2).Value > Cells(11 + sftfit2, 2).Value Then
