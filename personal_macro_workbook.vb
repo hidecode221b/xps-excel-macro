@@ -492,8 +492,13 @@ DeadInTheWater3:
         strTest = mid$(strTest, 1, 19)
         
         If Not ExistSheet(strTest) Then
-            ActiveSheet.Name = mid$(sh, 1, 19) ' follow the name of work sheet
-            strSheetDataName = mid$(sh, 1, 19)
+            If StrComp(mid$(Cells(1, 1).Value, 2, 4), "E/eV", 1) = 0 Then
+                ActiveSheet.Name = strTest ' follow the name of work book
+                strSheetDataName = strTest
+            Else
+                ActiveSheet.Name = mid$(sh, 1, 19) ' follow the name of work sheet
+                strSheetDataName = mid$(sh, 1, 19)
+            End If
         Else
             strSheetDataName = strTest
         End If
@@ -6068,7 +6073,7 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
                         Sheets(ns).Activate
                         If StrComp(mid$(ActiveSheet.Name, 1, 6), "Graph_", 1) = 0 Then
                             strSheetDataName = mid$(ActiveSheet.Name, 7, Len(ActiveSheet.Name) - 6)
-                            MsgBox ("No data sheet is available, but " & ActiveSheet.Name & " is found to be compared.")
+                            'MsgBox ("No data sheet is available, but " & ActiveSheet.Name & " is found to be compared.")
                             Exit For
                         ElseIf ns = NumSheets Then
                             MsgBox ("No data or graph sheet are found. Check the worksheet name corresponded to the sheet names.")
