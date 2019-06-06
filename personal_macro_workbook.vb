@@ -390,7 +390,7 @@ DeadInTheWater3:
             cmp = k     ' position of comp if cmp < ncomp
         End If          ' "cmp" should not be used because it preserves the starting point of comp function!
     ElseIf InStr(1, sh, "Fit_") > 0 Then
-        If InStr(1, sh, "Fit_BE") > 0 Then
+        If InStr(1, sh, "Fit_BE") > 0 And IsEmpty(Cells(1, 101).Value) = False Then
             strSheetDataName = Cells(1, 101).Value
         Else
             strSheetDataName = mid$(sh, 5, (Len(sh) - 4))
@@ -9984,7 +9984,7 @@ Sub debugAll()      ' multiple file analysis in sequence
                             ElseIf mid$(ElemT, Len(ElemT) - 2, 1) Like "[0-9]" And IsNumeric(mid$(ElemT, 1, Len(ElemT) - 3)) = False Then
                                 ElemX = mid$(ElemT, 1, Len(ElemT) - 3)  ' it forms Cu2p3
                                 Exit For
-                            ElseIf InStr(1, AESlist, ElemX) > 0 Then
+                            ElseIf InStr(1, AESlist, mid$(ElemT, Len(ElemT) - 2, 3)) > 0 Then
                                 ElemX = mid$(ElemT, 1, Len(ElemT) - 3)  ' it forms ZnLMM
                                 Exit For
                             Else
