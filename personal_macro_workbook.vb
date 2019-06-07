@@ -27,10 +27,10 @@ Sub CLAM2()
         backSlash = "\"
     End If
     If backSlash = "/" Then    ' location of directory for database for mac (Go from menu with option key, and click library)
-        direc = "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "XPS" + backSlash
+        direc = "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "Data" + backSlash + "hideki" + backSlash + "XPS" + backSlash
     Else
         ' Windows
-        'direc = "C:" + backSlash + "Users" + backSlash + "Public" + backSlash + "Data" + backSlash + "XPS" + backSlash ' this is for BOOTCAMP on MacBookAir.
+        'direc = "C:" + backSlash + "Users" + backSlash + "Public" + backSlash + "Data" + backSlash + "hideki" + backSlash + "XPS" + backSlash ' this is for BOOTCAMP on MacBookAir.
         'direc = "G:" + backSlash + "Data" + backSlash + "Hideki" + backSlash + "XPS" + backSlash    ' this is for Windows PC with HDD storage.
         direc = "D:\Excel_XPS_macro\DATA\hideki\XPS\"
     End If
@@ -67,8 +67,11 @@ Sub SheetNameAnalysis()
     direc = Replace(direc, "*", "")
     
     If backSlash = "/" Then
-        direc = GetSpecialFolderPath_MacScript & direc
-        CreateFolderinMacOffice2016 ("MyExcelFolder" & backSlash & "XPS" & backSlash)
+        If StrComp(mid$(direc, 2, 5), "Users", 1) = 0 Then  ' /Users/hidekinakajima/ as home folder
+        Else
+            direc = GetSpecialFolderPath_MacScript & direc
+        End If
+        'CreateFolderinMacOffice2016 ("MyExcelFolder" & backSlash & "Data" & backSlash & "hideki" & backSlash & "XPS" & backSlash)
         If FileOrFolderExistsOnMac(direc & "UD.xlsx") = False Then
             TimeCheck = MsgBox("Place the database files into the location: " & direc, 4, "No database files exist")
             If TimeCheck = 6 Then
@@ -9831,7 +9834,7 @@ Sub debugAll()      ' multiple file analysis in sequence
     AElist2 = "Ce,Pr,Nd,Pm,Sm,Eu,Gd,Tb,Dy,Ho,Er,Tm,Yb,Lu,Hf,Ta,W,Re,Os,Ir,Pt,Au,Hg,Tl,Pb,Bi,Po,At,Rn,Fr,Ra,Ac,Th,Pa,U,Np,Pu,Am,Cm"
     AElist = AElist1 & "," & AElist2
     
-   AESlist = "KLL,LMM,MNN,NOO,KVV,LVV,MVV,NVV,OVV"
+    AESlist = "KLL,LMM,MNN,NOO,KVV,LVV,MVV,NVV,OVV"
     showError = vbNullString
     
     If mid$(testMacro, 1, 5) = "debug" Then
@@ -9963,7 +9966,7 @@ Sub debugAll()      ' multiple file analysis in sequence
                 ElseIf Len(strTest) >= 18 And InStr(13, strTest, "stop") > 0 And mid$(strTest, 7, 1) = "_" And mid$(strTest, 12, 1) = "_" Then
                     ElemX = mid$(strTest, 13, Len(strTest) - 12 - 5 - 2)    ' 12 for data&time, 5 for _stop, 2 for orbit
                     If InStr(1, AElist, ElemX) = 0 Then ElemX = vbNullString
-                ElseIf Len(strTest) >= 15 And InStrRev(strTest, "_") > 0 Then
+                ElseIf Len(strTest) >= 5 And InStrRev(strTest, "_") > 0 Then
                     strElem = Split(strTest, "_")
                     For q = 0 To UBound(strElem)
                         ElemT = strElem(q)
