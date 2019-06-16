@@ -30,7 +30,7 @@ Sub CLAM2()
         direc = "Library" + backSlash + "Group Containers" + backSlash + "UBF8T346G9.Office" + backSlash + "MyExcelFolder" + backSlash + "Data" + backSlash + "hideki" + backSlash + "XPS" + backSlash
     Else
         ' Windows
-        'direc = "C:" + backSlash + "Users" + backSlash + "Public" + backSlash + "Data" + backSlash + "hideki" + backSlash + "XPS" + backSlash ' this is for BOOTCAMP on MacBookAir.
+        'direc = "C:" + backSlash + "Users" + backSlash + "Public" + backSlash + "Excel_XPS_macro" + backSlash + "Data" + backSlash + "hideki" + backSlash + "XPS" + backSlash ' this is for BOOTCAMP/Parallels on MacBookAir.
         'direc = "G:" + backSlash + "Data" + backSlash + "Hideki" + backSlash + "XPS" + backSlash    ' this is for Windows PC with HDD storage.
         direc = "D:\Excel_XPS_macro\DATA\hideki\XPS\"
     End If
