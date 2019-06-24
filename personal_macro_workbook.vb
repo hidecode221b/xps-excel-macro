@@ -7430,7 +7430,7 @@ Sub ShirleyActiveSetup()    ' simultaneous mode
             SolverAdd CellRef:=Cells(2, 2), Relation:=3, FormulaText:=Cells(startR, 2).Value * (1 - Cells(5, 2).Value / 100) ' min
         End If
     End If
-    If Cells(8, 2).Font.Bold = "True" Then
+    If Cells(3, 2).Font.Bold = "True" Then
         SolverAdd CellRef:=Cells(3, 2), Relation:=2, FormulaText:=Cells(3, 2).Value
     Else
         If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
