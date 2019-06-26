@@ -595,7 +595,7 @@ Sub TargetDataAnalysis()
         End If
     Else
         strMode = mid$(Cells(2, 1).Value, 1, 5)
-        If StrComp(strMode, "CLAM2", 1) = 0 Then
+        If StrComp(strMode, "CLAM2", 1) = 0 Or StrComp(strMode, "Photo", 1) = 0 Then
             If cmp >= 0 Then
                 Call GetCompare
             Else
@@ -609,8 +609,156 @@ Sub TargetDataAnalysis()
                 If Len(strErr) > 0 Then Exit Sub
                 Call FitCurve
             End If
+        Else
+            For j = 1 To 5  ' check vamas in the first 5 lines
+                'Debug.Print "vamas", j
+                If StrComp(mid$(Cells(j, 1).Value, 1, 5), "VAMAS", 1) = 0 Then
+                    Call LoadVAMAS ' Load vamas format (multipak exported iso format)
+                    Exit For
+                End If
+            Next
+            Call GetOut
         End If
     End If
+End Sub
+
+Sub LoadVAMAS()
+    Dim numNotes As Integer, numRegions As Integer, numVpara As Integer, numVcoeff As Integer, numBlocks As Integer
+    Dim C1 As Variant, C2 As Variant, rng As Range, strPath As String, strTest As String, Fname As String, vmsMode As String
+    
+    strPath = ActiveWorkbook.Path
+    strSheetDataName = ActiveSheet.Name
+    
+    Set sheetAna = Worksheets(strSheetDataName)
+    Set rng = sheetAna.UsedRange
+    C1 = rng
+    
+    j = 0
+    numVpara = 5
+    numNotes = CInt(C1(6, 1))
+    numRegions = CInt(C1(9 + numNotes, 1))
+    
+'    Debug.Print numNotes, "numNotes", numRegions, "numRegions"
+    If StrComp(C1(7 + numNotes, 1), "SDP", 1) = 0 Then
+        vmsMode = "AES"
+    ElseIf StrComp(C1(7 + numNotes, 1), "NORM", 1) = 0 Then
+        vmsMode = "XPS"
+    End If
+    
+    For k = 1 To 100
+        If IsNumeric(C1(9 + numNotes + k, 1)) Then
+            'Debug.Print C1(9 + numNotes + k, 1), numVpara
+            If 0 < C1(9 + numNotes + k, 1) And C1(9 + numNotes + k, 1) <= 32767 Then
+                If vmsMode = "AES" And k = 1 Then
+                    numVpara = numVpara + C1(9 + numNotes + k, 1) + 1
+                    k = k + C1(9 + numNotes + k, 1) + 1
+                Else
+                    numVpara = numVpara + C1(9 + numNotes + k, 1)
+                    k = k + C1(9 + numNotes + k, 1)
+                End If
+                j = j + 1
+            ElseIf C1(9 + numNotes + k, 1) <= 0 Then
+                j = j + 1
+'            ElseIf C1(9 + numNotes + k, 1) > 32767 Then
+'                numVpara = 10
+'                Exit For
+            Else
+                MsgBox "Somthing wrong in parameters.", vbInformation
+                End
+            End If
+        End If
+        
+        If j >= 5 Then Exit For
+    Next
+    
+    startR = 10 + numNotes + numVpara
+    numBlocks = CInt(C1(startR, 1))
+    'Debug.Print "startR", startR, "numBlocks", numBlocks ' this is starting block
+    
+    For p = 1 To numBlocks / numRegions
+        For k = 1 To numRegions
+            numVcoeff = CInt(C1(startR + 10, 1))
+            'Debug.Print numVcoeff, "numVcoeff", startR + 10
+            
+            If vmsMode = "AES" Then numVcoeff = numVcoeff + 4
+            pe = C1(startR + 13 + numVcoeff, 1)
+            'Debug.Print pe, "pe", startR + 13 + numVcoeff
+            
+            If LCase(C1(startR + numVcoeff + 31, 1)) = "binding energy" Then
+                strMode = "BE/eV"
+            ElseIf LCase(C1(startR + numVcoeff + 31, 1)) = "kinetic energy" Then
+                strMode = "KE/eV"
+            ElseIf LCase(C1(startR + numVcoeff + 31, 1)) = "photon energy" Then
+                strMode = "PE/eV"
+            Else
+                strMode = "EE/eV"
+            End If
+            
+            'Debug.Print strMode, "strMode", startR + numVcoeff + 31
+            ElemD = C1(startR + numVcoeff + 28, 1) & C1(startR + numVcoeff + 29, 1)
+            startEk = C1(startR + numVcoeff + 33, 1)
+            stepEk = C1(startR + numVcoeff + 34, 1)
+            
+            If vmsMode = "AES" Then numVcoeff = numVcoeff + 7
+            numData = C1(startR + numVcoeff + 46, 1)
+            'Debug.Print startEk, stepEk, numData, ElemD
+            
+            If StrComp(mid$(strSheetDataName, 1, 6), "Vamas_", 1) = 0 Then strSheetDataName = mid$(strSheetDataName, 7, Len(strSheetDataName) - 6)
+            If numRegions > 1 And numRegions = numBlocks Then
+                strSheetGraphName = strSheetDataName + "_" + ElemD
+                If k = 1 Then
+                    ActiveSheet.Name = "Vamas_" + strSheetDataName
+                End If
+            ElseIf numRegions < numBlocks Then
+                strSheetGraphName = strSheetDataName + "_" + ElemD + CStr(p)
+                If k = 1 And p = 1 Then
+                    ActiveSheet.Name = "Vamas_" + strSheetDataName
+                End If
+            Else
+                strSheetGraphName = strSheetDataName
+                ActiveSheet.Name = "Vamas_" + strSheetDataName
+            End If
+            
+            If ExistSheet(strSheetGraphName) Then
+                Application.DisplayAlerts = False
+                Worksheets(strSheetGraphName).Delete
+                Application.DisplayAlerts = True
+            End If
+        
+            Worksheets.Add().Name = strSheetGraphName
+            Set sheetGraph = Worksheets(strSheetGraphName)
+            sheetGraph.Activate
+            
+            C2 = sheetGraph.Range(Cells(1, 1), Cells(1 + numData, 2))
+            
+            For j = 0 To numData - 1
+                C2(2 + j, 1) = WorksheetFunction.Round(startEk + j * stepEk, 3)
+                C2(2 + j, 2) = C1(startR + numVcoeff + 49 + j, 1)
+            Next
+            
+            sheetGraph.Range(Cells(1, 1), Cells(1 + numData, 2)) = C2
+            Cells(1, 1).Value = strMode
+            Cells(1, 2).Value = "PE: " & pe & " eV"
+            
+            If numRegions > 1 Then
+                Fname = strPath + backSlash + strSheetGraphName & ".txt"
+                fileNum = FreeFile(0)
+                
+                Open Fname For Output As #fileNum
+                For j = 1 To 1 + numData
+                    strTest = sheetGraph.Cells(j, 1) & vbTab & sheetGraph.Cells(j, 2)
+                    Print #fileNum, strTest
+                    strTest = vbNullString
+                Next j
+                Close #fileNum
+            End If
+        
+            startR = startR + numVcoeff + 48 + numData
+            sheetGraph.Cells(1, 1).Value = "Exported"
+        Next k
+    Next p
+    
+    If numRegions > 1 Then sheetAna.Activate
 End Sub
 
 Sub PlotCLAM2()
@@ -10696,6 +10844,8 @@ Function grantFileAccess(filePermissionCandidates)
 'https://warwick.ac.uk/fac/sci/systemsbiology/staff/dyer/software/excelvbafileopen/
   grantFileAccess = GrantAccessToMultipleFiles(filePermissionCandidates) 'returns true if access granted, false otherwise_
 End Function
+
+
 
 
 
