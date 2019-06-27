@@ -1,7 +1,7 @@
-# EXcel XPS and XAS Macro Suite "EX3MS"
+# EXcel XPS and XAS Macro Suite "EX3ms"
 
 ## Abstract
-I have developed the XPS and XAS data analysis suite (so-called "EX3MS") for the synchrotron radiation (SR) soft x-ray beamline users to calibrate the energy and intensity in photons and electrons and analyze the peak composition and shape in the background subtracted profile. The code in the suite works in the Visual Basic for Applications (VBA) on the Windows Microsoft&copy; Excel 2007 or later version utilizing the Solver Add-In for curve-fit optimisation. Excel 2016 on Mac or later version is also partly supported. Users easily handle and share the XPS and XAS data on Excel spread-sheet, and analyze it into the publications with your collaborators. Users immediately identify the atomic elements and its chemical shifts in their measured XPS and XAS spectra during the beamtime without annoying the calibration of energy and intensity at the SR beamline. The relative sensitivity factor and photo ionization cross section are taken into account to evaluate the atomic and chemical ratios. The various fitting functions in both peak and background are available to optimize the variables under certain constraints. User-defined function is also easily implemented by VBA scripting to untangle the spectral complexities in the sample characterization.
+I have developed the XPS and XAS data analysis suite (so-called "EX3ms") for the synchrotron radiation (SR) soft x-ray beamline users to calibrate the energy and intensity in photons and electrons and analyze the peak composition and shape in the background subtracted profile. The code in the suite works in the Visual Basic for Applications (VBA) on the Windows Microsoft&copy; Excel 2007 or later version utilizing the Solver Add-In for curve-fit optimisation. Excel 2016 on Mac or later version is also partly supported. Users easily handle and share the XPS and XAS data on Excel spread-sheet, and analyze it into the publications with your collaborators. Users immediately identify the atomic elements and its chemical shifts in their measured XPS and XAS spectra during the beamtime without annoying the calibration of energy and intensity at the SR beamline. The relative sensitivity factor and photo ionization cross section are taken into account to evaluate the atomic and chemical ratios. The various fitting functions in both peak and background are available to optimize the variables under certain constraints. User-defined function is also easily implemented by VBA scripting to untangle the spectral complexities in the sample characterization.
 
 ## Installation
 The VBA code is installed through VBE as the Personal Workbook Macro, and assigned with a short-cut key assignment in the macro called "PERSONAL.XLSB!CLAM2" listed at the top of sub procedures. Solver Add-in also needs to be deployed in Excel Add-ins and referenced in VBE to activate Solver Add-in for VBA code. Any data analysis sequence runs from the Option of Macro menu "PERSONAL.XLSB!CLAM2" or the short-cut key assigned on the worksheet in the workbook. The VBA code works differently on either what worksheet is active or what syntax is specified in active worksheet. 
@@ -45,7 +45,7 @@ The peaks calibrated and identified by the database in the Graph sheet are analy
 Batching process can be customized from the macro called "PERSONAL.XLSB!debugAll".
 
 ## Notes
-EX3MS has been used for many users during the experiment and post-data processing to publish the data in the manuscript in peer-reviewed journals in the following.
+EX3ms has been used for many users during the experiment and post-data processing to publish the data in the manuscript in peer-reviewed journals in the following.
 
 - http://dx.doi.org/10.1016/j.snb.2013.12.017
 - http://dx.doi.org/10.1016/j.apsusc.2016.01.180
@@ -54,13 +54,7 @@ EX3MS has been used for many users during the experiment and post-data processin
 - http://dx.doi.org/10.1039/C6RA09972F
 
 ### References for database
-Database files are available only in PC at the beamline because the software is only licensed in PC at the beamline. You can also purchase the complete packages including databases or advanced functions from the link below.
-
-- https://sites.google.com/site/xpsdataanalysispackage/
-
-On-line database links are also freely available for everyone to identify the database references.
-
-- http://www.uksaf.org/data.html
+Database files are available online linked in the following subsections. You can add elements with orbital, binding energy, and sensitivity factor in the UD.xlsx. Cross section for each photon energy can be further evaluated from the data of photoionization cross section in WebCross folder. XAS atomic form factor can also be used for XAS sensitivity based on XAS folder. All the files can be downloaded online specified below except UD.xlsx which has to be handled manually from database.
 
 #### XPS
 X-ray data booklet
