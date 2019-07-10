@@ -7379,7 +7379,9 @@ Sub descriptInitialFit()
         If strl(1) = "Pe" Or strl(1) = "Po" Then
             Cells(19 + sftfit2, 4 + q).Value = 1        ' CorrRSF
         Else
-            Cells(19 + sftfit2, 4 + q).FormulaR1C1 = "= (R15C101 * (1 - (0.25 * R" & (7 + sftfit2) & "C)*(3 * (cos(3.14*R24C2/180))^2 - 1)) * R" & (9 + sftfit2) & "C * ((R3C)^(R" & (16 + sftfit2) & "C2)) * R" & (14 + sftfit2) & "C2 * (((R" & (17 + sftfit2) & "C2^2)/((R" & (17 + sftfit2) & "C2^2)+((R3C)/(R" & (14 + sftfit2) & "C2))^2))^R" & (18 + sftfit2) & "C2))"
+            Cells(19 + sftfit2, 4 + q).FormulaR1C1 = "= (R15C101 * (1 + (R" & (7 + sftfit2) & "C)*0.5*(3 * (cos(3.14*R24C2/180))^2 - 1)) * R" & (9 + sftfit2) & "C * ((R3C)^(R" & (16 + sftfit2) & "C2)) * R" & (14 + sftfit2) & "C2 * (((R" & (17 + sftfit2) & "C2^2)/((R" & (17 + sftfit2) & "C2^2)+((R3C)/(R" & (14 + sftfit2) & "C2))^2))^R" & (18 + sftfit2) & "C2))"
+            ' norm factor * (1+beta*0.5*(3*cos^2 theta - 1)) * KE^(IMFP) * Trans(KE), here Trans(KE) = CAE * [(a^2)/{(a^2) + (KE/CAE)^2}]^b
+            ' in simple case, KE^IMFP and Trans(KE) are cancelled out each other.
         End If
     Next
     
@@ -10544,10 +10546,10 @@ SkipDiffer:
 End Function
 
 
-' "Ctrl+Q" is a set of VBA codes based on Windows Excel 2007 for
+' "EX3ms" is a set of VBA codes based on Windows/Mac Excel 2016 for
 ' soft x-ray XPS/XAS data analysis working with a bunch of database files
 '
-' Copyright (C) 2012 - 2018 Hideki NAKAJIMA
+' Copyright (C) 2012 - 2019 Hideki NAKAJIMA
 '
 ' This program is free software; you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
