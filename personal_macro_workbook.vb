@@ -7901,9 +7901,9 @@ Sub TangentArcBG()
     SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7, 2))
     SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=Cells(11 + sftfit2, 2).Value        ' This is a point to control the position of inflection
     SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=Cells(12 + sftfit2, 2).Value
-    SolverAdd CellRef:=Cells(5, 2), Relation:=3, FormulaText:=1 'step width minimum
+    SolverAdd CellRef:=Cells(5, 2), Relation:=3, FormulaText:=0.1 'step width minimum
     SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=(Cells(12 + sftfit2, 2).Value - Cells(11 + sftfit2, 2).Value)
-    SolverAdd CellRef:=Cells(3, 2), Relation:=3, FormulaText:=0
+    SolverAdd CellRef:=Cells(3, 2), Relation:=3, FormulaText:=(Cells(2, 101).Value - Cells(3, 101).Value)
     SolverAdd CellRef:=Cells(3, 2), Relation:=1, FormulaText:=(Cells(3, 101).Value - Cells(2, 101).Value)
     SolverAdd CellRef:=Cells(2, 2), Relation:=3, FormulaText:=0
     SolverAdd CellRef:=Cells(6, 2), Relation:=3, FormulaText:=-1
