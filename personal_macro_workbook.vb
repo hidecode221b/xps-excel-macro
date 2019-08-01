@@ -3097,11 +3097,16 @@ Sub ExportLmfit()
         model = model & " + gauss" & p
     Next
     
-    Range(Cells(3 + (p - 1) * 6, 1), Cells(2 + (p - 1) * 6 + UBound(C1), 1)) = Application.Transpose(C1)
-    Range(Cells(3 + (p - 1) * 6 + UBound(C1), 1), Cells(2 + (p - 1) * 6 + UBound(C1) + UBound(C0), 1)) = Application.Transpose(C0)
-    
-    Cells(4 + (p - 1) * 6 + UBound(C1) + UBound(C0), 1) = model
-    Range(Cells(6 + (p - 1) * 6 + UBound(C1) + UBound(C0), 1), Cells(8 + (p - 1) * 6 + UBound(C1) + UBound(C0), 1)) = Application.Transpose(C4)
+    If IsEmpty(C1) = False Then
+        Range(Cells(3 + (p - 1) * 6, 1), Cells(2 + (p - 1) * 6 + UBound(C1), 1)) = Application.Transpose(C1)
+        If IsEmpty(C0) = False Then
+            Range(Cells(3 + (p - 1) * 6 + UBound(C1), 1), Cells(2 + (p - 1) * 6 + UBound(C1) + UBound(C0), 1)) = Application.Transpose(C0)
+            Cells(4 + (p - 1) * 6 + UBound(C1) + UBound(C0), 1) = model
+            If IsEmpty(C4) = False Then
+                Range(Cells(6 + (p - 1) * 6 + UBound(C1) + UBound(C0), 1), Cells(8 + (p - 1) * 6 + UBound(C1) + UBound(C0), 1)) = Application.Transpose(C4)
+            End If
+        End If
+    End If
     
 End Sub
 
