@@ -31,8 +31,8 @@ Sub CLAM2()
     Else
         ' Windows
         'direc = "C:" + backSlash + "Users" + backSlash + "Public" + backSlash + "Excel_XPS_macro" + backSlash + "Data" + backSlash + "hideki" + backSlash + "XPS" + backSlash ' this is for BOOTCAMP/Parallels on MacBookAir.
-        'direc = "G:" + backSlash + "Data" + backSlash + "Hideki" + backSlash + "XPS" + backSlash    ' this is for Windows PC with HDD storage.
-        direc = "D:\Excel_XPS_macro\DATA\hideki\XPS\"
+        direc = "G:" + backSlash + "Data" + backSlash + "Hideki" + backSlash + "XPS" + backSlash    ' this is for Windows PC with HDD storage.
+        'direc = "D:\Excel_XPS_macro\DATA\hideki\XPS\"
     End If
     
     windowSize = 1.3          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
@@ -4775,8 +4775,7 @@ Resolve:
                 SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=1, FormulaText:=5000
                 SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=3, FormulaText:=0.001
                 SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=100
-                SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=10
-                SolverAdd CellRef:=Cells(6, 2), Relation:=1, FormulaText:=Cells(2, 101)
+                SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=Cells(2, 101)
             
                 For k = 2 To 10
                     If Cells(k, 2).Font.Bold = "True" Then
@@ -4816,7 +4815,15 @@ Resolve:
             SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j)))  ' static Shirley
         End If
     ElseIf StrComp(Cells(1, 1).Value, "Tougaard") = 0 Then
-        SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Tougaard
+        If StrComp(Cells(1, 2).Value, "ABG", 1) = 0 Or StrComp(Cells(1, 3).Value, "ABG", 1) = 0 Then
+            SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j))) ' active Tougaard
+            SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=1, FormulaText:=5000
+            SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=3, FormulaText:=0.001
+            SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=100
+            SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=Cells(2, 101)
+        Else
+            SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Tougaard
+        End If
     ElseIf StrComp(Cells(1, 1).Value, "Victoreen", 1) = 0 Then
         SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static
     ElseIf StrComp(Cells(1, 1).Value, "Arctan", 1) = 0 Then
@@ -5595,9 +5602,6 @@ Sub GetOutFit()
         Cells(6, 1).Value = "Slope"
         Cells(7, 1).Value = "ratio L:A"
     ElseIf StrComp(strBG1, "to", 1) = 0 Then
-        'Cells(5, 2).Value = fileNum
-        Cells(5, 1).Value = "Norm"
-        Cells(5, 2).Font.Bold = "False"
         Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
         Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
     ElseIf StrComp(strBG1, "vi", 1) = 0 Then
@@ -8086,18 +8090,21 @@ Sub TougaardBG()
     End If
     
     Cells(1, 1).Value = "Tougaard"
-    Cells(1, 2).Value = "BG"
+    If StrComp(mid$(LCase(Cells(1, 2).Value), 1, 1), "a", 1) = 0 Then
+        Cells(1, 2).Value = "ABG"
+    Else
+        Cells(1, 2).Value = "BG"
+    End If
     Cells(1, 3).Value = vbNullString
     Cells(2, 1).Value = "B"
     Cells(3, 1).Value = "C (C'=" & pnpara & ")"
     Cells(4, 1).Value = "D"
-    Cells(5, 1).Value = "Norm"
-    Cells(6, 1).Value = "Offset"
+    Cells(5, 1).Value = "Offset"
     Cells(20, 101).Value = "Tougaard"
     Cells(20, 102).Value = Cells(1, 2).Value
     Cells(20, 103).Value = vbNullString
     
-    For k = 2 To 6
+    For k = 2 To 5
         If Cells(k, 2).Font.Bold = "True" Then
         ElseIf k = 2 Then
             Cells(2, 2).Value = 2866    '2866 or 1840 or 736
@@ -8106,9 +8113,7 @@ Sub TougaardBG()
         ElseIf k = 4 Then
             Cells(4, 2).Value = 1       ' 1 default
         ElseIf k = 5 Then
-            Cells(5, 2).Value = 1
-        ElseIf k = 6 Then
-            Cells(6, 2).Value = Cells(2, 101).Value
+            Cells(5, 2).Value = Cells(2, 101).Value
         End If
     Next
     
@@ -8124,8 +8129,8 @@ Sub TougaardBG()
         End If
         
         For k = startR - 1 To endR - 1 Step 1
-            Cells(k + 1, 99).FormulaR1C1 = "= ((RC2 * R2C2 * (" & ((startR - k + 1) * stepEk) & " ))/((R3C2 + " & p & " * (" & ((startR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((startR - k + 1) * stepEk) & " )^2)))"
-            Cells(k + 1, 3).FormulaR1C1 = "=R5C2 * (R6C2 + SUM(R[-1]C99:R" & (startR) & "C99))"
+            Cells(k + 1, 99).FormulaR1C1 = "= (((RC2 - R5C2) * R2C2 * (" & ((startR - k + 1) * stepEk) & "))/((R3C2 + " & p & " * (" & ((startR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((startR - k + 1) * stepEk) & ")^2)))"
+            Cells(k + 1, 3).FormulaR1C1 = "=R5C2 + SUM(R[-1]C99:R" & (startR) & "C99)"
         Next
     Else
         If ns < 2 Then
@@ -8137,8 +8142,8 @@ Sub TougaardBG()
         End If
         
         For k = endR + 1 To startR + 1 Step -1
-            Cells(k - 1, 99).FormulaR1C1 = "= ((RC2 * R2C2 * (" & ((endR - k + 1) * stepEk) & " ))/((R3C2 + " & p & " * (" & ((endR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((endR - k + 1) * stepEk) & " )^2)))"
-            Cells(k - 1, 3).FormulaR1C1 = "=R5C2 * (R6C2 + SUM(R[1]C99:R" & (endR) & "C99))"
+            Cells(k - 1, 99).FormulaR1C1 = "= (((RC2 - R5C2)* R2C2 * (" & ((endR - k + 1) * stepEk) & "))/((R3C2 + " & p & " * (" & ((endR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((endR - k + 1) * stepEk) & ")^2)))"
+            Cells(k - 1, 3).FormulaR1C1 = "=R5C2 + SUM(R[1]C99:R" & (endR) & "C99)"
         Next
     End If
     
@@ -8159,14 +8164,13 @@ Sub TougaardBG()
         Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
     End If
     
-    SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(6, 2))
+    SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(5, 2))
     SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=1, FormulaText:=5000
     SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=3, FormulaText:=0.001
     SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=100
-    SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=10
-    SolverAdd CellRef:=Cells(6, 2), Relation:=1, FormulaText:=Cells(2, 101)
+    SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=Cells(2, 101)
     
-    For k = 2 To 6
+    For k = 2 To 5
         If Cells(k, 2).Font.Bold = "True" Then
             SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
         End If
@@ -8175,8 +8179,8 @@ Sub TougaardBG()
     SolverSolve UserFinish:=True
     SolverFinish KeepFinal:=1
     
-    [A2:A6].Interior.Color = RGB(156, 204, 101)    '43
-    [B2:B6].Interior.Color = RGB(197, 225, 165)    '35
+    [A2:A5].Interior.Color = RGB(156, 204, 101)    '43
+    [B2:B5].Interior.Color = RGB(197, 225, 165)    '35
 End Sub
 
 Sub PolynominalTougaardBG()
