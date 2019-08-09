@@ -2991,10 +2991,11 @@ End Sub
 
 Sub ExportLmfit()
     Dim C0 As Variant, C1 As Variant, C2(5) As Variant, C3 As Variant, C4 As Variant, peakNum As Integer, model As String
-    Dim amprat As Variant, bediff As Variant, pos As Variant, posd As Variant
+    Dim amprat As Variant, bediff As Variant, pos As Variant, posd As Variant, inip As Integer, peaksetamp As Integer, peaksetbe As Integer
     
     peakNum = Workbooks(wb).Sheets("Fit_" + strSheetDataName).Cells(8 + sftfit2, 2).Value
     ReDim C4(peakNum)
+    model = "mod = "
     
     strSheetAnaName = "Pyt_" + strSheetDataName
     strSheetFitName = "Fit_" + strSheetDataName
@@ -3012,14 +3013,51 @@ Sub ExportLmfit()
     Set sheetFit = Worksheets(strSheetFitName)
     Set sheetGraph = Worksheets(strSheetGraphName)
     
-    Cells(2, 1).Value = "dat = np.loadtxt('" & strSheetDataName & ".txt', skiprows = 1)"
-    model = "mod = poly_mod"
+    inip = 2    ' start A2 cell
+    Cells(inip, 1).Value = "import numpy as np"
+    Cells(inip + 1, 1).Value = "from lmfit.models import GaussianModel, ExponentialModel, PolynomialModel"
+    Cells(inip + 2, 1).Value = "import matplotlib.pyplot as plt"
+    Cells(inip + 3, 1).Value = "import xpspy as xpy"
+    
+    inip = inip + 5
+    Cells(inip, 1).Value = "dat = np.loadtxt('" & strSheetDataName & ".txt', skiprows = 1)"
+    Cells(inip + 1, 1).Value = "'x0 = dat[:, 0]"
+    Cells(inip + 2, 1).Value = "'y0 = dat[:, 1]"
+    
+    inip = inip + 4
+    Cells(inip, 1).Value = "xmin = " & sheetFit.Cells(16, 2).Value
+    Cells(inip + 1, 1).Value = "xmax = " & sheetFit.Cells(17, 2).Value
+    Cells(inip + 2, 1).Value = "[x, y] = xpy.fit_range(x0, y0, xmin, xmax)"
+    
+    inip = inip + 4
+    If StrComp(sheetFit.Cells(1, 1).Value, "Shirley", 1) = 0 Then
+        Cells(inip, 1).Value = "'x_bg = xpy.shirley_calculate(x, y, 0.0001, 10)"
+        Cells(inip + 1, 1).Value = "y = y - x_bg"
+    ElseIf StrComp(sheetFit.Cells(1, 1).Value, "Tougaard", 1) = 0 Then
+        Cells(inip, 1).Value = "'x_bg = xpy.tougaard_calculate(x, y, 2866, 1643, 1, 1)"
+        Cells(inip + 1, 1).Value = "y = y - x_bg"
+    Else
+        model = model & "bg_mod"
+        Cells(inip, 1).Value = "'bg_mod = PolynomialModel(3, prefix='poly_')"
+        Cells(inip + 1, 1).Value = "pars = bg_mod.guess(y, x = x)"
+    End If
+    
     q = 0
     k = 0
+    peaksetamp = 0
+    peaksetbe = 0
+    ReDim C0(0)
+    ReDim C1(0)
+    
+    inip = inip + 3
     
     For p = 1 To peakNum
         C2(0) = "gauss" & p & "  = GaussianModel(prefix='g" & p & "_')"
-        C2(1) = "pars.update( gauss" & p & ".make_params())"
+        If p = 1 And (StrComp(sheetFit.Cells(1, 1).Value, "Shirley", 1) = 0 Or StrComp(sheetFit.Cells(1, 1).Value, "Tougaard", 1) = 0) Then
+            C2(1) = "pars = gauss1.make_params()"
+        Else
+            C2(1) = "pars.update( gauss" & p & ".make_params())"
+        End If
         If sheetFit.Cells(2, p + 4).Font.Bold = "True" Then
             C2(2) = "pars['g" & p & "_center'].set(" & Application.Floor(sheetFit.Cells(2, p + 4), 0.01) & ", vary = False)"
         Else
@@ -3039,73 +3077,100 @@ Sub ExportLmfit()
         End If
         
         C3 = Application.Transpose(C2)
-        Range(Cells(4 + (p - 1) * 6, 1), Cells(3 + (p) * 6, 1)) = C3
+        Range(Cells(inip + (p - 1) * 6, 1), Cells(inip - 1 + (p) * 6, 1)) = C3
         
         C4(p - 1) = "plt.plot(x, comps['g" & p & "_'], 'm--')"
         
         If IsEmpty(sheetFit.Cells(19, p + 4)) = False Then
-            q = q + 1
+            
             If StrComp(mid$(sheetFit.Cells(19, p + 4), 1, 1), "(", 1) = 0 Then
+                q = 1
                 ReDim amprat(q)
                 ReDim pos(q)
-                ReDim C1(q)
+'                ReDim C1(q)
                 pos(q - 1) = p
                 amprat(q - 1) = mid$(sheetFit.Cells(19, p + 4), 2, Len(sheetFit.Cells(19, p + 4)) - 2)
             ElseIf StrComp(mid$(sheetFit.Cells(19, p + 4), Len(sheetFit.Cells(19, p + 4)), 1), ")", 1) = 0 Then
+                q = q + 1
+                peaksetamp = peaksetamp + 1
                 ReDim Preserve pos(q)
                 ReDim Preserve amprat(q)
-                ReDim Preserve C1(q)
+                ReDim Preserve C1(peaksetamp)
                 pos(q - 1) = p
                 amprat(q - 1) = mid$(sheetFit.Cells(19, p + 4), 1, Len(sheetFit.Cells(19, p + 4)) - 1)
-                C1(q - 1) = "pars.add('g" & p & "_amplitude', expr = 'g" & pos(0) & "_amplitude * " & amprat(q - 1) & " / " & amprat(0) & "')"
-                q = 0
-            Else
+                C1(peaksetamp - 1) = "pars.add('g" & p & "_amplitude', expr = 'g" & pos(0) & "_amplitude * " & amprat(q - 1) & " / " & amprat(0) & "')"
+            ElseIf StrComp(mid$(sheetFit.Cells(19, p + 4), Len(sheetFit.Cells(19, p + 4)), 1), ";", 1) = 0 Then
+                q = q + 1
+                peaksetamp = peaksetamp + 1
                 ReDim Preserve pos(q)
                 ReDim Preserve amprat(q)
-                ReDim Preserve C1(q)
+                ReDim Preserve C1(peaksetamp)
                 pos(q - 1) = p
                 amprat(q - 1) = mid$(sheetFit.Cells(19, p + 4), 1, Len(sheetFit.Cells(19, p + 4)) - 1)
-                C1(q - 1) = "pars.add('g" & p & "_amplitude', expr = 'g" & pos(0) & "_amplitude * " & amprat(q - 1) & " / " & amprat(0) & "')"
+                C1(peaksetamp - 1) = "pars.add('g" & p & "_amplitude', expr = 'g" & pos(0) & "_amplitude * " & amprat(q - 1) & " / " & amprat(0) & "')"
             End If
         End If
         
         If IsEmpty(sheetFit.Cells(20, p + 4)) = False Then
-            k = k + 1
+            
             If StrComp(mid$(sheetFit.Cells(20, p + 4), 1, 1), "[", 1) = 0 Then
+                k = 1
                 ReDim bediff(k)
                 ReDim posd(k)
-                ReDim C0(k)
+'                ReDim C0(k)
                 posd(k - 1) = p
             ElseIf StrComp(mid$(sheetFit.Cells(20, p + 4), Len(sheetFit.Cells(20, p + 4)), 1), "]", 1) = 0 Then
+                k = k + 1
+                peaksetbe = peaksetbe + 1
                 ReDim Preserve posd(k)
                 ReDim Preserve bediff(k)
-                ReDim Preserve C0(k)
+                ReDim Preserve C0(peaksetbe)
                 posd(k - 1) = p
                 bediff(k - 1) = mid$(sheetFit.Cells(20, p + 4), 1, Len(sheetFit.Cells(20, p + 4)) - 1)
-                C0(k - 1) = "pars.add('g" & p & "_center', expr = 'g" & posd(0) & "_center + " & bediff(k - 1) & " ')"
-                k = 0
-            Else
+                C0(peaksetbe - 1) = "pars.add('g" & p & "_center', expr = 'g" & posd(0) & "_center + " & bediff(k - 1) & " ')"
+            ElseIf StrComp(mid$(sheetFit.Cells(20, p + 4), Len(sheetFit.Cells(20, p + 4)), 1), ";", 1) = 0 Then
+                k = k + 1
+                peaksetbe = peaksetbe + 1
                 ReDim Preserve posd(k)
                 ReDim Preserve bediff(k)
-                ReDim Preserve C0(k)
+                ReDim Preserve C0(peaksetbe)
                 posd(k - 1) = p
                 bediff(k - 1) = mid$(sheetFit.Cells(20, p + 4), 1, Len(sheetFit.Cells(20, p + 4)) - 1)
-                C0(k - 1) = "pars.add('g" & p & "_center', expr = 'g" & posd(0) & "_center + " & bediff(k - 1) & " ')"
+                C0(peaksetbe - 1) = "pars.add('g" & p & "_center', expr = 'g" & posd(0) & "_center + " & bediff(k - 1) & " ')"
             End If
         End If
         
-        model = model & " + gauss" & p
+        If StrComp(mid$(model, 7, 6), "bg_mod", 1) = 0 Then
+            model = model & " + gauss" & p
+        ElseIf p = 1 Then
+            model = model & " gauss" & p
+        Else
+            model = model & " + gauss" & p
+        End If
     Next
     
-    If IsEmpty(C1) = False Then
-        Range(Cells(3 + (p - 1) * 6, 1), Cells(2 + (p - 1) * 6 + UBound(C1), 1)) = Application.Transpose(C1)
-        If IsEmpty(C0) = False Then
-            Range(Cells(3 + (p - 1) * 6 + UBound(C1), 1), Cells(2 + (p - 1) * 6 + UBound(C1) + UBound(C0), 1)) = Application.Transpose(C0)
-            Cells(4 + (p - 1) * 6 + UBound(C1) + UBound(C0), 1) = model
-            If IsEmpty(C4) = False Then
-                Range(Cells(6 + (p - 1) * 6 + UBound(C1) + UBound(C0), 1), Cells(8 + (p - 1) * 6 + UBound(C1) + UBound(C0), 1)) = Application.Transpose(C4)
-            End If
-        End If
+    inip = inip + (p - 1) * 6
+    Debug.Print inip, p, UBound(C1), IsEmpty(C1)
+    ' amplitude
+    If UBound(C1) > 0 Then
+        Range(Cells(inip, 1), Cells(inip - 1 + UBound(C1), 1)) = Application.Transpose(C1)
+        inip = inip + 1 + UBound(C1)
+    End If
+    
+    ' BE diff
+    If UBound(C0) > 0 Then
+        Range(Cells(inip, 1), Cells(inip - 1 + UBound(C0), 1)) = Application.Transpose(C0)
+        inip = inip + 1 + UBound(C0)
+    End If
+    
+    If IsEmpty(model) = False Then
+        Cells(inip, 1) = model
+        inip = inip + 2
+    End If
+    
+    ' plot
+    If IsEmpty(C4) = False Then ' plot
+        Range(Cells(inip, 1), Cells(inip - 1 + UBound(C4), 1)) = Application.Transpose(C4)
     End If
     
 End Sub
@@ -5574,7 +5639,7 @@ Sub GetOutFit()
                 Cells(5, 1).Value = "% Sf varied"
             Else
                 Cells(5, 2).Value = Cells(5, 2).Value + fileNum - 1
-                Cells(5, 1).Value = "Iteration"
+                Cells(5, 1).Value = "Iteration bg + fit"
                 Cells(5, 2).Font.Bold = "False"
             End If
             Range(Cells(6, 1), Cells(10, 1)).Interior.Color = RGB(156, 204, 101)   '43
@@ -5633,7 +5698,7 @@ Sub GetOutFit()
         Else
             Cells(6, 2).Value = fileNum
             Cells(6, 1).Value = "Iteration fit"
-            Cells(5, 1).Value = "Iteration"
+            Cells(5, 1).Value = "Iteration bg"
             Cells(5, 2).Font.Bold = "False"
             Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
             Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
@@ -7105,12 +7170,12 @@ Sub descriptFit()
         Cells(1, 2).Value = "BG"
         Cells(1, 3).Value = vbNullString
         Cells(2, 1).Value = "Tolerance"
-        Cells(3, 1).Value = "Initial A"
-        Cells(4, 1).Value = "Final A"
-        Cells(5, 1).Value = "Iteration"
+        Cells(3, 1).Value = "Max iteration"
+        Cells(4, 1).Value = "Final k sum"
+        Cells(5, 1).Value = "Iteration bg"
         Cells(6, 1).Value = "Iteration fit"
         Cells(2, 2).Value = 0.0001
-        Cells(3, 2).Value = 0.001
+        Cells(3, 2).Value = 100
     End If
     
     Cells(6 + sftfit2, 1).Value = "Solve BGS"
@@ -7425,22 +7490,15 @@ Sub ShirleyBG() 'iteration mode
     strBG3 = vbNullString
     
     If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
-        If IntegrationTrapezoid(Range(Cells(startR, 1), Cells(endR, 1)), Range(Cells(startR, 2), Cells(endR, 2))) <> 0 Then
-            Cells(3, 2).Value = 0.1 * Abs(Cells(startR, 2).Value - Cells(endR, 2).Value) / IntegrationTrapezoid(Range(Cells(startR, 1), Cells(endR, 1)), Range(Cells(startR, 2), Cells(endR, 2)))
-            Cells(2, 2).Value = 0.01 * Cells(3, 2).Value
-        Else
-            'strErr = "errZero-denominator"
-            Call GetOutFit
-            sheetFit.Activate
-            Exit Sub
-        End If
+        Cells(2, 2).Value = 0.0001
+        Cells(3, 2).Value = 100
     End If
 
     Cells(5, 2).Value = 0
     Cells(2, 1).Value = "Tolerance"
-    Cells(3, 1).Value = "Initial A"
-    Cells(4, 1).Value = "Final A"
-    Cells(5, 1).Value = "Iteration"
+    Cells(3, 1).Value = "Max iteration"
+    Cells(4, 1).Value = "Final k sum"
+    Cells(5, 1).Value = "Iteration bg"
     
     Cells(20, 101).Value = "Shirley"
     Cells(20, 102).Value = Cells(1, 2).Value
@@ -7452,9 +7510,8 @@ Sub ShirleyBG() 'iteration mode
         Range(Cells(startR, 3), Cells(endR, 3)) = Cells(endR, 2).Value
     End If
     
-    C1 = Range(Cells(startR, 2), Cells(endR, 2))    'C
-    C2 = Range(Cells(startR, 3), Cells(endR, 3))    'A
-    
+    C1 = Range(Cells(startR, 1), Cells(endR, 1))    'C
+    C2 = Range(Cells(startR, 2), Cells(endR, 2))    'A
     Range(Cells(startR, 3), Cells(endR, 3)) = ShirleyIteration(Cells(2, 2).Value, Cells(3, 2).Value, C1, C2, Cells(20 + sftfit, 2).Value)
     
     Cells(4, 2).Value = a0
@@ -7479,76 +7536,96 @@ Sub ShirleyBG() 'iteration mode
     [B2:B6].Interior.Color = RGB(197, 225, 165)    '35
 End Sub
 
-Function ShirleyIteration(Tor As Single, iA As Single, C1 As Variant, C2 As Variant, mode As String) As Variant
-    Dim bs As Single, tA As Single, fA As Single, mulFac As Single
+Function ShirleyIteration(Tol As Single, maxit As Integer, C1 As Variant, C2 As Variant, mode As String) As Variant
+    ' Proctor and Sherwood algorithm 10.1021/ac00238a008 - iA should be a-b
+    '
+    Dim ksum As Single, ysum As Single, rsum As Single, B As Variant, Bnew As Variant, base As Single, bgend As Single
     
     p = UBound(C1)
     k = 0
-    mulFac = 0.25
-    fA = iA
+    B = C2
+    Bnew = C2
+
+    If mode = "Ab" Then
+        base = C2(1, 1)
+        bgend = C2(p, 1)
+    Else
+        base = C2(p, 1)
+        bgend = C2(1, 1)
+    End If
+    
+    For n = 1 To p
+        B(n, 1) = base
+        Bnew(n, 1) = base
+    Next
     
     Do
-        bs = 0
-        tA = fA             ' Iteration mode
         k = k + 1
-        
+
         If mode = "Ab" Then ' for PE
-            For n = 1 To p Step 1
-                bs = bs + (C1(n, 1) - C2(n, 1))
-                C2(n, 1) = C2(1, 1) + (tA * bs)
+            ksum = 0
+            
+            For n = 1 To p - 1 Step 1
+                ksum = ksum + (C1(n + 1, 1) - C1(n, 1)) * 0.5 * (C2(n, 1) + C2(n + 1, 1) - 2 * base - B(n, 1) - B(n + 1, 1))
             Next
             
-            fA = tA * (1 + mulFac * ((C1(p, 1) - C2(p, 1)) / C1(p, 1)))
+            ksum = (bgend - base) / ksum
+            
+            For n = 1 To p
+                ysum = 0
+                
+                For q = 1 To n - 1
+                    ysum = ysum + (C1(q + 1, 1) - C1(q, 1)) * 0.5 * (C2(q, 1) + C2(q + 1, 1) - 2 * base - B(q, 1) - B(q + 1, 1))
+                Next
+                
+                Bnew(n, 1) = ksum * ysum
+            Next
         Else
-            For n = p To 1 Step -1
-                bs = bs + (C1(n, 1) - C2(n, 1))
-                C2(n, 1) = C2(p, 1) + (tA * bs)
+            ksum = 0
+            
+            For n = 1 To p - 1 Step 1
+                ksum = ksum + (C1(n, 1) - C1(n + 1, 1)) * 0.5 * (C2(n, 1) + C2(n + 1, 1) - 2 * base - B(n, 1) - B(n + 1, 1))
             Next
             
-            fA = tA * (1 + mulFac * ((C1(1, 1) - C2(1, 1)) / C1(1, 1)))
+            ksum = (bgend - base) / ksum
+            
+            For n = p To 1 Step -1
+                ysum = 0
+                
+                For q = p - 1 To n Step -1
+                    ysum = ysum + (C1(q, 1) - C1(q + 1, 1)) * 0.5 * (C2(q, 1) + C2(q + 1, 1) - 2 * base - B(q, 1) - B(q + 1, 1))
+                Next
+                
+                Bnew(n, 1) = ksum * ysum
+            Next
         End If
         
-        If k >= 1000 Then
-            strErr = "errOverIte"
-            If StrComp(strBG2, "bg", 1) = 0 Then
-                Cells(1, 2).Value = "ABG"
-                strBG2 = "ab"
-            ElseIf StrComp(strBG3, "bg", 1) = 0 Then
-                Cells(1, 3).Value = "ABG"
-                strBG3 = "ab"
-            End If
-            Cells(8, 101).Value = 0
-            Exit Function
-        ElseIf (Abs(C2(p, 1)) > 1000000 And mode = "Ab") Or (Abs(C2(1, 1)) > 1000000) Then
-            Debug.Print k, mulFac, tA, C2(1, 1), "stop1"
-            strErr = "errOverIte"
-            If StrComp(strBG2, "bg", 1) = 0 Then
-                Cells(1, 2).Value = "ABG"
-                strBG2 = "ab"
-            ElseIf StrComp(strBG3, "bg", 1) = 0 Then
-                Cells(1, 3).Value = "ABG"
-                strBG3 = "ab"
-            End If
-            Cells(8, 101).Value = 0
-            Exit Function
-        ElseIf Abs(tA) > 100 And Abs(bs) > 100 Then
-            Debug.Print k, mulFac, tA, C2(1, 1), "stop2"
-            strErr = "errOverA"
-            If StrComp(strBG2, "bg", 1) = 0 Then
-                Cells(1, 2).Value = "ABG"
-                strBG2 = "ab"
-            ElseIf StrComp(strBG3, "bg", 1) = 0 Then
-                Cells(1, 3).Value = "ABG"
-                strBG3 = "ab"
-            End If
-            Cells(8, 101).Value = 0
-            Exit Function
-        ElseIf Abs(tA - fA) < Tor Then
-            ShirleyIteration = C2
-            a0 = fA
+        rsum = 0
+        For n = 1 To p
+            rsum = rsum + (Bnew(n, 1) - B(n, 1))
+        Next
+
+        If Abs(rsum) / p < Tol Then
+            For n = 1 To p
+                Bnew(n, 1) = Bnew(n, 1) + base
+            Next
+            ShirleyIteration = Bnew
+            Debug.Print k, "within tol", rsum / p
+            a0 = ksum
             Exit Do
+        ElseIf k > maxit Then
+            For n = 1 To p
+                Bnew(n, 1) = Bnew(n, 1) + base
+            Next
+            ShirleyIteration = Bnew
+            Debug.Print k, "ite over", maxit
+            Exit Do
+        Else
+            Debug.Print k, "loop"
+            B = Bnew
         End If
     Loop
+    
 End Function
 
 Sub ShirleyActiveSetup()    ' simultaneous mode
@@ -7758,10 +7835,9 @@ Sub PolynominalShirleyBG()
     End If
     
     Cells(2, 1).Value = "Tolerance"
-    Cells(3, 1).Value = "Initial A"
-    Cells(4, 1).Value = "Final A"
-    
-    Cells(5, 1).Value = "Iteration"
+    Cells(3, 1).Value = "Max iteration"
+    Cells(4, 1).Value = "Final k sum"
+    Cells(5, 1).Value = "Iteration bg"
     Cells(6, 1).Value = "Ratio S:P"
     Cells(7, 1).Value = "0th poly"
     Cells(8, 1).Value = "1st poly"
@@ -7773,8 +7849,8 @@ Sub PolynominalShirleyBG()
     Cells(20, 103).Value = Cells(1, 3).Value
     
     If Cells(8, 101).Value = 0 Then
-        Cells(3, 2).Value = 0.1 * Abs(Cells(startR, 2).Value - Cells(endR, 2).Value) / IntegrationTrapezoid(Range(Cells(startR, 1), Cells(endR, 1)), Range(Cells(startR, 2), Cells(endR, 2)))
-        Cells(2, 2).Value = 0.01 * Cells(3, 2).Value
+        Cells(2, 2).Value = 0.0001
+        Cells(3, 2).Value = 100
     End If
     
     For k = 2 To 10
@@ -7806,9 +7882,8 @@ Sub PolynominalShirleyBG()
     
     If strBG3 = "ab" Then Exit Sub
     
-    C1 = Range(Cells(startR, 2), Cells(endR, 2))    'C
-    C2 = Range(Cells(startR, 3), Cells(endR, 3))    'A
-    
+    C1 = Range(Cells(startR, 1), Cells(endR, 1))    'C
+    C2 = Range(Cells(startR, 2), Cells(endR, 2))    'A
     Range(Cells(startR, 99), Cells(endR, 99)) = ShirleyIteration(Cells(2, 2).Value, Cells(3, 2).Value, C1, C2, Cells(20 + sftfit, 2).Value)
 
     Cells(4, 2).Value = a0
