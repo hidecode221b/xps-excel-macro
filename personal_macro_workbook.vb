@@ -754,7 +754,7 @@ Sub LoadVAMAS()
             End If
         
             startR = startR + numVcoeff + 48 + numData
-            sheetGraph.Cells(1, 1).Value = "Exported"
+'            sheetGraph.Cells(1, 1).Value = "Exported"
         Next k
     Next p
     
