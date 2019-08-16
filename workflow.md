@@ -1,0 +1,27 @@
+- Calc (XPS/XAS, PE, Elem)
+    - Sim
+    - Data (phi, CLAM2, KE/eV, BE/eV, PE/eV)
+        - Check (CLAM2, exp)
+            - Eck
+        - Photo (TEY, TFY)
+        - Graph (chem, elem, ana, exp, comp, auto, cali, noise, debug, norm, diff, cked, edge, lcmb, vms)
+            - Exp
+            - Norm
+                - Graph_Norm
+                    - Fit_Norm (exp)
+                        - Exp_Fit_Norm
+            - Diff
+            - Edge
+                - Graph_Edge
+                    - Fit_Edge (exp)
+                        - Exp_Fit_Edge
+            - Lcmb
+                - Graph_Lmcb
+                    - Fit_Lmcb (exp)
+                        - Exp_Fit_Lmcb
+            - Fit (lmfit, ana, exp)
+                - Pyt
+                - Exp_Fit
+                - Cmp
+                - Ana
+                    - Rto
