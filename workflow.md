@@ -169,14 +169,15 @@
 
 
 # Advanced syntax templates in the sheets 
-|Sheet|Cells|Formula| Reference cell|Calibrated #1|Calibrated #2|
-|:-----------|:------|:-------|:-----------|:------|:-------|
+|Purpose|Sheet|Cells|Formula| Reference cell|Calibrated #1|Calibrated #2|
+|:-----------|:------|:-------|:-----------|:------|:-------|:-------|
 |Extra photons|Graph|C2|;100;200;333 eV||||		
 |Specific scans|Graph|B8|[1,2-4]||||	
 |BE diff|Fit|D14-|(4;1;3)|(4;|1;|3)|
 |Amp ratio|Fit|D15-|[3.5;n3.5]|[|3.5;|n3.5]|
 
 Note1: “n” represents negative shift from reference.
+
 Note2: Empty cells between brackets does not effect to the constraints.
 
 # List of Peak area 
