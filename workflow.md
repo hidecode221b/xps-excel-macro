@@ -27,8 +27,22 @@
                 - Cmp
                 - Ana
                     - Rto
-                    
-# Syntax
+
+# Data template
+|Technique | Trigger in A1 | Queries | Graph x-axis |Fitting|
+|:-----------|:------|:-------|:-------|:-------|
+|PES|KE/eV|PE & elements|BE & KE|Yes in BE scale|
+|XPS|BE/eV|PE & elements|BE & KE|Yes in BE scale|
+|XAS|PE/eV|Elements|PE|Yes in PE scale|
+|Grating scan|GE/eV|Gap/1st har.& e|PE|No|
+|AES|AE/eV|Elements|EE & dN/dE|No|
+|RGA|QE/eV|NA|Mas|Yes in mass|
+|Manual scan|ME/eV|NA|Position|Yes in x|
+|Histogram|HE/eV|NA|Position|Yes in x|
+|Photodiode|FE/eV|Gap/1st har.|PE|No|
+
+
+# Command
 | Command | Cell | Sheet | Outcome |
 |:-----------|:------|:-------|:-------|
 |chem|C10|Graph, Cmp|display chemical shifts|
@@ -97,7 +111,7 @@
 |PEA|Pearson VII|Skewness||4|Fityk|
 |SGL, PGL (0-1)|G + L, G x L (pseudo-Voigt)|||5|Unifit,CasaXPS|
 |ASGL, APGL|Asymmetric V, Double Voigt|||5|10.1107/S0021889884011043|
-|ESGL, EPGL|Exponential blended Voigt|Exponential decay parameters|||5|CasaXPS|
+|ESGL, EPGL|Exponential blended Voigt|Exponential decay parameters||5|CasaXPS|
 |DS SGL, DS PGL|DS x L blended V|Asymmetric parameter|Ratio DSL:V|6|CasaXPS|
 |UG SGL, UG PGL|Ulrik Gelius blended Voigt|Asymmetric parameter a|Asymmetric parameter b|6|CasaXPS|
 |DSV SGL, DSV PGL|	DS x Voigt blended Voigt|Asymmetric parameter|Ratio DSV:V|6|CasaXPS|
@@ -109,3 +123,67 @@
 |FG|F x G|||5||
 |LOGN|Log normal|Mean (μ)||4||
 
+# Optimization mode of fittings
+| Cell in Fit sheet | Syntax or Font style | Optimization|
+|:-----------|:------|:-------|
+|BE, FWHM, Ampl, Shape, Options|Figures with Bold|Constraints|
+|A14|Solve chi^2*|Least chi square|
+|A14|Solve Abbe|Abbe criteria |
+|A10 (EF fit)|Solve FD without Italic|Least chi square|
+|A10 (EF fit)|Solve FD with Italic|Abbe criteria |
+|A11 (EF fit) |Solve GC without bold|Gaussian convolution after FD + polynomial BG|
+|A11 (EF fit)|Solve GC with bold|FD + Polynomial BG first, Gaussian convolution together with FD + poly BG|
+
+
+# Calibrations in offset/multiple factors
+|A1 cell syntax in Graph sheet| Offset factor | Multiple factor|
+|:-----------|:------|:-------|
+|auto0	|Set to 0	|Set to 1|
+|auto or auto1	|First point to be zero 	|End point to be unity |
+|auto10 	|Zero at point 10 from start point 	|Unity at point 10 from end point |
+|auto(1,10) 	|Zero from point 1 to 10 from start point 	|Unity from point 1 to 10 from end point |
+|auto[100:101,200:201] 	|Zero in BE range between 100 and 101 eV 	|Unity in BE range between 200 and 201 eV |
+|automax / autowf	|Zero at the lower side of a point of data	|Unity at max intensity point of data|
+|autop	|Syntax previously done	|Syntax previously done|
+|auto{284.6}	|BE at max. intensity to be calibrated in 284.6 eV	|NA (BE calibration by Charging factor)|
+|auto'-7.8'	|Charging correction at -7.8 eV for all spectra	|NA (this is based on C1s BE calibration)|
+|offset10	|Offset spectra for water fall plot	|NA|
+
+# List of element groups to be identified
+|Syntax|Group|Elements to be analyzed|
+|:-----------|:------|:-------|
+|AL|Alkali metals|Na,K,Rb,Cs|
+|EA|Alkaline Earth metals|Be,Mg,Ca,Sr,Ba,Ra|
+|TM|Transition metals|3d + 4d + 5d transition metals|
+|3d|3d transition metals|Sc,Ti,V,Cr,Mn,Fe,Co,Ni,Cu,Zn|
+|4d|4d transition metals|Y,Zr,Nb,Mo,Tc,Ru,Rh,Pd,Ag,Cd|
+|5f|5d transition metals|Lu,Hf,Ta,W,Re,Os,Ir,Pt,Au,Hg|
+|SM|Semi-metals|B,Si,Ge,As,Sb,Te|
+|NM|Non-metals|C,N,O,P,S,Se|
+|BM|Basic metals|Al,Ga,In,Sn,Tl,Pb,Bi|
+|HA|Halogens|F,Cl,Br,I,At|
+|NG|Noble gases|Ne,Ar,Kr,Xe,Rn|
+|RM|Rare metals|La,Ce,Nd,Sm,Eu,Gd,Tb,Er,Tm,Yb,Th,U|
+|LA|Lanthanide|La,Ce,Nd,Sm,Eu,Gd,Tb,Er,Tm,Yb|
+|AC|Actinides|Th,U|
+
+
+# Advanced syntax templates in the sheets 
+|Sheet|Cells|Formula| Reference cell|Calibrated #1|Calibrated #2|
+|:-----------|:------|:-------|:-----------|:------|:-------|
+|Extra photons|Graph|C2|;100;200;333 eV||||		
+|Specific scans|Graph|B8|[1,2-4]||||	
+|BE diff|Fit|D14-|(4;1;3)|(4;|1;|3)|
+|Amp ratio|Fit|D15-|[3.5;n3.5]|[|3.5;|n3.5]|
+
+Note1: “n” represents negative shift from reference.
+Note2: Empty cells between brackets does not effect to the constraints.
+
+# List of Peak area 
+|Name|Usage|Description|Factors to be effective|
+|:-----------|:------|:-------|:-------|
+|P. Area|Chemical state analysis|Peak area calculated with analytical formula and without any factors|Amplitude, FWHM|
+|S. Area|Quantification of elements under the same condition|Peak area normalized with atomic sensitivity factor based on photo-ionization cross-section|Amplitude, FWHM, PE, Sensitivity based on element specified in the Graph sheet|
+|N. Area|Quantification of elements under the various measurement conditions|Peak area calculated in "S. Area" plus normalized with empirically calculated factors at BL CLAM2 including XPS mean-free path of photoelectrons, transmission function of electron energy analyzer based on pass energy, grating efficiency|Amplitude, FWHM, PE, KE, Sensitivity, CAE, Grating, MFP factor, a & b specified in the Fit sheet based on formalism from CasaXPS|
+
+T.I./S.I./N.I. are numerically integrated areas with Trapezoidal rule applied to each corresponding area shown above.
