@@ -9,7 +9,7 @@ Option Explicit
     
     Dim wb As String, ver As String, TimeCheck As String, strAna As String, direc As String, ElemD As String, Results As String, testMacro As String, strBG0 As String
     Dim strSheetDataName As String, strSheetGraphName As String, strSheetFitName As String, strSheetAnaName As String, strBG1 As String, strBG2 As String
-    Dim strMode As String, strLabel As String, strCasa As String, strAES As String, strErr As String, strErrX As String, ElemX As String, strBG3 As String
+    Dim strMode As String, strLabel As String, strCasa As String, strAES As String, strchm As String, strErr As String, strErrX As String, ElemX As String, strBG3 As String
     
     Dim sheetData As Worksheet, sheetGraph As Worksheet, sheetFit As Worksheet, sheetAna As Worksheet
     Dim dataData As Range, dataKeData As Range, dataIntData As Range, dataBGraph As Range, dataKGraph, dataKeGraph As Range, dataBeGraph As Range
@@ -507,8 +507,9 @@ DeadInTheWater3:
             strSheetDataName = strTest
         End If
         
-        strCasa = "User Defined"  ' default database for XPS  "VG Avt"/"SC CXRO"
-        strAES = "User Defined"   ' default database for AES  "VG qnt"/"Mrocz"
+        strCasa = "User Defined"   ' default database for XPS
+        strAES = "User Defined"   ' default database for AES
+        strChm = "Tech DB"  ' default database for Chem
     End If
     
     If Not ExistSheet(strSheetDataName) Then End
@@ -7106,6 +7107,7 @@ Sub descriptHidden1()
     Cells(45, para + 9).Value = "ncomp"
     Cells(46, para + 9).Value = "XPS BE database:"
     Cells(47, para + 9).Value = "AES KE database:"
+    Cells(48, para + 9).Value = "ChemID database:"
     Cells(41, para + 11).Value = "numData"
     Cells(42, para + 11).Value = "numChemFactors"
     Cells(43, para + 11).Value = "numXPSFactors"
@@ -7147,6 +7149,7 @@ Sub descriptHidden2()
     Cells(44, para + 12).Value = numAESFactors
     Cells(46, para + 11).Value = strCasa
     Cells(47, para + 11).Value = strAES
+    Cells(48, para + 11).Value = strChm
     Cells(51, para + 9).Value = ElemD
 End Sub
 
@@ -8393,16 +8396,23 @@ End Sub
 
 Sub SolverSetup()      ' simple results with quick time
     SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
+    SolverOptions MaxTime:=10, Iterations:=100, Precision:=0.01, AssumeLinear _
+        :=False, StepThru:=False, Estimates:=1, Derivatives:=1, SearchOption:=1, _
+        IntTolerance:=5, Scaling:=True, Convergence:=0.01, AssumeNonNeg:=False, Multistart:=False
+End Sub
+
+Sub SolverSetup1()      ' fair results with moderate time
+    SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
     SolverOptions MaxTime:=10, Iterations:=100, Precision:=0.0001, AssumeLinear _
         :=False, StepThru:=False, Estimates:=1, Derivatives:=1, SearchOption:=1, _
-        IntTolerance:=5, Scaling:=True, Convergence:=0.0001, AssumeNonNeg:=False
+        IntTolerance:=5, Scaling:=True, Convergence:=0.0001, AssumeNonNeg:=False, Multistart:=True
 End Sub
 
 Sub SolverSetup2()      ' Accurate results with quite long time
     SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
     SolverOptions MaxTime:=100, Iterations:=32767, Precision:=0.0000000001, AssumeLinear _
         :=False, StepThru:=False, Estimates:=2, Derivatives:=2, SearchOption:=2, _
-        IntTolerance:=5, Scaling:=True, Convergence:=0.0000000001, AssumeNonNeg:=False
+        IntTolerance:=5, Scaling:=True, Convergence:=0.0000000001, AssumeNonNeg:=False, Multistart:=False
 End Sub
 
 Function ShowTrial(Reason As Integer)
