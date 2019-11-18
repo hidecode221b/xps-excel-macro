@@ -31,8 +31,8 @@ Sub CLAM2()
     Else
         ' Windows
         'direc = "C:" + backSlash + "Users" + backSlash + "Public" + backSlash + "Excel_XPS_macro" + backSlash + "Data" + backSlash + "hideki" + backSlash + "XPS" + backSlash ' this is for BOOTCAMP/Parallels on MacBookAir.
-        'direc = "G:" + backSlash + "Data" + backSlash + "Hideki" + backSlash + "XPS" + backSlash    ' this is for Windows PC with HDD storage.
-        direc = "D:\Excel_XPS_macro\DATA\hideki\XPS\"
+        direc = "G:" + backSlash + "Data" + backSlash + "Hideki" + backSlash + "XPS" + backSlash    ' this is for Windows PC with HDD storage.
+        'direc = "D:\Excel_XPS_macro\DATA\hideki\XPS\"
     End If
     
     windowSize = 1.3          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
@@ -4677,6 +4677,7 @@ Sub FitCurve()
     
     If StrComp(mid$(strMode, 1, 6), "Do fit", 1) = 0 Then
     Else
+        j = 0
         Call FitInitial
         Exit Sub
     End If
