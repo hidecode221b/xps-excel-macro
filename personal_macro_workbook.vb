@@ -7573,7 +7573,7 @@ Function ShirleyIteration(Tol As Single, maxit As Integer, C1 As Variant, C2 As 
                 ksum = ksum + (C1(n + 1, 1) - C1(n, 1)) * 0.5 * (C2(n, 1) + C2(n + 1, 1) - 2 * base - B(n, 1) - B(n + 1, 1))
             Next
             
-            ksum = (bgend - base) / ksum
+            If ksum <> 0 Then ksum = (bgend - base) / ksum
             
             For n = 1 To p
                 ysum = 0
@@ -7591,7 +7591,7 @@ Function ShirleyIteration(Tol As Single, maxit As Integer, C1 As Variant, C2 As 
                 ksum = ksum + (C1(n, 1) - C1(n + 1, 1)) * 0.5 * (C2(n, 1) + C2(n + 1, 1) - 2 * base - B(n, 1) - B(n + 1, 1))
             Next
             
-            ksum = (bgend - base) / ksum
+            If ksum <> 0 Then ksum = (bgend - base) / ksum
             
             For n = p To 1 Step -1
                 ysum = 0
