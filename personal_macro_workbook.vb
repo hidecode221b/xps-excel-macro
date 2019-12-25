@@ -2576,12 +2576,21 @@ Sub GetAutoScale()
 End Sub
 
 Sub ExportCmp(ByRef strXas As String)
-    Dim rng As Range, numDataT As Integer, nameXaxis As Integer, sftPe As Integer
+    Dim rng As Range, numDataT As Integer, nameXaxis As Integer, sftPe As Integer, expAuger As Integer
+    Dim expOgn As Integer, sheetTarget As Worksheet
     
     If StrComp(LCase(Cells(1, 1).Value), "exp2", 1) = 0 Then
         nameXaxis = 1   ' E/eV form to export each data file in text
+        expOgn = 0
     Else
         nameXaxis = 0   ' Export data in the other program to be pasted
+        expOgn = 2
+    End If
+    
+    If StrComp(LCase(Cells(1, 1).Value), "exp3", 1) = 0 Then
+        expAuger = 1    ' export x-axis from KE
+    Else
+        expAuger = 0    ' export x-axis from BE
     End If
     
     If mid$(LCase(Cells(1, 1).Value), 1, 3) = "exp" Or strXas = "Is" Then
@@ -2594,7 +2603,18 @@ Sub ExportCmp(ByRef strXas As String)
         Worksheets.Add().Name = strSheetAnaName
         Set sheetAna = Worksheets(strSheetAnaName)
         Set sheetGraph = Worksheets(strSheetGraphName)
-    
+        
+        If ExistSheet("samples") Then
+            Set sheetTarget = Worksheets("samples")
+        Else
+            sheetGraph.Activate
+            ncomp = sheetGraph.Cells(45, para + 10).Value
+            Results = vbNullString
+            Call CombineLegend
+            Set sheetTarget = Worksheets("samples")
+            sheetAna.Activate
+        End If
+        
         wb = ActiveWorkbook.Name
         sheetGraph.Activate
         
@@ -2615,7 +2635,23 @@ Sub ExportCmp(ByRef strXas As String)
             Set rng = Range(Cells(11, (1 + (q * 3))), Cells(11, (1 + (q * 3))).End(xlDown))
             numDataT = Application.CountA(rng)
             sheetGraph.Range(Cells(11 + numDataT + 8, (1 + sftPe + (q * 3))), Cells(11 + (numDataT * 2) + 8, (2 + sftPe + (q * 3)))).Copy
-            sheetAna.Cells(1, 1 + (q * 2)).PasteSpecial Paste:=xlValues
+            sheetAna.Cells(1 + expOgn, 1 + (q * 2)).PasteSpecial Paste:=xlValues
+            
+                If expOgn > 0 Then
+                    sheetAna.Cells(1, 1 + (q * 2)).Value = sheetAna.Cells(1 + expOgn, 1 + (q * 2)).Value
+                    sheetAna.Cells(1, 2 + (q * 2)).Value = sheetAna.Cells(1 + expOgn, 2 + (q * 2)).Value
+                    sheetAna.Cells(2, 1 + (q * 2)).Value = "eV"
+                    sheetAna.Cells(2, 2 + (q * 2)).Value = "arb. units"
+                    sheetAna.Cells(3, 1 + (q * 2)).Value = sheetTarget.Cells(2 + q, 2).Value
+                    sheetAna.Cells(3, 2 + (q * 2)).Value = sheetTarget.Cells(2 + q, 2).Value
+                End If
+                
+                If expAuger = 1 Then
+                    sheetGraph.Range(Cells(11 + numDataT + 8, 1), Cells(11 + (numDataT * 2) + 8, 1)).Copy
+                    sheetAna.Cells(1, 1 + (q * 2)).PasteSpecial Paste:=xlValues
+                    sheetAna.Cells(1, 1 + (q * 2)).Value = "AE/eV"
+                End If
+            
             If nameXaxis > 0 Then
                     If mid$(LCase(Cells(10, 1).Value), 1, 2) = "pe" Then   'XAS mode
                         sheetAna.Cells(1, 1 + (q * 2)).Value = "PE/eV"
