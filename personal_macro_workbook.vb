@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.42p"                             ' Version of this code.
+    ver = "8.43p"                             ' Version of this code.
     If Application.OperatingSystem Like "*Mac*" Then
         backSlash = "/"
     Else
@@ -302,6 +302,7 @@ DeadInTheWater3:
             strSheetAnaName = "Exp_" + strSheetDataName
             strSheetGraphName = "Graph_" + strSheetDataName
             Call ExportCmp("")
+            ActiveWorkbook.Save
             If Len(strErr) > 0 Then Exit Sub
         ElseIf StrComp(LCase(Cells(1, 1).Value), "norm", 1) = 0 Or StrComp(LCase(Cells(1, 1).Value), "edge", 1) = 0 Or StrComp(LCase(Cells(1, 1).Value), "diff", 1) = 0 Then
             Call GetNormalize
@@ -310,11 +311,13 @@ DeadInTheWater3:
             strSheetGraphName = "Graph_" + strSheetDataName
             Call GetAutoScale
             If StrComp(mid$(strErr, 1, 3), "err", 1) = 0 Then MsgBox ("Error in range: " & mid$(strErr, 4, Len(strErr) - 3))
+            ActiveWorkbook.Save
             If Len(strErr) > 0 Then Exit Sub
         ElseIf StrComp(LCase(mid$(Cells(1, 1).Value, 1, 3)), "leg", 1) = 0 Then
             strSheetGraphName = "Graph_" + strSheetDataName
             Results = vbNullString
             Call CombineLegend
+            ActiveWorkbook.Save
             End
         ElseIf StrComp(LCase(Cells(1, 1).Value), "debug", 1) = 0 Then
             Cells(1, 1).Value = "Grating"
@@ -370,6 +373,7 @@ DeadInTheWater3:
             strSheetGraphName = "Cmp_" + strSheetDataName
             Results = vbNullString
             Call CombineLegend
+            ActiveWorkbook.Save
             End
         ElseIf StrComp(LCase(mid$(Cells(1, 1).Value, 1, 4)), "auto", 1) = 0 Then
             strSheetGraphName = "Cmp_" + strSheetDataName
@@ -381,6 +385,7 @@ DeadInTheWater3:
             strSheetGraphName = "Cmp_" + strSheetDataName
             ncomp = Range(Cells(10, 1), Cells(10, 1).End(xlToRight)).Columns.Count / 3
             Call ExportCmp("")
+            ActiveWorkbook.Save
             If Len(strErr) > 0 Then Exit Sub
         End If
         
@@ -450,7 +455,8 @@ DeadInTheWater3:
             Cells(1, 4).Value = "Name"
             Call ExportLmfit
             Application.CutCopyMode = False
-            End
+            strErr = "exported"
+            If Len(strErr) > 0 Then Exit Sub
         Else
             If InStr(1, sh, "Fit_BE") > 0 Then
                 strMode = "Do fit range"
@@ -5091,6 +5097,8 @@ Resolve:
                            Cells(15 + sftfit2, n - iCol + 110).Value = ratio(iRow - iCol) / ratio(k)
                         Else
                             If Cells(6, n - iCol).Font.Bold = False Then
+                                If Cells(6, n - iRow + k).Value <= 0.00001 Then Cells(6, n - iRow + k).Value = (Cells(3, 101).Value - Cells(2, 101).Value) / 100
+                                ' above avoids reference amplitude to be minimum at 1e-6, then make certain value if less than 1e-5.
                                 SolverAdd CellRef:=Cells(6, n - iCol), Relation:=2, FormulaText:=Cells(6, n - iRow + k) * ratio(iRow - iCol) / ratio(k)
                             End If
                            Cells(15 + sftfit2, n - iCol + 110).Value = ratio(iRow - iCol) / ratio(k)
@@ -8433,7 +8441,7 @@ End Sub
 
 Sub SolverSetup()      ' simple results with quick time
     SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
-    SolverOptions MaxTime:=10, Iterations:=100, Precision:=0.01, AssumeLinear _
+    SolverOptions MaxTime:=10, Iterations:=100, Precision:=0.001, AssumeLinear _
         :=False, StepThru:=False, Estimates:=1, Derivatives:=1, SearchOption:=1, _
         IntTolerance:=5, Scaling:=True, Convergence:=0.01, AssumeNonNeg:=False, Multistart:=False
 End Sub
@@ -10107,7 +10115,7 @@ Sub CombineLegend() ' no k is used because from GetCompare Sub
     Set sheetTarget = Worksheets(strSheetTargetName)
     ncomp = sheetTarget.Cells(45, para + 10).Value
     
-    If ncomp > 0 Then
+    If ncomp >= 0 Then
         If ExistSheet(strSheetSampleName) = False Then
             Worksheets.Add().Name = strSheetSampleName
             Set sheetSample = Worksheets(strSheetSampleName)
@@ -10167,9 +10175,11 @@ Sub CombineLegend() ' no k is used because from GetCompare Sub
         Set sheetSample = Worksheets(strSheetSampleName)
         sheetTarget.Activate
                 
-        For n = 0 To ncomp - 1
-            sheetTarget.Cells(1, 5 + n * 3) = sheetSample.Cells(n + 3, 2).Value & spr & sheetSample.Cells(n + 3, 4).Value
-        Next
+        If ncomp > 0 Then
+            For n = 0 To ncomp - 1
+                sheetTarget.Cells(1, 5 + n * 3) = sheetSample.Cells(n + 3, 2).Value & spr & sheetSample.Cells(n + 3, 4).Value
+            Next
+        End If
         
         If ActiveSheet.ChartObjects.Count > 0 Then
             For n = 0 To ActiveSheet.ChartObjects.Count - 1
