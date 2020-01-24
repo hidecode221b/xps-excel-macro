@@ -5,7 +5,7 @@ Option Explicit
     Dim j As Integer, k As Integer, q As Integer, p As Integer, n As Integer, iRow As Integer, iCol As Integer, ns As Integer, fileNum As Integer
     Dim startR As Integer, endR As Integer, g As Integer, Gnum As Integer, cae As Integer, ncomp As Integer, numXPSFactors As Integer, numAESFactors As Integer
     Dim numMajorUnit As Integer, modex As Integer, para As Integer, graphexist As Integer, numData As Integer, numChemFactors As Integer
-    Dim idebug As Integer, spacer As Integer, sftfit As Integer, sftfit2 As Integer, cmp As Integer, scanNum As Integer, numGrant As Integer
+    Dim idebug As Integer, spacer As Integer, sftfit As Integer, sftfit2 As Integer, cmp As Integer, scanNum As Integer, numGrant As Integer, modePre As Integer
     
     Dim wb As String, ver As String, TimeCheck As String, strAna As String, direc As String, ElemD As String, Results As String, testMacro As String, strBG0 As String
     Dim strSheetDataName As String, strSheetGraphName As String, strSheetFitName As String, strSheetAnaName As String, strBG1 As String, strBG2 As String
@@ -46,6 +46,7 @@ Sub CLAM2()
     gamma = 1.2             ' An electron energy: GeV
     lambda = 6              ' A magnetic period: cm
     fitLimit = 500          ' Maximum fit range: eV
+    modePre = 1             ' Precision mode: 1 quite, 2 moderate, 3 accurate results to be obtained in solver mode 1 GRG Nonlinear
     mfp = 0.6               ' Inelastic mean free path formula: E^(mfp), and mfp can be from 0.5 to 0.9.
     para = 100              ' position of parameters in the graph sheet with higher version of 6.56.
                             ' the limit of compared spectra depends on (para/3).
@@ -2117,9 +2118,9 @@ Sub GetOut()
         If IsEmpty(Cells(18, 101).Value) Then Cells(18, 101).FormulaR1C1 = "=Average(R21C2:R" & (20 + numData) & "C2)"
         If IsNumeric(Cells(18, 101).Value) Then
             If Abs(Cells(18, 101).Value) < 0.000001 Then
-                TimeCheck = MsgBox("Fitting does not work properly, because averaged In data is less than 1E-6!")
+                MsgBox "Fitting does not work properly, because avaraged In data is less than 1E-6!"
             ElseIf Abs(Cells(18, 101).Value) > 1E+29 Then
-                TimeCheck = MsgBox("Fitting does not work properly, because averaged In data is more than 1E+29!")
+                MsgBox "Fitting does not work properly, because avaraged In data is more than 1E+29!"
             End If
         End If
     End If
@@ -4991,12 +4992,8 @@ Resolve:
         If Cells(6, (4 + n)).Font.Bold = "True" Then
             SolverAdd CellRef:=Cells(6, (4 + n)), Relation:=2, FormulaText:=Cells(6, (4 + n)).Value
         Else
-            SolverAdd CellRef:=Cells(6, (4 + n)), Relation:=1, FormulaText:=Cells(3, 101).Value - Cells(2, 101).Value
-            If Cells(2, 101).Value < 0.0000000001 Then
-                SolverAdd CellRef:=Cells(6, (4 + n)), Relation:=3, FormulaText:=Cells(2, 101).Value    ' amplitude min
-            Else
-                SolverAdd CellRef:=Cells(6, (4 + n)), Relation:=3, FormulaText:=0.000001    ' amplitude min
-            End If
+            SolverAdd CellRef:=Cells(6, (4 + n)), Relation:=1, FormulaText:=(Cells(3, 101).Value - Cells(2, 101).Value) * 1.5  ' amplitude max
+            SolverAdd CellRef:=Cells(6, (4 + n)), Relation:=3, FormulaText:=(Cells(3, 101).Value - Cells(2, 101).Value) / 1000  ' amplitude min
         End If
         
         For k = 8 To 10
@@ -5510,7 +5507,7 @@ SkipInitialSig:
 
     If Cells(6, 5).Value <= 0.01 Then Cells(6, 5).Value = 1
     
-    Call SolverSetup2
+    Call SolverSetupEF
     
     If Cells(6 + sftfit2, 1).Font.Bold = "True" Then
         SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(8, 5))
@@ -8439,21 +8436,26 @@ Sub PolynominalTougaardBG()
     [B2:B10].Interior.Color = RGB(197, 225, 165)    '35
 End Sub
 
-Sub SolverSetup()      ' simple results with quick time
-    SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
-    SolverOptions MaxTime:=10, Iterations:=100, Precision:=0.001, AssumeLinear _
-        :=False, StepThru:=False, Estimates:=1, Derivatives:=1, SearchOption:=1, _
-        IntTolerance:=5, Scaling:=True, Convergence:=0.01, AssumeNonNeg:=False, Multistart:=False
+Sub SolverSetup()
+    If modePre = 1 Then      ' simple results with quick time
+        SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
+        SolverOptions MaxTime:=10, Iterations:=100, Precision:=0.001, AssumeLinear _
+            :=False, StepThru:=False, Estimates:=1, Derivatives:=1, SearchOption:=1, _
+            IntTolerance:=5, Scaling:=True, Convergence:=0.001, AssumeNonNeg:=False, Multistart:=False
+    ElseIf modePre = 2 Then     ' fair results with moderate time
+        SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
+        SolverOptions MaxTime:=10, Iterations:=100, Precision:=0.0001, AssumeLinear _
+            :=False, StepThru:=False, Estimates:=1, Derivatives:=1, SearchOption:=1, _
+            IntTolerance:=5, Scaling:=True, Convergence:=0.0001, AssumeNonNeg:=False, Multistart:=False
+    ElseIf modePre = 3 Then      ' Accurate results with quite long time
+        SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
+        SolverOptions MaxTime:=100, Iterations:=32767, Precision:=0.0000000001, AssumeLinear _
+            :=False, StepThru:=False, Estimates:=2, Derivatives:=2, SearchOption:=2, _
+            IntTolerance:=5, Scaling:=True, Convergence:=0.0000000001, AssumeNonNeg:=False, Multistart:=False
+    End If
 End Sub
 
-Sub SolverSetup1()      ' fair results with moderate time
-    SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
-    SolverOptions MaxTime:=10, Iterations:=100, Precision:=0.0001, AssumeLinear _
-        :=False, StepThru:=False, Estimates:=1, Derivatives:=1, SearchOption:=1, _
-        IntTolerance:=5, Scaling:=True, Convergence:=0.0001, AssumeNonNeg:=False, Multistart:=True
-End Sub
-
-Sub SolverSetup2()      ' Accurate results with quite long time
+Sub SolverSetupEF()      ' Accurate results with quite long time
     SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
     SolverOptions MaxTime:=100, Iterations:=32767, Precision:=0.0000000001, AssumeLinear _
         :=False, StepThru:=False, Estimates:=2, Derivatives:=2, SearchOption:=2, _
@@ -8670,6 +8672,14 @@ Sub FitEquations()
                 If Cells(4, 4 + q).Font.Bold = True Then
                     Cells(4, (4 + q + n + 1)).Font.Bold = True
                 End If
+                
+                If Cells(7, 4 + q - 1).Font.Bold = True Then
+                    Cells(7, (4 + q + n)).Font.Bold = True
+                End If
+                
+                If Cells(7, 4 + q).Font.Bold = True Then
+                    Cells(7, (4 + q + n + 1)).Font.Bold = True
+                End If
             Next
         Else
             For n = 1 To (j - q)
@@ -8682,6 +8692,9 @@ Sub FitEquations()
                 Cells(2, (4 + q + n)).Value = Cells(2, (4 + q)).Value + n * (Cells(8, 103).Value / Cells(8 + sftfit2, 2).Value)
                 If Cells(4, 4 + q).Font.Bold = True Then
                     Cells(4, (4 + q + n)).Font.Bold = True
+                End If
+                If Cells(7, 4 + q).Font.Bold = True Then
+                    Cells(7, (4 + q + n)).Font.Bold = True
                 End If
             Next
         End If
@@ -9538,7 +9551,7 @@ Sub GetNormalize()
         Cells(9, (5 + (n * 3))).FormulaR1C1 = "=SUM(R11C[1]:R" & (10 + numData) & "C[1])/SUM(R11C[3]:R" & (10 + numData) & "C[3])"
         Range(Cells(11, (4 + (n * 3))), Cells(10 + numData, (8 + (n * 3)))).FillDown
         
-        Call SolverSetup2
+        Call SolverSetupEF
         SolverOk SetCell:=Cells(8, 5 + (n * 3)), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(3, 5 + (n * 3)), Cells(3, 4 + n + (n * 3)))
         SolverAdd CellRef:=Range(Cells(3, 5 + (n * 3)), Cells(3, 4 + n + (n * 3))), Relation:=3, FormulaText:=0 ' min
         For p = 1 To n
@@ -9883,7 +9896,7 @@ Sub GetNormalize()
         Range(Cells(10 + (imax), (1 + (n * 3))), Cells((2 * imax) - 1, (3 + (n * 3)))).FillDown
         
         For q = 0 To 1
-            Call SolverSetup2
+            Call SolverSetupEF
             SolverOk SetCell:=Cells(9, 2 + q + (n * 3)), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(5, 2 + q + (n * 3)), Cells(8, 2 + q + (n * 3)))
             For p = 0 To 3
                 If Cells(5 + p, 2 + q + (n * 3)).Font.Bold = "True" Then
