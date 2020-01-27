@@ -8441,17 +8441,17 @@ Sub SolverSetup()
         SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
         SolverOptions MaxTime:=10, Iterations:=100, Precision:=0.001, AssumeLinear _
             :=False, StepThru:=False, Estimates:=1, Derivatives:=1, SearchOption:=1, _
-            IntTolerance:=5, Scaling:=True, Convergence:=0.001, AssumeNonNeg:=False, Multistart:=False
+            IntTolerance:=5, Scaling:=True, Convergence:=0.001, AssumeNonNeg:=False
     ElseIf modePre = 2 Then     ' fair results with moderate time
         SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
         SolverOptions MaxTime:=10, Iterations:=100, Precision:=0.0001, AssumeLinear _
             :=False, StepThru:=False, Estimates:=1, Derivatives:=1, SearchOption:=1, _
-            IntTolerance:=5, Scaling:=True, Convergence:=0.0001, AssumeNonNeg:=False, Multistart:=False
+            IntTolerance:=5, Scaling:=True, Convergence:=0.0001, AssumeNonNeg:=False
     ElseIf modePre = 3 Then      ' Accurate results with quite long time
         SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
         SolverOptions MaxTime:=100, Iterations:=32767, Precision:=0.0000000001, AssumeLinear _
             :=False, StepThru:=False, Estimates:=2, Derivatives:=2, SearchOption:=2, _
-            IntTolerance:=5, Scaling:=True, Convergence:=0.0000000001, AssumeNonNeg:=False, Multistart:=False
+            IntTolerance:=5, Scaling:=True, Convergence:=0.0000000001, AssumeNonNeg:=False
     End If
 End Sub
 
@@ -8459,7 +8459,7 @@ Sub SolverSetupEF()      ' Accurate results with quite long time
     SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
     SolverOptions MaxTime:=100, Iterations:=32767, Precision:=0.0000000001, AssumeLinear _
         :=False, StepThru:=False, Estimates:=2, Derivatives:=2, SearchOption:=2, _
-        IntTolerance:=5, Scaling:=True, Convergence:=0.0000000001, AssumeNonNeg:=False, Multistart:=False
+        IntTolerance:=5, Scaling:=True, Convergence:=0.0000000001, AssumeNonNeg:=False
 End Sub
 
 Function ShowTrial(Reason As Integer)
