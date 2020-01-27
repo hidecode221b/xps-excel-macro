@@ -38,8 +38,8 @@ Sub CLAM2()
     windowSize = 1.3          ' 1 for large, 2 for small display, and so on. Larger number, smaller graph plot.
     windowRatio = 4 / 3     ' window width / height, "2/1" for eyes or "4/3" for ppt
     ElemD = "C,O"           ' Default elements to be shown up in the element analysis.
-    TimeCheck = "No"        ' "No" only iteration results in fitting, numeric value to suppress any display.
-    
+    TimeCheck = "0"        ' "yes" to display the progress time, "No" only iteration results in fitting, numeric value to suppress any display.
+                            ' (mac Excel should be like "0" to be speedy)
     a0 = -0.00044463        ' Undulator parameters for harmonics or
     a1 = 1.0975             ' B vs gap equation
     a2 = -0.02624           ' B = A0 + A1 * Exp(A2 * gap)
@@ -5094,8 +5094,8 @@ Resolve:
                            Cells(15 + sftfit2, n - iCol + 110).Value = ratio(iRow - iCol) / ratio(k)
                         Else
                             If Cells(6, n - iCol).Font.Bold = False Then
-                                If Cells(6, n - iRow + k).Value <= 0.00001 Then Cells(6, n - iRow + k).Value = (Cells(3, 101).Value - Cells(2, 101).Value) / 100
-                                ' above avoids reference amplitude to be minimum at 1e-6, then make certain value if less than 1e-5.
+                                If Cells(6, n - iRow + k).Value < (Cells(3, 101).Value - Cells(2, 101).Value) / 1000 Then Cells(6, n - iRow + k).Value = (Cells(3, 101).Value - Cells(2, 101).Value) / 100
+                                ' above avoids reference amplitude to be less than minimum ((max-min)/1000), then make 10 times of amplitude min.
                                 SolverAdd CellRef:=Cells(6, n - iCol), Relation:=2, FormulaText:=Cells(6, n - iRow + k) * ratio(iRow - iCol) / ratio(k)
                             End If
                            Cells(15 + sftfit2, n - iCol + 110).Value = ratio(iRow - iCol) / ratio(k)
