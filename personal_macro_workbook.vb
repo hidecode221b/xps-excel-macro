@@ -5094,7 +5094,7 @@ Resolve:
                            Cells(15 + sftfit2, n - iCol + 110).Value = ratio(iRow - iCol) / ratio(k)
                         Else
                             If Cells(6, n - iCol).Font.Bold = False Then
-                                If Cells(6, n - iRow + k).Value < (Cells(3, 101).Value - Cells(2, 101).Value) / 1000 Then Cells(6, n - iRow + k).Value = (Cells(3, 101).Value - Cells(2, 101).Value) / 100
+                                If Cells(6, n - iRow + k).Value < (Cells(3, 101).Value - Cells(2, 101).Value) / 100 Then Cells(6, n - iRow + k).Value = (Cells(3, 101).Value - Cells(2, 101).Value) / 100
                                 ' above avoids reference amplitude to be less than minimum ((max-min)/1000), then make 10 times of amplitude min.
                                 SolverAdd CellRef:=Cells(6, n - iCol), Relation:=2, FormulaText:=Cells(6, n - iRow + k) * ratio(iRow - iCol) / ratio(k)
                             End If
