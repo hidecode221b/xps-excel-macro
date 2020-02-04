@@ -2628,6 +2628,7 @@ Sub ExportCmp(ByRef strXas As String)
         If strXas = "Is" Then
             Cells(1, 1).Value = "Grating"
             ncomp = 0
+            expOgn = 0
         Else
             Cells(1, 1).Value = "Goto " & strSheetAnaName
         End If
