@@ -4994,6 +4994,7 @@ Resolve:
             SolverAdd CellRef:=Cells(6, (4 + n)), Relation:=2, FormulaText:=Cells(6, (4 + n)).Value
         Else
             SolverAdd CellRef:=Cells(6, (4 + n)), Relation:=1, FormulaText:=(Cells(3, 101).Value - Cells(2, 101).Value) * 1.5  ' amplitude max
+            If Cells(6, (4 + n)).Value < (Cells(3, 101).Value - Cells(2, 101).Value) / 100 Then Cells(6, (4 + n)).Value = (Cells(3, 101).Value - Cells(2, 101).Value) / 100
             SolverAdd CellRef:=Cells(6, (4 + n)), Relation:=3, FormulaText:=(Cells(3, 101).Value - Cells(2, 101).Value) / 1000  ' amplitude min
         End If
         
