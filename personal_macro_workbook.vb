@@ -7528,7 +7528,7 @@ Sub ShirleyBG() 'iteration mode
     If StrComp(mid$(LCase(Cells(1, 2).Value), 1, 1), "a", 1) = 0 Then
         Cells(1, 2).Value = "ABG"
         strBG2 = "ab"
-        Exit Sub
+        GoTo SkipShirley
     Else
         Cells(1, 2).Value = "BG"
         strBG2 = "bg"
@@ -7564,6 +7564,7 @@ Sub ShirleyBG() 'iteration mode
     Cells(4, 2).Value = a0
     Cells(5, 2).Value = k
     
+SkipShirley:
     Cells(11, 101).Value = "squares"
     Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
     If Cells(2, 101).Value <= 0 Then
