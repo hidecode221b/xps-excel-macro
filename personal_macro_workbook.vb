@@ -1120,7 +1120,10 @@ CheckElemAgain:
         If graphexist = 0 Then
             Workbooks("UD.xlsx").Close False
         End If
-        sheetGraph.Activate
+		If ExistSheet(strSheetGraphName) Then
+			Set sheetGraph = Worksheets(strSheetGraphName)
+			sheetGraph.Activate
+		End If
     Else
         If graphexist = 0 Then
             Workbooks("UD.xlsx").Close False
@@ -1445,7 +1448,11 @@ SkipXPSnumZero:
         If graphexist = 0 Then
             Workbooks("UD.xlsx").Close False
         End If
-        sheetGraph.Activate
+		
+		If ExistSheet(strSheetGraphName) Then
+			Set sheetGraph = Worksheets(strSheetGraphName)
+			sheetGraph.Activate
+		End If
     Else
         If graphexist = 0 Then
             Workbooks("UD.xlsx").Close False
