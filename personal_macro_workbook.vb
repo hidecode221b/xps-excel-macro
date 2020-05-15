@@ -458,6 +458,20 @@ DeadInTheWater3:
             Application.CutCopyMode = False
             strErr = "exported"
             If Len(strErr) > 0 Then Exit Sub
+        ElseIf mid$(LCase(Cells(1, 4).Value), 1, 3) = "exp" Then
+            If InStr(1, sh, "Fit_BE") > 0 Then
+                strSheetAnaName = "Exp_" & sh
+                strSheetFitName = sh
+            Else
+                strSheetAnaName = "Exp_Fit_" & strSheetDataName
+                strSheetFitName = "Fit_" & strSheetDataName
+            End If
+            Call ExportFit
+            Cells(1, 4).Value = "Name"
+            Application.CutCopyMode = False
+            ActiveWorkbook.Save
+            strErr = "exported"
+            If Len(strErr) > 0 Then Exit Sub
         Else
             If InStr(1, sh, "Fit_BE") > 0 Then
                 strMode = "Do fit range"
@@ -487,6 +501,18 @@ DeadInTheWater3:
         Call FitRatioAnalysis
         
         Application.CutCopyMode = False
+        End
+    ElseIf InStr(1, sh, "Exp_") > 0 Then
+        If InStr(1, sh, "Exp_Fit_") > 0 Then
+            ActiveSheet.Columns("B:C").EntireColumn.Delete
+            Do While IsEmpty(Cells(1, 3).Value) = False
+                ActiveSheet.Columns("C").EntireColumn.Delete
+            Loop
+            
+            ActiveSheet.Cells(1, 2).Value = mid$(sh, 9, Len(sh) - 8) & "n"
+        End If
+        Call Convert2Txt("", "csv")
+        TimeCheck = MsgBox("Data were exported in the csv files.", vbExclamation)
         End
     ElseIf InStr(1, sh, "Norm_") > 0 Or InStr(1, sh, "Edge_") > 0 Or InStr(1, sh, "Diff_") > 0 Then
         strSheetDataName = ActiveSheet.Name
@@ -562,7 +588,7 @@ Sub TargetDataAnalysis()
         Loop
         
         If InStr(Cells(1, 3).Value, "E/eV") > 0 Then
-            Call Convert2Txt("")
+            Call Convert2Txt("", "csv")
             TimeCheck = MsgBox("Data were exported in the text files.", vbExclamation)
             End
         End If
@@ -2687,8 +2713,71 @@ Sub ExportCmp(ByRef strXas As String)
     End If
 End Sub
 
-Sub Convert2Txt(ByRef strXas As String)
-    Dim numDataT As Integer, numDataF As Integer, ElemT As String, rng As Range, strCpa As String, strTest As String
+Sub ExportFit()
+    Dim rng As Range
+    
+    If ExistSheet(strSheetAnaName) Then
+        Application.DisplayAlerts = False
+        Worksheets(strSheetAnaName).Delete
+        Application.DisplayAlerts = True
+    End If
+        
+    Worksheets.Add().Name = strSheetAnaName
+    Set sheetAna = Worksheets(strSheetAnaName)
+    Set sheetFit = Worksheets(strSheetFitName)
+
+    wb = ActiveWorkbook.Name
+    sheetFit.Activate
+    
+    If IsEmpty(sheetFit.Cells(31, 3).Value) Then
+        For q = 0 To sheetFit.Cells(5, 101).Value - 1
+            If IsEmpty(sheetFit.Cells(q + 31, 3)) = False Then Exit For
+        Next
+        If q = sheetFit.Cells(5, 101).Value - 1 Then
+            numData = sheetFit.Cells(5, 101).Value - 1
+            Exit Sub
+        Else
+            Set rng = sheetFit.Range(Cells(q + 31, 3), Cells(q + 31, 3).End(xlDown))
+            numData = Application.CountA(rng)
+        End If
+    Else
+        q = 0
+        numData = sheetFit.Cells(5, 101).Value - 1
+    End If
+    
+    p = 2   ' shift row for origin worksheet
+    sheetFit.Range(Cells(31 + q, 1), Cells(30 + q + numData, 5 + sheetFit.Cells(13, 2).Value)).Copy
+    sheetAna.Cells(2 + p, 1).PasteSpecial Paste:=xlValues
+    sheetFit.Range(Cells(30, 1), Cells(30, 5 + sheetFit.Cells(13, 2).Value)).Copy
+    sheetAna.Cells(1 + p, 1).PasteSpecial Paste:=xlValues
+    
+    If StrComp(mid$(sheetFit.Cells(1, 4).Value, 4, 1), "b", 1) = 0 Then
+        sheetFit.Range(Cells(31 + q + sheetFit.Cells(5, 101).Value + 2, 5), Cells(30 + q + sheetFit.Cells(5, 101).Value + 2 + numData, 5 + sheetFit.Cells(13, 2).Value)).Copy
+        sheetAna.Cells(2 + p, 5).PasteSpecial Paste:=xlValues
+'        Debug.Print 31 + q + sheetFit.Cells(5, 101).Value + 2, sheetFit.Cells(31 + q + sheetFit.Cells(5, 101).Value + 2, 5), "exp1"
+    End If
+    
+    If mid$(LCase(sheetAna.Cells(1, 1).Value), 1, 2) = "pe" Then   'XAS mode
+        sheetAna.Cells(1, 1).Value = "PE/eV"
+    Else
+        sheetAna.Cells(1, 1).Value = "BE/eV"          ' this is option if want to name with "BE/eV" on x axis name
+    End If
+    
+    If StrComp(LCase(mid$(sheetFit.Cells(1, 4).Value, Len(sheetFit.Cells(1, 4).Value), 1)), "n", 1) = 0 Or p = 2 Then
+        For q = 0 To sheetFit.Cells(13, 2).Value - 1 + 5
+            sheetAna.Cells(1, 1 + q).Value = strSheetDataName & "_" & sheetAna.Cells(1 + p, 1 + q).Value
+            If q = 0 Then
+                sheetAna.Cells(2, 1 + q).Value = "eV"
+            Else
+                sheetAna.Cells(2, 1 + q).Value = "arb. units"
+            End If
+        Next
+    End If
+
+End Sub
+
+Sub Convert2Txt(ByRef strXas As String, delimiter As String)
+    Dim numDataT As Integer, numDataF As Integer, ElemT As String, rng As Range, strCpa As String, strTest As String, separator As String
     
     Set rng = [1:1]
     iCol = Application.CountA(rng)
@@ -2712,7 +2801,14 @@ Sub Convert2Txt(ByRef strXas As String)
             strLabel = sheetAna.Cells(1, 2 + (q * 2)).Value
         End If
         
-        strTest = strCpa & backSlash & strLabel & ".txt"
+        If delimiter = "csv" Then
+            separator = ","
+            strTest = strCpa & backSlash & strLabel & ".csv"
+        Else
+            separator = vbTab
+            strTest = strCpa & backSlash & strLabel & ".txt"
+        End If
+		
         Set rng = sheetAna.Range(Cells(1, 2 + (q * 2)), Cells(1, (2 + (q * 2))).End(xlDown))
         numDataT = Application.CountA(rng)
         
@@ -2722,7 +2818,7 @@ Sub Convert2Txt(ByRef strXas As String)
                 If k = 2 Then
                     ElemT = ElemT + Trim(sheetAna.Cells(j, k + (q * 2)).Value)
                 Else
-                    ElemT = Trim(sheetAna.Cells(j, k + (q * 2)).Value) + vbTab
+                    ElemT = Trim(sheetAna.Cells(j, k + (q * 2)).Value) + separator
                 End If
             Next k
             Print #numDataF, ElemT
