@@ -2619,18 +2619,22 @@ Sub ExportCmp(ByRef strXas As String)
     Dim rng As Range, numDataT As Integer, nameXaxis As Integer, sftPe As Integer, expAuger As Integer
     Dim expOgn As Integer, sheetTarget As Worksheet
     
-    If StrComp(LCase(Cells(1, 1).Value), "exp2", 1) = 0 Then
+    If StrComp(LCase(mid$(Cells(1, 1).Value, 1, 4)), "expo", 1) = 0 Then
+        nameXaxis = 0   ' Export data in the Origin Pro program to be pasted
+        expOgn = 2
+        If StrComp(LCase(mid$(Cells(1, 1).Value, 5, 1)), "k", 1) = 0 Then
+            expAuger = 1    ' export x-axis from KE
+        Else
+            expAuger = 0    ' export x-axis from BE
+        End If
+    Else
         nameXaxis = 1   ' E/eV form to export each data file in text
         expOgn = 0
-    Else
-        nameXaxis = 0   ' Export data in the other program to be pasted
-        expOgn = 2
-    End If
-    
-    If StrComp(LCase(Cells(1, 1).Value), "exp3", 1) = 0 Then
-        expAuger = 1    ' export x-axis from KE
-    Else
-        expAuger = 0    ' export x-axis from BE
+        If StrComp(LCase(mid$(Cells(1, 1).Value, 4, 1)), "k", 1) = 0 Then
+            expAuger = 1    ' export x-axis from KE
+        Else
+            expAuger = 0    ' export x-axis from BE
+        End If
     End If
     
     If mid$(LCase(Cells(1, 1).Value), 1, 3) = "exp" Or strXas = "Is" Then
@@ -2678,28 +2682,28 @@ Sub ExportCmp(ByRef strXas As String)
             sheetGraph.Range(Cells(11 + numDataT + 8, (1 + sftPe + (q * 3))), Cells(11 + (numDataT * 2) + 8, (2 + sftPe + (q * 3)))).Copy
             sheetAna.Cells(1 + expOgn, 1 + (q * 2)).PasteSpecial Paste:=xlValues
             
-                If expOgn > 0 Then
-                    sheetAna.Cells(1, 1 + (q * 2)).Value = sheetAna.Cells(1 + expOgn, 1 + (q * 2)).Value
-                    sheetAna.Cells(1, 2 + (q * 2)).Value = sheetAna.Cells(1 + expOgn, 2 + (q * 2)).Value
-                    sheetAna.Cells(2, 1 + (q * 2)).Value = "eV"
-                    sheetAna.Cells(2, 2 + (q * 2)).Value = "arb. units"
-                    sheetAna.Cells(3, 1 + (q * 2)).Value = sheetTarget.Cells(2 + q, 2).Value
-                    sheetAna.Cells(3, 2 + (q * 2)).Value = sheetTarget.Cells(2 + q, 2).Value
-                End If
-                
-                If expAuger = 1 Then
-                    sheetGraph.Range(Cells(11 + numDataT + 8, 1), Cells(11 + (numDataT * 2) + 8, 1)).Copy
-                    sheetAna.Cells(1, 1 + (q * 2)).PasteSpecial Paste:=xlValues
-                    sheetAna.Cells(1, 1 + (q * 2)).Value = "AE/eV"
-                End If
-            
-            If nameXaxis > 0 Then
-                    If mid$(LCase(Cells(10, 1).Value), 1, 2) = "pe" Then   'XAS mode
-                        sheetAna.Cells(1, 1 + (q * 2)).Value = "PE/eV"
-                    Else
-                        sheetAna.Cells(1, 1 + (q * 2)).Value = "BE/eV"          ' this is option if want to name with "BE/eV" on x axis name
-                    End If
-                End If
+			If expOgn > 0 Then  ' for origin worksheet
+				If expAuger = 1 Then
+					sheetGraph.Range(Cells(11 + numDataT + 8, 1), Cells(11 + (numDataT * 2) + 8, 1)).Copy
+					sheetAna.Cells(1 + expOgn, 1 + (q * 2)).PasteSpecial Paste:=xlValues
+				End If
+				sheetAna.Cells(1, 1 + (q * 2)).Value = sheetAna.Cells(1 + expOgn, 1 + (q * 2)).Value
+				sheetAna.Cells(1, 2 + (q * 2)).Value = sheetAna.Cells(1 + expOgn, 2 + (q * 2)).Value
+				sheetAna.Cells(2, 1 + (q * 2)).Value = "eV"
+				sheetAna.Cells(2, 2 + (q * 2)).Value = "arb. units"
+				sheetAna.Cells(3, 1 + (q * 2)).Value = sheetTarget.Cells(2 + q, 2).Value
+				sheetAna.Cells(3, 2 + (q * 2)).Value = sheetTarget.Cells(2 + q, 2).Value
+			Else
+				If expAuger = 1 Then
+					sheetGraph.Range(Cells(11 + numDataT + 8, 1), Cells(11 + (numDataT * 2) + 8, 1)).Copy
+					sheetAna.Cells(1 + expOgn, 1 + (q * 2)).PasteSpecial Paste:=xlValues
+					sheetAna.Cells(1, 1 + (q * 2)).Value = "KE/eV"
+				ElseIf mid$(LCase(Cells(10, 1).Value), 1, 2) = "pe" Then   'XAS mode
+					sheetAna.Cells(1, 1 + (q * 2)).Value = "PE/eV"
+				Else
+					sheetAna.Cells(1, 1 + (q * 2)).Value = "BE/eV"          ' this is option if want to name with "BE/eV" on x axis name
+				End If
+			End If
         Next
         
     End If
