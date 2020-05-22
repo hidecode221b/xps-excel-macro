@@ -4993,7 +4993,8 @@ Resolve:
                 SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=1, FormulaText:=5000
                 SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=3, FormulaText:=0.001
                 SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=100
-                SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=Cells(2, 101)
+                SolverAdd CellRef:=Cells(5, 2), Relation:=3, FormulaText:=Cells(2, 101)
+                SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=Cells(3, 101)
             
                 For k = 2 To 10
                     If Cells(k, 2).Font.Bold = "True" Then
@@ -5038,7 +5039,8 @@ Resolve:
             SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=1, FormulaText:=5000
             SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=3, FormulaText:=0.001
             SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=100
-            SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=Cells(2, 101)
+            SolverAdd CellRef:=Cells(5, 2), Relation:=3, FormulaText:=Cells(2, 101)
+            SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=Cells(3, 101)
         Else
             SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Tougaard
         End If
@@ -8358,9 +8360,9 @@ Sub TougaardBG()
             Cells(startR, 99).Value = Cells(startR, 3).Value
         End If
         
-        For k = startR - 1 To endR - 1 Step 1
-            Cells(k + 1, 99).FormulaR1C1 = "= (((RC2 - R5C2) * R2C2 * (" & ((startR - k + 1) * stepEk) & "))/((R3C2 + " & p & " * (" & ((startR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((startR - k + 1) * stepEk) & ")^2)))"
-            Cells(k + 1, 3).FormulaR1C1 = "=R5C2 + SUM(R[-1]C99:R" & (startR) & "C99)"
+        For k = startR To endR Step 1
+            Cells(k, 99).FormulaR1C1 = "= (((RC2 - R5C2) * (" & ((startR - k + 1) * stepEk) & "))/((R3C2 + " & p & " * (" & ((startR - k) * stepEk) & ")^2)^2 + R4C2 * ((" & ((startR - k) * stepEk) & ")^2)))"
+            Cells(k, 3).FormulaR1C1 = "=R5C2 + R2C2 * SUM(RC99:R" & (startR) & "C99)"
         Next
     Else
         If ns < 2 Then
@@ -8371,9 +8373,9 @@ Sub TougaardBG()
             Cells(endR, 99).Value = Cells(startR, 3).Value
         End If
         
-        For k = endR + 1 To startR + 1 Step -1
-            Cells(k - 1, 99).FormulaR1C1 = "= (((RC2 - R5C2)* R2C2 * (" & ((endR - k + 1) * stepEk) & "))/((R3C2 + " & p & " * (" & ((endR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((endR - k + 1) * stepEk) & ")^2)))"
-            Cells(k - 1, 3).FormulaR1C1 = "=R5C2 + SUM(R[1]C99:R" & (endR) & "C99)"
+        For k = endR To startR Step -1  ' five parameters tougaard
+            Cells(k, 99).FormulaR1C1 = "= (((RC2 - R5C2) * (" & ((endR - k + 1) * stepEk) & "))/((R3C2 + " & p & " * (" & ((endR - k) * stepEk) & ")^2)^2 + R4C2 * ((" & ((endR - k) * stepEk) & ")^2)))"
+            Cells(k, 3).FormulaR1C1 = "= R5C2 + R2C2 * SUM(RC99:R" & (endR) & "C99)"
         Next
     End If
     
@@ -8398,7 +8400,8 @@ Sub TougaardBG()
     SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=1, FormulaText:=5000
     SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=3, FormulaText:=0.001
     SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=100
-    SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=Cells(2, 101)
+    SolverAdd CellRef:=Cells(5, 2), Relation:=3, FormulaText:=Cells(2, 101)
+    SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=Cells(3, 101)
     
     For k = 2 To 5
         If Cells(k, 2).Font.Bold = "True" Then
@@ -8526,7 +8529,8 @@ Sub PolynominalTougaardBG()
     SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=3, FormulaText:=0.001
     SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=100
     SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=10
-    SolverAdd CellRef:=Cells(6, 2), Relation:=1, FormulaText:=Cells(2, 101)
+    SolverAdd CellRef:=Cells(6, 2), Relation:=3, FormulaText:=Cells(2, 101)
+    SolverAdd CellRef:=Cells(6, 2), Relation:=1, FormulaText:=Cells(3, 101)
     
     For k = 2 To 10
         If Cells(k, 2).Font.Bold = "True" Then
