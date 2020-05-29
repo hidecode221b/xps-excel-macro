@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.43p"                             ' Version of this code.
+    ver = "8.44p"                             ' Version of this code.
     If Application.OperatingSystem Like "*Mac*" Then
         backSlash = "/"
     Else
@@ -4987,21 +4987,16 @@ Resolve:
             Else
                 SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' active Shirley
             End If
-        ElseIf StrComp(Cells(1, 2).Value, "Tougaard", 1) = 0 Or StrComp(Cells(1, 2).Value, "Conv-Tougaard", 1) = 0 Then
+        ElseIf StrComp(Cells(1, 2).Value, "Tougaard", 1) = 0 Then
             If StrComp(Cells(1, 3).Value, "ABG", 1) = 0 Then
-                SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j))) ' active Tougaard
-                SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=1, FormulaText:=5000
-                SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=3, FormulaText:=0.001
-                SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=100
-                SolverAdd CellRef:=Cells(5, 2), Relation:=3, FormulaText:=Cells(2, 101)
-                SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=Cells(3, 101)
+                SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(5, 2), Cells(7 + sftfit2 - 2, (4 + j))) ' active Tougaard
             
-                For k = 2 To 10
+                For k = 5 To 10
                     If Cells(k, 2).Font.Bold = "True" Then
                         SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
-                    ElseIf k = 7 Then
-                        SolverAdd CellRef:=Cells(7, 2), Relation:=1, FormulaText:=1 ' max
-                        SolverAdd CellRef:=Cells(7, 2), Relation:=3, FormulaText:=0 ' min
+                    ElseIf k = 6 Then
+                        SolverAdd CellRef:=Cells(k, 2), Relation:=1, FormulaText:=1 ' max
+                        SolverAdd CellRef:=Cells(k, 2), Relation:=3, FormulaText:=0 ' min
                     End If
                 Next
             Else
@@ -5034,16 +5029,7 @@ Resolve:
             SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j)))  ' static Shirley
         End If
     ElseIf StrComp(Cells(1, 1).Value, "Tougaard") = 0 Then
-        If StrComp(Cells(1, 2).Value, "ABG", 1) = 0 Or StrComp(Cells(1, 3).Value, "ABG", 1) = 0 Then
-            SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j))) ' active Tougaard
-            SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=1, FormulaText:=5000
-            SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=3, FormulaText:=0.001
-            SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=100
-            SolverAdd CellRef:=Cells(5, 2), Relation:=3, FormulaText:=Cells(2, 101)
-            SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=Cells(3, 101)
-        Else
-            SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Tougaard
-        End If
+        SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Tougaard
     ElseIf StrComp(Cells(1, 1).Value, "Victoreen", 1) = 0 Then
         SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static
     ElseIf StrComp(Cells(1, 1).Value, "Arctan", 1) = 0 Then
@@ -5821,8 +5807,8 @@ Sub GetOutFit()
         Cells(6, 1).Value = "Slope"
         Cells(7, 1).Value = "ratio L:A"
     ElseIf StrComp(strBG1, "to", 1) = 0 Then
-        Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
-        Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
+        Range(Cells(8, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
+        Range(Cells(8, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
     ElseIf StrComp(strBG1, "vi", 1) = 0 Then
         Cells(7, 2).Value = vbNullString
         If Cells(8, 2).Value = vbNullString Then
@@ -8303,90 +8289,150 @@ Sub PolynominalNormalBG()   ' this is non-normalized x ; used for tau plot (opti
     SolverFinish KeepFinal:=1
 End Sub
 
-Sub TougaardBG()
-    Dim pnpara As String
+Function TougaardIteration(C1 As Variant, C2 As Variant, Tol As Single, maxit As Integer, tB As Single, tC As Single, tCd As Single, tD As Single, mode As String) As Variant
+    Dim Bnew As Variant, ysum As Single, rsum As Single
     
-    If StrComp(mid$(Cells(3, 1).Value, 1, 6), "C (C'=", 1) = 0 And IsNumeric(mid$(Cells(3, 1).Value, 7, 2)) = True Then
-        p = mid$(Cells(3, 1).Value, 7, 2)
-        If p = 1 Then
+    p = UBound(C1)
+    Bnew = C1
+    
+    For n = 1 To p
+        Bnew(n, 1) = 0
+    Next
+    k = 0
+    Do
+        k = k + 1
+        If mode = "Ab" Then ' for PE
+            For n = p To 1 Step -1
+                ysum = 0
+                
+                For q = p To n Step -1
+                    ysum = ysum + (C2(q, 1)) * (C1(q, 1) - C1(n, 1)) * (C1(2, 1) - C1(1, 1)) / ((tC + tCd * (C1(q, 1) - C1(n, 1)) ^ 2) ^ 2 + tD * (C1(q, 1) - C1(n, 1)) ^ 2)
+                Next
+                
+                Bnew(n, 1) = ysum * tB + C2(p, 1)
+            Next
+        Else
+            For n = p To 1 Step -1
+                ysum = 0
+                
+                For q = p To n Step -1
+                    ysum = ysum + (C2(q, 1)) * (C1(n, 1) - C1(q, 1)) * (C1(1, 1) - C1(2, 1)) / ((tC + tCd * (C1(n, 1) - C1(q, 1)) ^ 2) ^ 2 + tD * (C1(n, 1) - C1(q, 1)) ^ 2)
+                Next
+                
+                Bnew(n, 1) = ysum * tB + C2(p, 1)
+            Next
+        End If
+        
+        rsum = Bnew(1, 1) - C2(1, 1)
+        If Abs(rsum) < (Tol * Bnew(1, 1)) Or maxit <= 1 Then
+            TougaardIteration = Bnew
+            a0 = tB
+            Exit Do
+        ElseIf k < maxit Then
+            tB = tB - (rsum / Bnew(1, 1)) * tB * 0.5
+        Else
+            TougaardIteration = Bnew
+            a0 = tB
+        End If
+    Loop
+End Function
+
+Sub TougaardBG()
+    Dim pnpara As String, maxit As Integer, C1 As Variant, C2 As Variant, tCd As Single
+    
+    If StrComp(mid$(Cells(6, 1).Value, 1, 6), "C (C'=", 1) = 0 And IsNumeric(mid$(Cells(6, 1).Value, 7, 2)) = True Then
+        tCd = mid$(Cells(6, 1).Value, 7, 2)
+        If tCd = 1 Then
             pnpara = "+1"
-        ElseIf p = -1 Then
+        ElseIf tCd = -1 Then
             pnpara = "-1"
         Else
-            p = 1
+            tCd = 1
             pnpara = "+1"
         End If
     Else
-        p = 1
+        tCd = 1
         pnpara = "+1"
     End If
     
     Cells(1, 1).Value = "Tougaard"
+    
     If StrComp(mid$(LCase(Cells(1, 2).Value), 1, 1), "a", 1) = 0 Then
         Cells(1, 2).Value = "ABG"
     Else
         Cells(1, 2).Value = "BG"
     End If
+    
+'    If Cells(10, 101).Value < 1 Then Cells(10, 101).Value = 1
+    If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
+        Cells(2, 2).Value = 0.0001
+        Cells(3, 2).Value = 100
+    End If
+    
     Cells(1, 3).Value = vbNullString
-    Cells(2, 1).Value = "B"
-    Cells(3, 1).Value = "C (C'=" & pnpara & ")"
-    Cells(4, 1).Value = "D"
-    Cells(5, 1).Value = "Offset"
+    Cells(2, 1).Value = "Tolerance"
+    Cells(3, 1).Value = "Max iteration"
+    Cells(4, 1).Value = "Final iteration"
+    Cells(5, 1).Value = "B"
+    Cells(6, 1).Value = "C (C'=" & pnpara & ")"
+    Cells(7, 1).Value = "D"
+
+    maxit = Cells(3, 2).Value
+    
     Cells(20, 101).Value = "Tougaard"
     Cells(20, 102).Value = Cells(1, 2).Value
     Cells(20, 103).Value = vbNullString
     
-    For k = 2 To 5
+    If StrComp(strLabel, "a", 1) = 0 Then
+        Cells(1, 2).Value = "ABG"
+    End If
+    
+    For k = 5 To 7
         If Cells(k, 2).Font.Bold = "True" Then
-        ElseIf k = 2 Then
-            Cells(2, 2).Value = 2866    '2866 or 1840 or 736
-        ElseIf k = 3 Then
-            Cells(3, 2).Value = 1643    '1643 or 1000 or 400
-        ElseIf k = 4 Then
-            Cells(4, 2).Value = 1       ' 1 default
+            If k = 5 Then maxit = 1
         ElseIf k = 5 Then
-            Cells(5, 2).Value = Cells(2, 101).Value
+            Cells(5, 2).Value = 2866    '2866 or 1840 or 736
+            'If Cells(2, 2).Value > 3000 Or Cells(2, 2).Value < 200 Then Cells(2, 2).Value = 2866
+        ElseIf k = 6 Then
+            Cells(6, 2).Value = 1643    '1643 or 1000 or 400
+            'If Cells(3, 2).Value > 2000 Or Cells(3, 2).Value < 1000 Then Cells(3, 2).Value = 1643
+        ElseIf k = 7 Then
+            Cells(7, 2).Value = 1       ' 1 default
+            'If Cells(4, 2).Value > 1000 Or Cells(4, 2).Value < 0 Then Cells(4, 2).Value = 0
         End If
     Next
     
-    stepEk = Cells(21 + sftfit, 1).Value - Cells(22 + sftfit, 1).Value
+    C1 = Range(Cells(startR, 1), Cells(endR, 1))    'C
+    C2 = Range(Cells(startR, 2), Cells(endR, 2))    'A
     
-    If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
-        If ns < 2 Then
-            Cells(startR, 3).Value = Cells(startR, 2).Value
-            Cells(startR, 99).Value = Cells(startR, 3).Value
-        Else
-            Cells(startR, 3).FormulaR1C1 = "=Average(RC2:R[" & (ns - 1) & "]C2)"
-            Cells(startR, 99).Value = Cells(startR, 3).Value
-        End If
-        
-        For k = startR To endR Step 1
-            Cells(k, 99).FormulaR1C1 = "= (((RC2 - R5C2) * (" & ((startR - k + 1) * stepEk) & "))/((R3C2 + " & p & " * (" & ((startR - k) * stepEk) & ")^2)^2 + R4C2 * ((" & ((startR - k) * stepEk) & ")^2)))"
-            Cells(k, 3).FormulaR1C1 = "=R5C2 + R2C2 * SUM(RC99:R" & (startR) & "C99)"
-        Next
-    Else
-        If ns < 2 Then
-            Cells(endR, 3).Value = Cells(endR, 2).Value
-            Cells(endR, 99).Value = Cells(endR, 3).Value
-        Else
-            Cells(endR, 3).FormulaR1C1 = "=Average(RC2:R[" & (ns - 1) & "]C2)"
-            Cells(endR, 99).Value = Cells(startR, 3).Value
-        End If
-        
-        For k = endR To startR Step -1  ' five parameters tougaard
-            Cells(k, 99).FormulaR1C1 = "= (((RC2 - R5C2) * (" & ((endR - k + 1) * stepEk) & "))/((R3C2 + " & p & " * (" & ((endR - k) * stepEk) & ")^2)^2 + R4C2 * ((" & ((endR - k) * stepEk) & ")^2)))"
-            Cells(k, 3).FormulaR1C1 = "= R5C2 + R2C2 * SUM(RC99:R" & (endR) & "C99)"
-        Next
-    End If
+    Range(Cells(startR, 3), Cells(endR, 3)) = TougaardIteration(C1, C2, Cells(2, 2).Value, maxit, Cells(5, 2).Value, Cells(6, 2).Value, tCd, Cells(7, 2).Value, Cells(20 + sftfit, 2).Value)
+    'If IsEmpty(strErr) = False Then Exit Sub    ' due to switching abg mode
+    
+    Cells(4, 2).Value = k
+    Cells(5, 2).Value = a0
     
     Cells(20 + sftfit, 99).Value = "Toug"
-    Cells(11, 101).Value = "squares"
-    Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
-    If Cells(2, 101).Value <= 0 Then
-        Cells(startR, 100).FormulaR1C1 = "=(RC2 - RC3)^2" ' CV this is the case for RC3 = 0
+    
+    If StrComp(mid$(LCase(Cells(11, 101).Value), 1, 1), "a", 1) = 0 Then ' least absolute value method
+        Cells(11, 101).Value = "absolute"
+        Cells(20 + sftfit, 100).Value = "least absolute"
+        If Cells(2, 101).Value <= 0 Then
+            Cells(startR, 100).FormulaR1C1 = "= Abs(RC2 - RC3)" ' CV     ' added abs to solve sonvergence if negative data
+        Else
+            Cells(startR, 100).FormulaR1C1 = "= Abs((RC2 - RC3)/(RC2))" ' CV     ' added abs to solve sonvergence if negative data
+        End If
     Else
-        Cells(startR, 100).FormulaR1C1 = "=(((RC2 - RC3)^2)/RC2)" ' CV
+        Cells(11, 101).Value = "squares"
+        Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
+        If Cells(2, 101).Value <= 0 Then
+            Cells(startR, 100).FormulaR1C1 = "=(RC2 - RC3)^2" ' CV this is the case for RC3 = 0
+        Else
+            Cells(startR, 100).FormulaR1C1 = "=(((RC2 - RC3)^2)/RC2)" ' CV
+        End If
     End If
+    
+    'Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/((RC2 + RC3)^2)" ' CV
+    'Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
     
     If ns <= 0 Then
@@ -8396,79 +8442,75 @@ Sub TougaardBG()
         Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
     End If
     
-    SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(5, 2))
-    SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=1, FormulaText:=5000
-    SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=3, FormulaText:=0.001
-    SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=100
-    SolverAdd CellRef:=Cells(5, 2), Relation:=3, FormulaText:=Cells(2, 101)
-    SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=Cells(3, 101)
-    
-    For k = 2 To 5
-        If Cells(k, 2).Font.Bold = "True" Then
-            SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
-        End If
-    Next
-    
-    SolverSolve UserFinish:=True
-    SolverFinish KeepFinal:=1
-    
-    [A2:A5].Interior.Color = RGB(156, 204, 101)    '43
-    [B2:B5].Interior.Color = RGB(197, 225, 165)    '35
+    [A2:A7].Interior.Color = RGB(156, 204, 101)    '43
+    [B2:B7].Interior.Color = RGB(197, 225, 165)    '35
 End Sub
 
 Sub PolynominalTougaardBG()
-    Dim pnpara As String
+    Dim pnpara As String, C1 As Variant, C2 As Variant, tCd As Single, maxit As Integer
     
     If StrComp(mid$(Cells(3, 1).Value, 1, 6), "C (C'=", 1) = 0 And IsNumeric(mid$(Cells(3, 1).Value, 7, 2)) = True Then
-        p = mid$(Cells(3, 1).Value, 7, 2)
-        If p = 1 Then
+        tCd = mid$(Cells(3, 1).Value, 7, 2)
+        If tCd = 1 Then
             pnpara = "+1"
-        ElseIf p = -1 Then
+        ElseIf tCd = -1 Then
             pnpara = "-1"
         Else
-            p = 1
+            tCd = 1
             pnpara = "+1"
         End If
     Else
-        p = 1
+        tCd = 1
         pnpara = "+1"
     End If
     
-    If Cells(10, 101).Value < 1 Then Cells(10, 101).Value = 1
     Cells(1, 1).Value = "Polynominal"
     Cells(1, 2).Value = "Tougaard"
-    Cells(1, 3).Value = "ABG"   ' active only
+    
+    If StrComp(mid$(LCase(Cells(1, 3).Value), 1, 1), "a", 1) = 0 Then
+        Cells(1, 3).Value = "ABG"
+    Else
+        Cells(1, 3).Value = "BG"
+    End If
+    
     Cells(2, 1).Value = "B"
     Cells(3, 1).Value = "C (C'=" & pnpara & ")"
     Cells(4, 1).Value = "D"
+
+    maxit = Cells(3, 2).Value
     Cells(5, 1).Value = "Norm"
-    Cells(6, 1).Value = "Offset"
-    Cells(7, 1).Value = "ratio T:P"
+    Cells(6, 1).Value = "ratio T:P"
+    Cells(7, 1).Value = "Offset"
     Cells(8, 1).Value = "1st poly"
     Cells(9, 1).Value = "2nd poly"
     Cells(10, 1).Value = "3rd poly"
+    
     Cells(20, 101).Value = "Polynominal"
     Cells(20, 102).Value = "Tougaard"
     Cells(20, 103).Value = Cells(1, 3).Value
     
     For k = 2 To 10
         If Cells(8, 101).Value = 0 And k >= 7 Then
-            Cells(k, 2).Font.Bold = "False"
+            Cells(k, 2).Font.Bold = "True"
+            Cells(k, 2).Value = 0
         End If
         
         If Cells(k, 2).Font.Bold = "True" Then
         ElseIf k = 2 Then
-            Cells(2, 2).Value = 2866    '2866 or 1840 or 736
+            Cells(k, 2).Value = 2866    '2866 or 1840 or 736
+            'If Cells(2, 2).Value > 3000 Or Cells(2, 2).Value < 200 Then Cells(2, 2).Value = 2866
         ElseIf k = 3 Then
-            Cells(3, 2).Value = 1643    '1643 or 1000 or 400
+            Cells(k, 2).Value = 1643    '1643 or 1000 or 400
+            'If Cells(3, 2).Value > 2000 Or Cells(3, 2).Value < 1000 Then Cells(3, 2).Value = 1643
         ElseIf k = 4 Then
-            Cells(4, 2).Value = 1       ' 1 default
+            Cells(k, 2).Value = 1       ' 1 default
+            'If Cells(4, 2).Value > 1000 Or Cells(4, 2).Value < 0 Then Cells(4, 2).Value = 0
         ElseIf k = 5 Then
-            Cells(5, 2).Value = 1
+            Cells(k, 2).Value = 1  ' Norm
         ElseIf k = 6 Then
-            Cells(6, 2).Value = Cells(2, 101).Value
+            Cells(k, 2).Value = 0.9  ' ratio for Toug to Poly BG
         ElseIf k = 7 Then
-            Cells(7, 2).Value = 0.9 ' ratio for Toug to Poly BG
+            Cells(k, 2).Value = Cells(2, 101).Value
         ElseIf k = 8 Then
             Cells(k, 2).Value = 0   ' 1st poly
         ElseIf k = 9 Then
@@ -8480,68 +8522,59 @@ Sub PolynominalTougaardBG()
     
     Cells(startR, 98).FormulaR1C1 = "= (2 * RC1 - (R" & startR & "C1 + R" & endR & "C1))/(R" & endR & "C1 - R" & startR & "C1)"
     Range(Cells(startR, 98), Cells(endR, 98)).FillDown
-    stepEk = Cells(21 + sftfit, 1).Value - Cells(22 + sftfit, 1).Value
     
-    If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
-        If ns < 2 Then
-            Cells(startR, 3).Value = Cells(startR, 2).Value
-            Cells(startR, 99).Value = 0
-        Else
-            Cells(startR, 3).FormulaR1C1 = "=Average(RC2:R[" & (ns - 1) & "]C2)"
-            Cells(startR, 99).Value = 0
-        End If
+    C1 = Range(Cells(startR, 1), Cells(endR, 1))    'C
+    C2 = Range(Cells(startR, 2), Cells(endR, 2))    'A
+    
+    Range(Cells(startR, 99), Cells(endR, 99)) = TougaardIteration(C1, C2, 0.00001, 100, Cells(2, 2).Value, Cells(3, 2).Value, tCd, Cells(4, 2).Value, Cells(20 + sftfit, 2).Value)
+    'If IsEmpty(strErr) = False Then Exit Sub    ' due to switching abg mode
+    Cells(2, 2).Value = a0
 
-        For k = startR To endR - 1 Step 1
-            Cells(k + 1, 99).FormulaR1C1 = "= ((RC2 * R2C2 * (" & ((startR - k + 1) * stepEk) & " ))/((R3C2 + " & p & " * (" & ((startR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((startR - k + 1) * stepEk) & " )^2)))"
-            Cells(k + 1, 3).FormulaR1C1 = "=R7C2 * (R" & startR & "C + SUM(R[1]C99:R" & (startR) & "C99)) + ((1-R7C2) * (R6C2 + (R8C2 * (RC98) + (R9C2 * (RC98)^2) + (R10C2 * (RC98)^3))))"
-        Next
-    Else
-        If ns < 2 Then
-            Cells(endR, 3).Value = Cells(endR, 2).Value
-            Cells(endR, 99).Value = 0
+    Cells(startR, 3).FormulaR1C1 = "=R5C2 * (R6C2 * RC99 + ((1-R6C2) * (R7C2 + R8C2 * RC98 + R9C2 * RC98^2 + R10C2 * RC98^3)))"
+    Range(Cells(startR, 3), Cells(endR, 3)).FillDown
+    
+    Cells(20 + sftfit, 98).Value = "norm x"
+    Cells(20 + sftfit, 99).Value = "toug"
+    
+    If StrComp(mid$(LCase(Cells(11, 101).Value), 1, 1), "a", 1) = 0 Then ' least absolute value method
+        Cells(11, 101).Value = "absolute"
+        Cells(20 + sftfit, 100).Value = "least absolute"
+        If Cells(2, 101).Value <= 0 Then
+            Cells(startR, 100).FormulaR1C1 = "= Abs(RC2 - RC3)" ' CV     ' added abs to solve sonvergence if negative data
         Else
-            Cells(endR, 3).FormulaR1C1 = "=Average(RC2:R[" & (ns - 1) & "]C2)"
-            Cells(endR, 99).Value = 0
+            Cells(startR, 100).FormulaR1C1 = "= Abs((RC2 - RC3)/(RC2))" ' CV     ' added abs to solve sonvergence if negative data
         End If
-        
-        For k = endR To startR + 1 Step -1
-            Cells(k - 1, 99).FormulaR1C1 = "= ((RC2 * R2C2 * (" & ((endR - k + 1) * stepEk) & " ))/((R3C2 + " & p & " * (" & ((endR - k + 1) * stepEk) & ")^2)^2 + R4C2 * ((" & ((endR - k + 1) * stepEk) & " )^2)))"
-            Cells(k - 1, 3).FormulaR1C1 = "=R7C2 * (R" & endR & "C + SUM(R[1]C99:R" & (endR) & "C99)) + ((1-R7C2) * (R6C2 + (R8C2 * (RC98) + (R9C2 * (RC98)^2) + (R10C2 * (RC98)^3))))"
-        Next
+    Else
+        Cells(11, 101).Value = "squares"
+        Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
+        If Cells(2, 101).Value <= 0 Then
+            Cells(startR, 100).FormulaR1C1 = "=(RC2 - RC3)^2" ' CV this is the case for RC3 = 0
+        Else
+            Cells(startR, 100).FormulaR1C1 = "=(((RC2 - RC3)^2)/RC2)" ' CV
+        End If
     End If
     
-    Cells(11, 101).Value = "squares"
-    Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
-    If Cells(2, 101).Value <= 0 Then
-        Cells(startR, 100).FormulaR1C1 = "=(RC2 - RC3)^2" ' CV this is the case for RC3 = 0
-    Else
-        Cells(startR, 100).FormulaR1C1 = "=(((RC2 - RC3)^2)/RC2)" ' CV
-    End If
+    'Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/((RC2 + RC3)^2)" ' CV
+    'Cells(startR, 100).FormulaR1C1 = "=((RC2 - RC3)^2)/(abs(RC3))" ' CV
     Range(Cells(startR, 100), Cells(endR, 100)).FillDown
+    
     If ns <= 0 Then
         Cells(6 + sftfit2, 2).FormulaR1C1 = "=AVERAGE(R" & startR & "C100:R" & endR & "C100)"
     Else
         Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
     End If
+    'Cells(6 + sftfit2, 2).FormulaR1C1 = "=SUM(R" & startR & "C100:R" & endR & "C100)"
     
-    SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(10, 2))
-    SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=1, FormulaText:=5000
-    SolverAdd CellRef:=Range(Cells(2, 2), Cells(3, 2)), Relation:=3, FormulaText:=0.001
-    SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=100
-    SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=10
-    SolverAdd CellRef:=Cells(6, 2), Relation:=3, FormulaText:=Cells(2, 101)
-    SolverAdd CellRef:=Cells(6, 2), Relation:=1, FormulaText:=Cells(3, 101)
+    SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(5, 2), Cells(10, 2))
     
-    For k = 2 To 10
+    For k = 5 To 13
         If Cells(k, 2).Font.Bold = "True" Then
             SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
-        ElseIf k = 7 Then
+        ElseIf k = 6 Then
             SolverAdd CellRef:=Cells(k, 2), Relation:=3, FormulaText:=0
             SolverAdd CellRef:=Cells(k, 2), Relation:=1, FormulaText:=1
         End If
     Next
-    
-    If Not Cells(10, 2).Font.Bold = "True" And p = 1 Then SolverAdd CellRef:=Cells(10, 2), Relation:=2, FormulaText:=0
     
     SolverSolve UserFinish:=True
     SolverFinish KeepFinal:=1
