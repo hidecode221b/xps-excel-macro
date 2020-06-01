@@ -49,9 +49,9 @@
 |elem|C10|Graph|input elements|
 |intp|A1|Data|interpolate data by B1|
 |ana|C10|Graph|update fit sheet|
-|exp|A1|Graph, Check, Cmp|export data with unique name|
-|exp2|A1|Graph, Check, Cmp|export data with E/eV name|
-|exp3|A1|Graph|export data with AE/eV for Auger|
+|exp|A1|Graph, Check, Cmp|export data with E/eV name|
+|expo|A1|Graph, Check, Cmp|export data for origin|
+|expk|A1|Graph|export data with KE/eV in kinetic energy scale|
 |comp|D1|Graph|compare data|
 |auto|A1|Graph, Cmp|calibrate offset and multiple factors|
 |cali|A1|Graph|calibrate C1s and Au4f|
@@ -71,22 +71,16 @@
 | BG | A1 | B1 | C1 |
 |:-----------|:------|:-------|:-------|
 |[Shirley](https://doi.org/10.1103/PhysRevB.5.4709) BG|sh|ab/bg| |
-|[Tougaard](https://doi.org/10.1002/sia.740110902) BG|to|ab/bg| |
+|[Tougaard](https://doi.org/10.1002/sia.740110902) BG|to|bg| |
 |Polynomial BG|po|ab/bg| |
 |Polynomial Normal BG|po|no|ab/bg|
 |Polynomial Shirley BG|po|sh|ab/bg|
-|Polynomial Tougaard BG|po|to|ab/bg|
-|Polynomial Conv-Tougaard|po|co|ab/bg|
-|Polynomial Virtual Shirley BG|po|vi|ab/bg|
+|Polynomial Tougaard BG|po|to|bg|
 |Polynomial Edge BG|po|ed|ab/bg|
 |Polynomial AsLS BG|po|as|ab/bg|
 |[Slope](https://doi.org/10.1016/j.elspec.2013.07.006) Shirley BG|sl|sh|ab/bg|
-|Slope Tougaard BG|sl|to|ab/bg|
-|Slope Virtual Shirley BG|sl|vi|ab/bg|
 |Shirley Iterated BG|sh|it|bg|
 |Shirley Peak BG|sh|pe|abg|
-|Virtual Shirley BG|vi|sh|ab/bg|
-|Tougaard Convoluted|to|co|ab/bg|
 |[Arctan](https://doi.org/10.1103/RevModPhys.31.616) BG|ar|ab/bg||
 |[Erf](https://doi.org/10.1063/1.453902) BG|er|ab/bg||
 |[Victoreen](https://doi.org/10.1103/PhysRevB.11.4825) BG|vi|ab/bg||
