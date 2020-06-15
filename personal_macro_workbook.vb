@@ -1413,7 +1413,7 @@ SkipElem:
         maxXPSFactor = maxXPSFactor * 1.2
     End If
 
-    If strl(1) = "Pe" Then Set dataKeGraph = Range(Cells(20 + numData, 1), Cells(20 + numData, 1).Offset(numData - 1, 0))
+    Set dataKeGraph = Range(Cells(20 + numData, 1), Cells(20 + numData, 1).Offset(numData - 1, 0))
     Call scalecheck ' to check chkMax, chkMin
 
     For n = 1 To numXPSFactors
