@@ -6130,7 +6130,7 @@ Sub HigherOrderCheck()
 End Sub
 
 Sub FormatData()   ' this is a template for data loading.
-    Dim iniRow As Integer, endRow As Integer, totalDataPoints As Integer, eneCol As Single, speCol As Single, cnt As Integer, msgap As Integer
+    Dim iniRow As Long, endRow As Long, totalDataPoints As Long, eneCol As Single, speCol As Single, cnt As Integer, msgap As Integer
     
     If StrComp(strMode, "CLAM2", 1) = 0 Then        ' XPS mode for CLAM2 user defined
         strMode = "KE/eV"
