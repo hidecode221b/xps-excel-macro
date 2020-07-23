@@ -277,8 +277,13 @@ DeadInTheWater3:
         
         If Cells(40, para + 9).Value = "Ver." Then
         Else
-            For q = 1 To 500
-                If StrComp(Cells(40, q + 9).Value, "Ver.", 1) = 0 Then Exit For
+            For q = 1 To 1000
+                If StrComp(Cells(40, q + 9).Value, "Ver.", 1) = 0 Then
+                    Exit For
+                ElseIf q = 1000 Then
+                    MsgBox "Graph sheet has no parameters to be refereced."
+                    End
+                End If
             Next
             para = q
         End If
@@ -414,7 +419,7 @@ DeadInTheWater3:
         
         If Workbooks(wb).Sheets("Graph_" + strSheetDataName).Cells(40, para + 9).Value = "Ver." Then
         Else
-            For q = 1 To 500
+            For q = 1 To 1000
                 If StrComp(Workbooks(wb).Sheets("Graph_" + strSheetDataName).Cells(40, q + 9).Value, "Ver.", 1) = 0 Then Exit For
             Next
             para = q
@@ -485,12 +490,12 @@ DeadInTheWater3:
         strSheetDataName = mid$(sh, 5, (Len(sh) - 4))
         wb = ActiveWorkbook.Name
         
-        If StrComp(Cells(1, para + 1).Value, "Parameters", 1) = 0 Then
+        If StrComp(Cells(1, para).Value, "Parameters", 1) = 0 Then
         Else
-            For q = 1 To 500
+            For q = 1 To 1000
                 If Cells(1, q).Value = "Parameters" Then
                     Exit For
-                ElseIf q = 500 Then
+                ElseIf q = 1000 Then
                     MsgBox "Ana sheet has no parameters to be compared."
                     End
                 End If
@@ -6643,11 +6648,11 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
             If StrComp(sheetTarget.Cells(40, para + 9).Value, "Ver.", 1) = 0 Then
                 iCol = para
             Else
-                For iCol = 1 To 500
+                For iCol = 1 To 1000
                 'Debug.Print sheetTarget.Cells(40, iCol + 9).Value, iCol
                     If StrComp(sheetTarget.Cells(40, iCol + 9).Value, "Ver.", 1) = 0 Then
                         Exit For
-                    ElseIf iCol = 500 Then
+                    ElseIf iCol = 1000 Then
                         MsgBox "Graph sheet has no parameters to be compared."
                         End
                     End If
@@ -6688,12 +6693,12 @@ Sub EachComp(ByRef OpenFileName As Variant, strAna As String, fcmp As Variant, s
         ElseIf StrComp(mid$(strCpa, 1, 9), "Ana_", 1) = 0 Then
             'Debug.Print "Ana_" + strSheetDataName
             
-            If StrComp(Cells(1, para + 1).Value, "Parameters", 1) = 0 Then
+            If StrComp(Cells(1, para).Value, "Parameters", 1) = 0 Then
             Else
-                For iCol = 1 To 500
+                For iCol = 1 To 1000
                     If Cells(1, iCol).Value = "Parameters" Then
                         Exit For
-                    ElseIf iCol = 500 Then
+                    ElseIf iCol = 1000 Then
                         MsgBox "Ana sheet has no parameters to be compared."
                         End
                     End If
@@ -10262,8 +10267,13 @@ Sub CombineLegend() ' no k is used because from GetCompare Sub
 
     If Cells(40, para + 9).Value = "Ver." Then        ' check para is the same as that in the file analyzed previously
     Else
-        For n = 1 To 500
-            If StrComp(Cells(40, n + 9).Value, "Ver.", 1) = 0 Then Exit For
+        For n = 1 To 1000
+            If StrComp(Cells(40, n + 9).Value, "Ver.", 1) = 0 Then
+                Exit For
+            ElseIf n = 1000 Then
+                MsgBox "Graph sheet has no parameters to be referenced."
+                End
+            End If
         Next
         para = n
     End If
