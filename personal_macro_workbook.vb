@@ -7430,7 +7430,15 @@ Sub descriptFit()
     Cells(7, 102).Value = "min shape limit"
     Cells(8, 102).Value = "factor additional peaks" ' peak BE to be added with this value/#peaks
     Cells(9, 102).Value = "GL form"
+    Cells(10, 102).Value = "Polarization"
+    Cells(11, 102).Value = "Update"
     
+    If WorksheetFunction.Round(Cells(12, 101).Value, 1) = 1486.6 Then   ' AlKa
+        Cells(10, 103).Value = -0.5             ' unpolarized for corrected RSF
+    Else
+        Cells(10, 103).Value = 1             ' polarized for corrected RSF
+    End If
+
     If IsEmpty(Cells(9, 103).Value) Then
         If WorksheetFunction.Round(Cells(12, 101).Value, 1) = 1486.6 Then
             Cells(9, 103).Value = "MultiPak"
@@ -7600,9 +7608,10 @@ Sub descriptInitialFit()
         If strl(1) = "Pe" Or strl(1) = "Po" Then
             Cells(19 + sftfit2, 4 + q).Value = 1        ' CorrRSF
         Else
-            Cells(19 + sftfit2, 4 + q).FormulaR1C1 = "= (R15C101 * (1 + (R" & (7 + sftfit2) & "C)*0.5*(3 * (cos(3.14*R24C2/180))^2 - 1)) * R" & (9 + sftfit2) & "C * ((R3C)^(R" & (16 + sftfit2) & "C2)) * R" & (14 + sftfit2) & "C2 * (((R" & (17 + sftfit2) & "C2^2)/((R" & (17 + sftfit2) & "C2^2)+((R3C)/(R" & (14 + sftfit2) & "C2))^2))^R" & (18 + sftfit2) & "C2))"
+            Cells(19 + sftfit2, 4 + q).FormulaR1C1 = "= (R15C101 * (1 + R10C103 * (R" & (7 + sftfit2) & "C)*0.5*(3 * (cos(3.14*R24C2/180))^2 - 1)) * R" & (9 + sftfit2) & "C * ((R3C)^(R" & (16 + sftfit2) & "C2)) * R" & (14 + sftfit2) & "C2 * (((R" & (17 + sftfit2) & "C2^2)/((R" & (17 + sftfit2) & "C2^2)+((R3C)/(R" & (14 + sftfit2) & "C2))^2))^R" & (18 + sftfit2) & "C2))"
             ' norm factor * (1+beta*0.5*(3*cos^2 theta - 1)) * KE^(IMFP) * Trans(KE), here Trans(KE) = CAE * [(a^2)/{(a^2) + (KE/CAE)^2}]^b
             ' in simple case, KE^IMFP and Trans(KE) are cancelled out each other.
+            ' revised for polarization of light factor: R10C103, if unpolarized a factor -0.5 otherwise 1.
         End If
     Next
     
