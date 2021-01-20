@@ -1435,8 +1435,8 @@ SkipElem:
         If UBound(highpe) > 0 Then      ' higher order or ghost effects
             For n = 1 To UBound(highpe)
                 Range(Cells(51 + numXPSFactors * (n), para + 10), Cells((50 + numXPSFactors * (n + 1)), para + 19)) = C2
-                Cells(40 + n, para + 13).Value = "pe" & n
-                Cells(40 + n, para + 14).Value = highpe(n)
+                Cells(40 + n, para + 15).Value = "pe" & n
+                Cells(40 + n, para + 16).Value = highpe(n)
             Next
             oriXPSFactors = numXPSFactors
             numXPSFactors = (UBound(highpe) + 1) * numXPSFactors
@@ -1647,11 +1647,11 @@ Sub PlotElem()
         If UBound(highpe) > 0 Then
             For n = 1 To UBound(highpe)
                 For q = 0 To oriXPSFactors - 1
-                    Cells(51 + q + oriXPSFactors * n, para + 11) = Cells(51 + q + oriXPSFactors * n, para + 11).Value & "_" & Cells(40 + n, para + 13).Value
+                    Cells(51 + q + oriXPSFactors * n, para + 11) = Cells(51 + q + oriXPSFactors * n, para + 11).Value & "_" & Cells(40 + n, para + 15).Value
                 Next
                 
-                Cells(51 + oriXPSFactors * n, para + 14).FormulaR1C1 = "=R2C2 - R" & (40 + n) & "C" & (para + 14) & " + RC[-2]"     ' BE higher order from BE
-                Cells(51 + oriXPSFactors * n, para + 15).FormulaR1C1 = "=R" & (40 + n) & "C" & (para + 14) & " - R3C2 - R4C2 - RC[-3]"     ' KE char higher order from BE
+                Cells(51 + oriXPSFactors * n, para + 14).FormulaR1C1 = "=R2C2 - R" & (40 + n) & "C" & (para + 16) & " + RC[-2]"     ' BE higher order from BE
+                Cells(51 + oriXPSFactors * n, para + 15).FormulaR1C1 = "=R" & (40 + n) & "C" & (para + 16) & " - R3C2 - R4C2 - RC[-3]"     ' KE char higher order from BE
                 Cells(51 + oriXPSFactors * n, para + 17).FormulaR1C1 = "=R9C3 * (R41C" & (para + 10) & " + (RC[3] * RC[-1] * (R42C" & (para + 10) & " - R41C" & (para + 10) & ")/(R43C" & (para + 10) & " * " & (n + 1) & ")))"
                 
                 If (oriXPSFactors > 1) Then
@@ -7328,7 +7328,7 @@ Sub descriptFit()
     Cells(6 + sftfit2, 1).Value = "Solve BGS"
     Cells(7 + sftfit2, 1).Value = "Peak fit"
     Cells(8 + sftfit2, 1).Value = "# peaks"
-    Cells(9 + sftfit2, 1).Value = "Solve LSM"
+    Cells(9 + sftfit2, 1).Value = "Solve chi^2"
     Cells(10 + sftfit2, 1).Value = "Fit range"
     Cells(11 + sftfit2, 1).Value = "Start / eV"
     Cells(12 + sftfit2, 1).Value = "End / eV"
@@ -8961,8 +8961,8 @@ Sub FitEquations()
     Cells(20 + sftfit, (8 + j)).Value = "Residual"
     Cells(startR, (8 + j)).FormulaR1C1 = "=(RC2 - R[" & (2 + numData) & "]C[-3])"    ' residual
     Range(Cells(startR, (5 + j)), Cells(endR, (8 + j))).FillDown
-    Cells(9 + sftfit2, 2).FormulaR1C1 = "=SUM(R" & (21 + sftfit) & "C" & (6 + j) & ":R" & (20 + sftfit + numData) & "C" & (6 + j) & ")/(" & (endR - startR + 1) & " - R16C101)"
-    Cells(21 + sftfit2, 2).FormulaR1C1 = "=R" & (9 + sftfit2) & "C"
+    Cells(9 + sftfit2, 2).FormulaR1C1 = "=SUM(R" & (21 + sftfit) & "C" & (6 + j) & ":R" & (20 + sftfit + numData) & "C" & (6 + j) & ")"
+    Cells(21 + sftfit2, 2).FormulaR1C1 = "=R" & (9 + sftfit2) & "C / (" & (endR - startR + 1) & " - R16C101)"
     
     ActiveSheet.ChartObjects(1).Activate
     ActiveChart.SeriesCollection.NewSeries
