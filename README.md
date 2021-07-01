@@ -101,6 +101,9 @@ Note that database are supposed to be revised and updated locally based on the e
 All the database files are based on AlKa source energy at 1486.6 eV, and webCross data normalize the RSF.
 You may also check spectral lines and profiles online below;
 
+The XPS library (database, spectra, analytical procedures etc.)
+- https://xpslibrary.com/
+
 NIST X-ray Photoelectron Spectroscopy Database
 - http://srdata.nist.gov/xps/
 
