@@ -4,7 +4,7 @@ Option Explicit
     
     Dim j As Integer, k As Integer, q As Integer, p As Integer, n As Integer, iRow As Integer, iCol As Integer, ns As Integer, fileNum As Integer
     Dim startR As Integer, endR As Integer, g As Integer, Gnum As Integer, cae As Integer, ncomp As Integer, numXPSFactors As Integer, numAESFactors As Integer
-    Dim numMajorUnit As Integer, modex As Integer, para As Integer, graphexist As Integer, numData As Integer, numChemFactors As Integer
+    Dim numMajorUnit As Integer, modex As Integer, para As Integer, graphexist As Integer, numData As Long, numChemFactors As Integer
     Dim idebug As Integer, spacer As Integer, sftfit As Integer, sftfit2 As Integer, cmp As Integer, scanNum As Integer, numGrant As Integer, modePre As Integer
     
     Dim wb As String, ver As String, TimeCheck As String, strAna As String, direc As String, ElemD As String, Results As String, testMacro As String, strBG0 As String
@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.44p"                             ' Version of this code.
+    ver = "8.45p"                             ' Version of this code.
     If Application.OperatingSystem Like "*Mac*" Then
         backSlash = "/"
     Else
@@ -1530,15 +1530,31 @@ SkipXPSnumZero:
             If C1(q, 1) = Elem Then
                 C2(j, 1) = C1(q, 1)       ' Element
                 C2(j, 2) = C1(q, 2)       ' Transition
-                C2(j, 4) = C1(q, 3)       ' KE
-                C2(j, 7) = C1(q, 4 + aesoffset)       ' AES RSF
+                If IsNumeric(C1(q, 3)) Then
+                    C2(j, 4) = CSng(C1(q, 3))       ' KE
+                Else
+                    C2(j, 4) = vbNullString
+                End If
+                If IsNumeric(C1(q, 4 + aesoffset)) Then
+                    C2(j, 7) = CSng(C1(q, 4 + aesoffset))       ' AES RSF
+                Else
+                    C2(j, 7) = 0
+                End If
                 C2(j, 11) = rtoe          ' atomic element ratio
                 j = j + 1
             ElseIf LCase(Elem) = "all" And q > 1 Then
                 C2(j, 1) = C1(q, 1)       ' Element
                 C2(j, 2) = C1(q, 2)       ' Transition
-                C2(j, 4) = C1(q, 3)       ' KE
-                C2(j, 7) = C1(q, 4 + aesoffset)       ' AES RSF
+                If IsNumeric(C1(q, 3)) Then
+                    C2(j, 4) = CSng(C1(q, 3))       ' KE
+                Else
+                    C2(j, 4) = vbNullString
+                End If
+                If IsNumeric(C1(q, 4 + aesoffset)) Then
+                    C2(j, 7) = CSng(C1(q, 4 + aesoffset))       ' AES RSF
+                Else
+                    C2(j, 7) = 0
+                End If
                 C2(j, 11) = rtoe          ' atomic element ratio
                 j = j + 1
             End If
@@ -4976,13 +4992,12 @@ Resolve:
             If StrComp(Cells(1, 3).Value, "ABG", 1) = 0 Then
                 SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j))) ' active Shirley
                 ' Error here : No Solver reference in VBE - Tools - References - Solver checked.
-                Call ShirleyActiveSetup2
+                Call ShirleyActiveSetup
                 
                 For k = 2 To 10
                     If Cells(k, 2).Font.Bold = "True" Then
                         SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
-                    ElseIf k = 4 Then
-                    ElseIf k = 5 Then
+                    ElseIf k < 6 Then
                         SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
                     ElseIf k = 6 Then
                         SolverAdd CellRef:=Cells(6, 2), Relation:=1, FormulaText:=1 ' max ratio
@@ -5025,11 +5040,11 @@ Resolve:
             SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j))) ' active Shirley
             Call ShirleyActiveSetup ' (simultaneous mode)
             
-            For k = 6 To 10
+            For k = 2 To 10
                 SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
             Next
-            SolverAdd CellRef:=Cells(4, 2), Relation:=2, FormulaText:=Cells(4, 2)
-            SolverAdd CellRef:=Cells(5, 2), Relation:=2, FormulaText:=Cells(5, 2)
+            SolverAdd CellRef:=Cells(4, 3), Relation:=2, FormulaText:=Cells(4, 3)
+            SolverAdd CellRef:=Cells(5, 3), Relation:=2, FormulaText:=Cells(5, 3)
         Else
             SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j)))  ' static Shirley
         End If
@@ -5776,17 +5791,8 @@ Sub GetOutFit()
     
     If StrComp(strBG1, "po", 1) = 0 Then
         If StrComp(strBG2, "sh", 1) = 0 Then
-            If StrComp(strBG3, "ab", 1) = 0 Then
-                Cells(2, 1).Value = "I_start"
-                Cells(3, 1).Value = "I_end"
-                Cells(4, 1).Value = "Sf. eV-1"
-                Cells(4, 2).FormulaR1C1 = "=Abs(R2C2-R3C2)/Abs(R16C2-R17C2)"    ' eV-1
-                Cells(5, 1).Value = "% Sf varied"
-            Else
-                Cells(5, 2).Value = Cells(5, 2).Value + fileNum - 1
-                Cells(5, 1).Value = "Iteration bg + fit"
-                Cells(5, 2).Font.Bold = "False"
-            End If
+            Cells(5, 2).Value = Cells(5, 2).Value + fileNum - 1
+            Cells(5, 2).Font.Bold = "False"
             Range(Cells(6, 1), Cells(10, 1)).Interior.Color = RGB(156, 204, 101)   '43
             Range(Cells(6, 2), Cells(10, 2)).Interior.Color = RGB(197, 225, 165)   '35
         ElseIf StrComp(strBG2, "to", 1) = 0 Then
@@ -5837,9 +5843,9 @@ Sub GetOutFit()
         Range(Cells(6, 1), Cells(7, 3)).Interior.ColorIndex = xlNone
     Else
         If strBG2 = "ab" Then
-            Cells(4, 2).FormulaR1C1 = "=Abs(R2C2-R3C2)/Abs(R16C2-R17C2)"    ' eV-1
-            Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
-            Range(Cells(6, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
+            Cells(4, 3).FormulaR1C1 = "=Abs(R2C2-R3C2)/Abs(R16C2-R17C2)"    ' eV-1
+            Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
+            Range(Cells(7, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
         Else
             Cells(6, 2).Value = fileNum
             Cells(6, 1).Value = "Iteration fit"
@@ -5877,7 +5883,10 @@ Sub GetOutFit()
     
     Cells(7 + sftfit2, 1).Value = "Peak fit"
     Cells(7 + sftfit2, 2).Value = vbNullString
-    If Cells(1, 1).Value = "Sigmoid" Or Cells(1, 2).Value = "Sigmoid" Or Cells(1, 1).Value = "UDF" Then
+    If strBG1 = "si" Or strBG2 = "si" Or strBG1 = "UDF" Then
+    ElseIf (strBG1 = "sh" And strBG2 = "ab") Or (strBG2 = "sh" And strBG3 = "ab") Then
+        Range(Cells(6, 3), Cells(7 + sftfit2, 3)).ClearContents
+        Range(Cells(6, 3), Cells(7 + sftfit2, 3)).Interior.ColorIndex = xlNone
     Else
         Range(Cells(2, 3), Cells(7 + sftfit2, 3)).ClearContents
         Range(Cells(2, 3), Cells(7 + sftfit2, 3)).Interior.ColorIndex = xlNone
@@ -6135,7 +6144,7 @@ Sub HigherOrderCheck()
 End Sub
 
 Sub FormatData()   ' this is a template for data loading.
-    Dim iniRow As Long, endRow As Long, totalDataPoints As Long, eneCol As Single, speCol As Single, cnt As Integer, msgap As Integer
+    Dim iniRow As Long, endRow As Long, totalDataPoints As Long, eneCol As Long, speCol As Long, cnt As Long, msgap As Long
     
     If StrComp(strMode, "CLAM2", 1) = 0 Then        ' XPS mode for CLAM2 user defined
         strMode = "KE/eV"
@@ -7770,7 +7779,7 @@ Function ShirleyIteration(Tol As Single, maxit As Integer, C1 As Variant, C2 As 
             Debug.Print k, "within tol", rsum / p
             a0 = ksum
             Exit Do
-        ElseIf k > maxit Then
+        ElseIf k = maxit Then
             For n = 1 To p
                 Bnew(n, 1) = Bnew(n, 1) + base
             Next
@@ -7782,113 +7791,62 @@ Function ShirleyIteration(Tol As Single, maxit As Integer, C1 As Variant, C2 As 
             B = Bnew
         End If
     Loop
-    
 End Function
 
 Sub ShirleyActiveSetup()    ' simultaneous mode
-    If Cells(8, 101).Value = 0 Then
+    If Cells(8, 101).Value = 0 And fileNum = 1 Then
         Cells(1, 2).Value = "ABG"
         Cells(1, 3).Value = vbNullString
         Cells(20, 102).Value = Cells(1, 2).Value
         Cells(20, 103).Value = Cells(1, 3).Value
         
-        Cells(2, 1).Value = "I_start"
-        Cells(3, 1).Value = "I_end"
-        If Cells(2, 2).Font.Bold = "False" Then Cells(2, 2).Value = Cells(startR, 2).Value
-        If Cells(3, 2).Font.Bold = "False" Then Cells(3, 2).Value = Cells(endR, 2).Value
-        Cells(4, 1).Value = "Sf. eV-1"
-        Cells(5, 1).Value = "% Sf varied"
-        Cells(4, 2).FormulaR1C1 = "=Abs(R2C2-R3C2)/Abs(R16C2-R17C2)"    ' eV-1
-        Cells(5, 2).Value = 40
+        Cells(2, 1).Value = Cells(2, 1).Value & "/I_start"
+        Cells(3, 1).Value = Cells(3, 1).Value & "/I_end"
+        If Cells(2, 3).Font.Bold = "False" Then Cells(2, 3).Value = Cells(startR, 2).Value
+        If Cells(3, 3).Font.Bold = "False" Then Cells(3, 3).Value = Cells(endR, 2).Value
+        Cells(4, 1).Value = Cells(4, 1).Value & "/Sf. eV-1"
+        Cells(5, 1).Value = Cells(5, 1).Value & "/% Sf varied"
+        Cells(4, 3).FormulaR1C1 = "=Abs(R2C2-R3C2)/Abs(R16C2-R17C2)"    ' eV-1
+        Cells(5, 3).Value = 40
     End If
     
     If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
         For k = startR To endR Step 1
-            Cells(k, 3).FormulaR1C1 = "=R2C2 + (R3C2 - R2C2) * Sum(R" & startR & "C" & (5 + j) & ":R" & k & "C" & (5 + j) & ")/Sum(R" & startR & "C" & (5 + j) & ":R" & endR & "C" & (5 + j) & ")"
+            Cells(k, 3).FormulaR1C1 = "=R2C3 + (R3C3 - R2C3) * Sum(R" & startR & "C" & (5 + j) & ":R" & k & "C" & (5 + j) & ")/Sum(R" & startR & "C" & (5 + j) & ":R" & endR & "C" & (5 + j) & ")"
         Next
     Else        ' for BE
         For k = endR To startR Step -1
-            Cells(k, 3).FormulaR1C1 = "=R3C2 + (R2C2 - R3C2) * Sum(R" & k & "C" & (5 + j) & ":R" & endR & "C" & (5 + j) & ")/Sum(R" & startR & "C" & (5 + j) & ":R" & endR & "C" & (5 + j) & ")"
+            Cells(k, 3).FormulaR1C1 = "=R3C3 + (R2C3 - R3C3) * Sum(R" & k & "C" & (5 + j) & ":R" & endR & "C" & (5 + j) & ")/Sum(R" & startR & "C" & (5 + j) & ":R" & endR & "C" & (5 + j) & ")"
         Next
     End If
     
-    If Cells(2, 2).Font.Bold = "True" Then
-        SolverAdd CellRef:=Cells(2, 2), Relation:=2, FormulaText:=Cells(2, 2).Value
+    If Cells(2, 3).Font.Bold = "True" Then
+        SolverAdd CellRef:=Cells(2, 3), Relation:=2, FormulaText:=Cells(2, 3).Value
     Else
         If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
-            SolverAdd CellRef:=Cells(2, 2), Relation:=1, FormulaText:=Cells(endR, 2).Value * (1 + Cells(5, 2).Value / 100) ' max
-            SolverAdd CellRef:=Cells(2, 2), Relation:=3, FormulaText:=Cells(endR, 2).Value * (1 - Cells(5, 2).Value / 100) ' min
+            SolverAdd CellRef:=Cells(2, 3), Relation:=1, FormulaText:=Cells(endR, 2).Value * (1 + Cells(5, 3).Value / 100) ' max
+            SolverAdd CellRef:=Cells(2, 3), Relation:=3, FormulaText:=Cells(endR, 2).Value * (1 - Cells(5, 3).Value / 100) ' min
         Else
-            SolverAdd CellRef:=Cells(2, 2), Relation:=1, FormulaText:=Cells(startR, 2).Value * (1 + Cells(5, 2).Value / 100) ' max
-            SolverAdd CellRef:=Cells(2, 2), Relation:=3, FormulaText:=Cells(startR, 2).Value * (1 - Cells(5, 2).Value / 100) ' min
+            SolverAdd CellRef:=Cells(2, 3), Relation:=1, FormulaText:=Cells(startR, 2).Value * (1 + Cells(5, 3).Value / 100) ' max
+            SolverAdd CellRef:=Cells(2, 3), Relation:=3, FormulaText:=Cells(startR, 2).Value * (1 - Cells(5, 3).Value / 100) ' min
         End If
     End If
-    If Cells(3, 2).Font.Bold = "True" Then
-        SolverAdd CellRef:=Cells(3, 2), Relation:=2, FormulaText:=Cells(3, 2).Value
+    If Cells(3, 3).Font.Bold = "True" Then
+        SolverAdd CellRef:=Cells(3, 3), Relation:=2, FormulaText:=Cells(3, 3).Value
     Else
         If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
-            SolverAdd CellRef:=Cells(3, 2), Relation:=1, FormulaText:=Cells(startR, 2).Value * (1 + Cells(5, 2).Value / 100) ' max
-            SolverAdd CellRef:=Cells(3, 2), Relation:=3, FormulaText:=Cells(startR, 2).Value * (1 - Cells(5, 2).Value / 100) ' min
+            SolverAdd CellRef:=Cells(3, 3), Relation:=1, FormulaText:=Cells(startR, 2).Value * (1 + Cells(5, 3).Value / 100) ' max
+            SolverAdd CellRef:=Cells(3, 3), Relation:=3, FormulaText:=Cells(startR, 2).Value * (1 - Cells(5, 3).Value / 100) ' min
         Else
-            SolverAdd CellRef:=Cells(3, 2), Relation:=1, FormulaText:=Cells(endR, 2).Value * (1 + Cells(5, 2).Value / 100) ' max
-            SolverAdd CellRef:=Cells(3, 2), Relation:=3, FormulaText:=Cells(endR, 2).Value * (1 - Cells(5, 2).Value / 100) ' min
+            SolverAdd CellRef:=Cells(3, 3), Relation:=1, FormulaText:=Cells(endR, 2).Value * (1 + Cells(5, 3).Value / 100) ' max
+            SolverAdd CellRef:=Cells(3, 3), Relation:=3, FormulaText:=Cells(endR, 2).Value * (1 - Cells(5, 3).Value / 100) ' min
         End If
     End If
     
+    SolverAdd CellRef:=Cells(4, 3), Relation:=2, FormulaText:=Cells(4, 3).Value
+    SolverAdd CellRef:=Cells(5, 3), Relation:=2, FormulaText:=Cells(5, 3).Value
     [A2:A5].Interior.Color = RGB(156, 204, 101)    '43
-    [B2:B5].Interior.Color = RGB(197, 225, 165)    '35
-End Sub
-
-Sub ShirleyActiveSetup2()    ' simultaneous mode with Poly BG
-    If Cells(8, 101).Value = 0 Then
-        Cells(1, 3).Value = "ABG"
-        Cells(20, 103).Value = Cells(1, 3).Value
-        
-        Cells(2, 1).Value = "I_start"
-        Cells(3, 1).Value = "I_end"
-        If Cells(2, 2).Font.Bold = "False" Then Cells(2, 2).Value = Cells(startR, 2).Value
-        If Cells(3, 2).Font.Bold = "False" Then Cells(3, 2).Value = Cells(endR, 2).Value
-        Cells(4, 1).Value = "Sf. eV-1"
-        Cells(5, 1).Value = "% Sf varied"
-        Cells(4, 2).FormulaR1C1 = "=Abs(R2C2-R3C2)/Abs(R16C2-R17C2)"    ' eV-1
-        Cells(5, 2).Value = 40
-    End If
-    
-    If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
-        For k = startR To endR Step 1
-            Cells(k, 3).FormulaR1C1 = "=R6C2*(R2C2 + (R3C2 - R2C2) * Sum(R" & startR & "C" & (5 + j) & ":R" & k & "C" & (5 + j) & ")/Sum(R" & startR & "C" & (5 + j) & ":R" & endR & "C" & (5 + j) & ")) + (1-R6C2)*(R7C2 + R8C2*(R" & k & "C98) + R9C2*(R" & k & "C98)^2 + R10C2*(R" & k & "C98)^3)"
-        Next
-    Else        ' for BE
-        For k = endR To startR Step -1
-            Cells(k, 3).FormulaR1C1 = "=R6C2*(R3C2 + (R2C2 - R3C2) * Sum(R" & k & "C" & (5 + j) & ":R" & endR & "C" & (5 + j) & ")/Sum(R" & startR & "C" & (5 + j) & ":R" & endR & "C" & (5 + j) & ")) + (1-R6C2)*(R7C2 + R8C2*(R" & k & "C98) + R9C2*(R" & k & "C98)^2 + R10C2*(R" & k & "C98)^3)"
-        Next
-    End If
-    
-    If Cells(2, 2).Font.Bold = "True" Then
-        SolverAdd CellRef:=Cells(2, 2), Relation:=2, FormulaText:=Cells(2, 2).Value
-    Else
-        If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
-            SolverAdd CellRef:=Cells(2, 2), Relation:=1, FormulaText:=Cells(endR, 2).Value * (1 + Cells(5, 2).Value / 100) ' max
-            SolverAdd CellRef:=Cells(2, 2), Relation:=3, FormulaText:=Cells(endR, 2).Value * (1 - Cells(5, 2).Value / 100) ' min
-        Else
-            SolverAdd CellRef:=Cells(2, 2), Relation:=1, FormulaText:=Cells(startR, 2).Value * (1 + Cells(5, 2).Value / 100) ' max
-            SolverAdd CellRef:=Cells(2, 2), Relation:=3, FormulaText:=Cells(startR, 2).Value * (1 - Cells(5, 2).Value / 100) ' min
-        End If
-    End If
-    If Cells(3, 2).Font.Bold = "True" Then
-        SolverAdd CellRef:=Cells(3, 2), Relation:=2, FormulaText:=Cells(3, 2).Value
-    Else
-        If Cells(20 + sftfit, 2).Value = "Ab" Then ' for PE
-            SolverAdd CellRef:=Cells(3, 2), Relation:=1, FormulaText:=Cells(startR, 2).Value * (1 + Cells(5, 2).Value / 100) ' max
-            SolverAdd CellRef:=Cells(3, 2), Relation:=3, FormulaText:=Cells(startR, 2).Value * (1 - Cells(5, 2).Value / 100) ' min
-        Else
-            SolverAdd CellRef:=Cells(3, 2), Relation:=1, FormulaText:=Cells(endR, 2).Value * (1 + Cells(5, 2).Value / 100) ' max
-            SolverAdd CellRef:=Cells(3, 2), Relation:=3, FormulaText:=Cells(endR, 2).Value * (1 - Cells(5, 2).Value / 100) ' min
-        End If
-    End If
-    
-    [A2:A5].Interior.Color = RGB(156, 204, 101)    '43
-    [B2:B5].Interior.Color = RGB(197, 225, 165)    '35
+    [B2:C5].Interior.Color = RGB(197, 225, 165)    '35
 End Sub
 
 Sub VictoreenBG()
@@ -7994,7 +7952,7 @@ Sub PolynominalShirleyBG()
     Cells(2, 1).Value = "Tolerance"
     Cells(3, 1).Value = "Max iteration"
     Cells(4, 1).Value = "Final k sum"
-    Cells(5, 1).Value = "Iteration bg"
+    Cells(5, 1).Value = "Iteration bg + fit"
     Cells(6, 1).Value = "Ratio S:P"
     Cells(7, 1).Value = "0th poly"
     Cells(8, 1).Value = "1st poly"
@@ -8014,7 +7972,7 @@ Sub PolynominalShirleyBG()
         If Cells(k, 2).Font.Bold = "True" Then
 
         ElseIf k = 4 Then
-            Cells(4, 2).Value = Cells(3, 2).Value
+            'Cells(4, 2).Value = Cells(3, 2).Value
         ElseIf k = 6 Then
             If Cells(8, 101).Value = 0 Or IsEmpty(Cells(k, 2).Value) Then Cells(6, 2).Value = 0.5
         ElseIf k = 7 Then
@@ -8347,6 +8305,7 @@ Function TougaardIteration(C1 As Variant, C2 As Variant, Tol As Single, maxit As
         Else
             TougaardIteration = Bnew
             a0 = tB
+            Exit Do
         End If
     Loop
 End Function
@@ -8380,7 +8339,7 @@ Sub TougaardBG()
 '    If Cells(10, 101).Value < 1 Then Cells(10, 101).Value = 1
     If Cells(8, 101).Value = 0 Then 'Or Cells(9, 101).Value > 0 Then
         Cells(2, 2).Value = 0.0001
-        Cells(3, 2).Value = 100
+        Cells(3, 2).Value = 10
     End If
     
     Cells(1, 3).Value = vbNullString
