@@ -12,7 +12,7 @@ The VBA code is installed through VBE as the Personal Workbook Macro, and assign
 - macOS Excel 2016 https://youtu.be/geoulV1kGx8
 
 ## Data loading
-Any data placed in the Excel spreadsheet with specified formats can be analyzed in the VBA code. First of all, "KE/eV" is typed in the A1 cell for the spectrum with the kinetic energy scale. The kinetic energy data are in the first column below A2 and their corresponding intensities in the second column below B2. "BE/eV" at the A1 cell corresponds to the binding energy scale of spectrum, "PE/eV" the photon energy, and "ME/eV" any other scales. ISO (VAMAS) format is also acceptable. The name of workbook has to be careful because it is also used for the name of worksheet contained the spectral data called the Data sheet, and the other processing worksheets for graphing (Graph sheet), fitting (Fit sheet). The length of workbook name is also limited within 19 characters other than the extension characters after a dot, because the VBA code adds the initial identifiers (6 characters as maximum) of each worksheet name prior to the worksheet name of the Data sheet, even though the name of Excel worksheet is limited within 25 characters.
+Any data placed in the Excel spreadsheet with specified formats can be analyzed in the VBA code. First of all, "KE/eV" is typed in the A1 cell for the spectrum with the kinetic energy scale. The kinetic energy data are in the first column below A2 and their corresponding intensities in the second column below B2. "BE/eV" at the A1 cell corresponds to the binding energy scale of spectrum, "PE/eV" the photon energy, and "ME/eV" any other scales. ISO (VAMAS) format is also acceptable, but the element and transition name is used for block identifier, so one vamas should be created from one set of spectra on one sample. The name of workbook has to be careful because it is also used for the name of worksheet contained the spectral data called the Data sheet, and the other processing worksheets for graphing (Graph sheet), fitting (Fit sheet). The length of workbook name is also limited within 19 characters other than the extension characters after a dot, because the VBA code adds the initial identifiers (6 characters as maximum) of each worksheet name prior to the worksheet name of the Data sheet, even though the name of Excel worksheet is limited within 25 characters.
 
 ## Basic operation
 The short-cut key is used to run the code on the Data sheet, and you can specify the photon energy and atomic elements in the dialogue boxes appeared during the processing. Eventually, the Graph and Fit sheets are generated from the Data sheet to tidy the data before the fitting process. Graph sheet is used to calibrate the energy and intensity, identify the peaks and chemical shifts, and compare the spectra reading from the other workbooks. The short-cut key is used to update the plots in the Graph and Fit sheets after the revisions of the parameters for calibrations and peak identification. Fit sheet is used to initiate the optimization of the background subtraction and peak fitting either in sequential or simultaneous. The parameters of fitting can be adjustable and constrained in the range after the first fitting sequence, and optimized repeatedly by using the short-cut key.
@@ -53,9 +53,6 @@ EX3ms has been used for many users during the experiment and post-data processin
 - http://dx.doi.org/10.1016/j.jenvman.2015.09.036
 - http://dx.doi.org/10.1039/C6RA09972F
 
-## Donation
-Please support development via [PayPal donation](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=PCE5LGQB8T6FL&source=url).
-
 ## References to database
 Database files are available online linked in the following subsections. You can add elements with orbital, binding energy, and sensitivity factor in the UD.xlsx. Cross section for each photon energy can be further evaluated from the data of photoionization cross section in WebCross folder. XAS atomic form factor can also be used for XAS sensitivity based on XAS folder. All the files can be downloaded online specified below except UD.xlsx which has to be handled manually from database.
 
@@ -70,6 +67,7 @@ Scofield photoionization cross-section database combined with x-ray booklet bind
 "Hartree-Slater subshell photoionization cross-sections at 1254 and 1487 eV"
 J. H. Scofield, Journal of Electron Spectroscopy and Related Phenomena, 8129-137 (1976).
 - http://dx.doi.org/10.1016/0368-2048(76)80015-1
+- https://a-x-s.org/research/cross-sections/
 
 ### AES
 "Calculated Auger yields and sensitivity factors for KLL-NOO transitions with 1-10 kV primary beams"
@@ -95,6 +93,7 @@ J. J. Yeh, Gordon and Breach Science Publishers, Langhorne, PE (USA), 1993.
 "Atomic subshell photoionization cross sections and asymmetry parameters: 1 <= Z <= 103"
 J. J. Yeh and I. Lindau, Atomic Data and Nuclear Data Tables, 32, 1-155 (1985).
 - http://dx.doi.org/10.1016/0092-640X(85)90016-6
+- https://a-x-s.org/research/cross-sections/
 
 ### Supplementary information
 Note that database are supposed to be revised and updated locally based on the experiment.
@@ -113,4 +112,11 @@ C. D. Wagner, NIST Technical Note 1289 (1991).
 
 The Surface Analysis Society of Japan: Common Data Processing System
 - http://www.sasj.jp/COMPRO/index.html
+
+Spectroscopy Hub (VAMAS XPS data file)
+- https://spectroscopyhub.com/measurements
+
+Harwell XPS GURU 
+- https://www.harwellxps.guru/article-categories/elements/
+
 
