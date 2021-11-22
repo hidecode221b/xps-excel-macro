@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.45p"                             ' Version of this code.
+    ver = "8.46p"                             ' Version of this code.
     If Application.OperatingSystem Like "*Mac*" Then
         backSlash = "/"
     Else
@@ -4604,7 +4604,7 @@ Sub FitRange(ByRef strCpa As String)
             Exit Sub
         End If
 
-        ElemD = Application.InputBox(Title:="Specify the fitting range", Prompt:="Input BE energy: 320-350eV", Default:="320-350eV", Type:=2)
+        ElemD = Application.InputBox(Title:="Specify the fitting range", Prompt:="Input BE energy: 320:350eV", Default:="320:350eV", Type:=2)
 
         If ElemD = "False" Or Len(ElemD) = 0 Then
             TimeCheck = 0
@@ -4612,12 +4612,12 @@ Sub FitRange(ByRef strCpa As String)
             strErrX = "skip"
             Exit Sub
         Else
-            C1 = Split(ElemD, "-")
-            If IsNumeric(mid$(C1(1), 1, Len(C1(1)) - 2)) = True Then
-                If mid$(C1(1), 1, Len(C1(1)) - 2) < startEb And mid$(C1(1), 1, Len(C1(1)) - 2) > endEb Then
-                    startEb = mid$(C1(1), 1, Len(C1(1)) - 2)
-                Else
-                    'GoTo GetOutFit
+            C1 = Split(ElemD, ":")
+            If UBound(C1) > 0 Then
+                If IsNumeric(mid$(C1(1), 1, Len(C1(1)) - 2)) = True And StrComp(mid$(ElemD, Len(ElemD) - 1, 2), "eV", 1) = 0 Then
+                    If mid$(C1(1), 1, Len(C1(1)) - 2) < startEb And mid$(C1(1), 1, Len(C1(1)) - 2) > endEb Then
+                        startEb = mid$(C1(1), 1, Len(C1(1)) - 2)
+                    End If
                 End If
             Else
                 TimeCheck = MsgBox("BE range format is not appropriate!")
@@ -4632,11 +4632,6 @@ Sub FitRange(ByRef strCpa As String)
                 ElseIf C1(0) > startEb Then
                     startEb = C1(0)
                     endEb = mid$(C1(1), 1, Len(C1(1)) - 2)
-                Else
-                    TimeCheck = MsgBox("BE range is not in the scanned range!")
-                    Call GetOutFit
-                    strErrX = "skip"
-                    Exit Sub
                 End If
             Else
                 TimeCheck = MsgBox("BE range format is not appropriate!")
@@ -4644,10 +4639,16 @@ Sub FitRange(ByRef strCpa As String)
                 strErrX = "skip"
                 Exit Sub
             End If
+            If Abs(startEb - endEb) > fitLimit Then
+                TimeCheck = MsgBox("BE range is over limit >" & fitLimit & "!")
+                Call GetOutFit
+                strErrX = "skip"
+                Exit Sub
+            End If
             
             Dim flag As Boolean
             flag = False
-            
+            ElemD = C1(0) & "-" & C1(1)
             For Each sheetFit In Worksheets
                 If sheetFit.Name = "Fit_BE" + ElemD Then flag = True
             Next sheetFit
@@ -4842,7 +4843,11 @@ Sub FitRange(ByRef strCpa As String)
             strCpa = "repeat"
         End If
         
-        Range(Cells(2, 2), Cells(10, 2)).Font.Bold = "False"
+        If (strBG1 = "er" Or strBG1 = "ar") And (LCase(mid$(Cells(20, 101).Value, 1, 2)) = "er" Or LCase(mid$(Cells(20, 101).Value, 1, 2)) = "ar") Then
+            ' in case of ErfBG and ArcTanBG for previous fit, constraint will be the same even though cells(8, 101) = 0
+        Else
+            Range(Cells(2, 2), Cells(10, 2)).Font.Bold = "False"
+        End If
     End If
     
     For Each rng In Range(Cells(2, 3), Cells(7 + sftfit2, 4)).Cells
@@ -4964,6 +4969,8 @@ Sub FitCurve()
         Else
             Call PolynominalBG
         End If
+    ElseIf StrComp(strBG1, "er", 1) = 0 Then
+        Call ErfBG
     ElseIf StrComp(strBG1, "ar", 1) = 0 Then
         Call TangentArcBG
     ElseIf StrComp(strBG1, "to", 1) = 0 Then
@@ -5133,7 +5140,7 @@ Resolve:
         SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static Tougaard
     ElseIf StrComp(Cells(1, 1).Value, "Victoreen", 1) = 0 Then
         SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 5), Cells(7 + sftfit2 - 2, (4 + j))) ' static
-    ElseIf StrComp(Cells(1, 1).Value, "Arctan", 1) = 0 Then
+    ElseIf StrComp(Cells(1, 1).Value, "Arctan", 1) = 0 Or StrComp(Cells(1, 1).Value, "Erf", 1) = 0 Then
         SolverOk SetCell:=Cells(9 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7 + sftfit2 - 2, (4 + j))) ' active
         SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=Cells(11 + sftfit2, 2).Value        ' This is a point to control the position of inflection
         SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=Cells(12 + sftfit2, 2).Value
@@ -5400,8 +5407,8 @@ Resolve:
         End If
     Next
 
-    Results = SolverSolve(UserFinish:=True, ShowRef:="ShowTrial")  ' Results of fitting by Solver
-    
+    'Results = SolverSolve(UserFinish:=True, ShowRef:="ShowTrial")  ' Results of fitting by Solver
+    SolverSolve UserFinish:=True, ShowRef:="HideWindow"     ' mac version use this
     SolverFinish KeepFinal:=1
     
     iRow = 1
@@ -5664,7 +5671,7 @@ Sub FitSigmoid()
     
     SolverAdd CellRef:=Cells(5, 5), Relation:=2, FormulaText:=Cells(5, 5)
     SolverAdd CellRef:=Cells(6, 5), Relation:=2, FormulaText:=0.1   ' Gauss width
-    SolverSolve UserFinish:=True
+    SolverSolve UserFinish:=True, ShowRef:="HideWindow"     ' mac version use this
     SolverFinish KeepFinal:=1
     
 SkipInitialSig:
@@ -5743,7 +5750,7 @@ SkipInitialSig:
         End If
     Next
     
-    SolverSolve UserFinish:=True
+    SolverSolve UserFinish:=True, ShowRef:="HideWindow"     ' mac version use this
     SolverFinish KeepFinal:=1
     
     ' end second solver
@@ -5893,6 +5900,11 @@ Sub GetOutFit()
                 Cells(28, 103).FormulaR1C1 = "=RC100 - RC101"
             End If
         End If
+    ElseIf StrComp(strBG1, "er", 1) = 0 Then
+        Range(Cells(8, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
+        Range(Cells(8, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
+        Cells(6, 1).Value = "Slope"
+        Cells(7, 1).Value = "ratio R:L"
     ElseIf StrComp(strBG1, "ar", 1) = 0 Then
         Range(Cells(8, 1), Cells(7 + sftfit2 - 2, 2)).ClearContents
         Range(Cells(8, 1), Cells(7 + sftfit2 - 2, 2)).Interior.ColorIndex = xlNone
@@ -7635,7 +7647,7 @@ Sub descriptFit()
     
     With Cells(1, 1).Validation
         .Delete
-        .Add Type:=xlValidateList, Formula1:="Shirley,Tougaard,Polynominal,Victoreen,Arctan,Sigmoid"
+        .Add Type:=xlValidateList, Formula1:="Shirley,Tougaard,Polynominal,Victoreen,Erf,Arctan,Sigmoid"
     End With
     With Cells(1, 2).Validation
         .Delete
@@ -8009,7 +8021,7 @@ Sub VictoreenBG()
         End If
     Next
 
-    SolverSolve UserFinish:=True
+    SolverSolve UserFinish:=True, ShowRef:="HideWindow"     ' mac version use this
     SolverFinish KeepFinal:=1
     [A2:A6].Interior.Color = RGB(156, 204, 101)    '43
     [B2:B6].Interior.Color = RGB(197, 225, 165)    '35
@@ -8127,11 +8139,86 @@ Sub PolynominalShirleyBG()
         End If
     Next
     
-    SolverSolve UserFinish:=True
+    SolverSolve UserFinish:=True, ShowRef:="HideWindow"     ' mac version use this
     SolverFinish KeepFinal:=1
     
     Range(Cells(6, 1), Cells(10, 1)).Interior.Color = RGB(156, 204, 101)   '43
     Range(Cells(6, 2), Cells(10, 2)).Interior.Color = RGB(197, 225, 165)   '35
+End Sub
+
+Sub ErfBG() ' "error function" developing phase, Fit well after the Shirley BG process.
+    Cells(1, 1).Value = "Erf"
+    Cells(1, 2).Value = "BG"
+    Cells(1, 3).Value = vbNullString
+    
+    Cells(20, 101).Value = "Erf"
+    Cells(20, 102).Value = "BG"
+    Cells(20, 103).Value = vbNullString
+    
+    For k = 2 To 7
+        If Cells(k, 2).Font.Bold = "True" Then
+        End If
+    Next
+    
+    Cells(2, 1).Value = "Const. BG"
+    Cells(3, 1).Value = "Step height"
+    Cells(4, 1).Value = "Inflection"
+    Cells(5, 1).Value = "Step width"
+    Cells(6, 1).Value = "Slope"
+    Cells(7, 1).Value = "ratio R:L"
+    
+    'Debug.Print Cells(8, 101).Value
+    If Cells(8, 101).Value = 0 And Cells(4, 2).Font.Bold = "False" Then
+        Cells(6, 2).Value = 0.4
+        Cells(3, 2).Value = (Cells(3, 101).Value - Cells(2, 101).Value) / 2
+        Cells(4, 2).Value = Cells(11 + sftfit2, 2).Value + (Cells(12 + sftfit2, 2).Value - Cells(11 + sftfit2, 2).Value) / 4
+        Cells(5, 2).Value = 2
+    End If
+    
+    Cells(startR, 3).FormulaR1C1 = "=R2C2 + (1-R7C2) *(R6C2 * (RC1 - R4C2)) + R7C2 * R3C2*(1+erf((RC1 - R4C2)/(sqrt(2)*R5C2/2.35)))/2"
+    Range(Cells(startR, 3), Cells(endR, 3)).FillDown
+    
+    Cells(11, 101).Value = "squares"
+    Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
+    If Cells(2, 101).Value <= 0 Then
+        Cells(startR, 100).FormulaR1C1 = "=(RC2 - RC3)^2" ' CV this is the case for RC3 = 0
+    Else
+        Cells(startR, 100).FormulaR1C1 = "=(((RC2 - RC3)^2)/RC2)" ' CV
+    End If
+    
+    Range(Cells(startR, 100), Cells(endR, 100)).FillDown
+    
+    If ns <= 0 Then
+        Cells(6 + sftfit2, 2).FormulaR1C1 = "=AVERAGE(R" & startR & "C100:R" & endR & "C100)"
+    Else
+        Cells(6 + sftfit2, 2).FormulaR1C1 = "=(AVERAGE(R" & startR & "C100:R" & (startR + ns - 1) & "C100) + AVERAGE(R" & endR & "C100:R" & (endR - ns + 1) & "C100)) / 2"
+    End If
+    'Cells(6 + sftfit2, 2).FormulaR1C1 = "=AVERAGE(R" & startR & "C100:R" & endR & "C100)"
+    
+    SolverOk SetCell:=Cells(6 + sftfit2, 2), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(2, 2), Cells(7, 2))
+    SolverAdd CellRef:=Cells(4, 2), Relation:=3, FormulaText:=Cells(11 + sftfit2, 2).Value        ' This is a point to control the position of inflection
+    SolverAdd CellRef:=Cells(4, 2), Relation:=1, FormulaText:=Cells(12 + sftfit2, 2).Value
+    SolverAdd CellRef:=Cells(5, 2), Relation:=3, FormulaText:=1 'step width minimum
+    SolverAdd CellRef:=Cells(5, 2), Relation:=1, FormulaText:=(Cells(12 + sftfit2, 2).Value - Cells(11 + sftfit2, 2).Value)
+    SolverAdd CellRef:=Cells(3, 2), Relation:=3, FormulaText:=0
+    SolverAdd CellRef:=Cells(3, 2), Relation:=1, FormulaText:=(Cells(3, 101).Value - Cells(2, 101).Value)
+    SolverAdd CellRef:=Cells(2, 2), Relation:=3, FormulaText:=0
+    SolverAdd CellRef:=Cells(6, 2), Relation:=3, FormulaText:=-1
+    SolverAdd CellRef:=Cells(6, 2), Relation:=1, FormulaText:=1
+    SolverAdd CellRef:=Cells(7, 2), Relation:=3, FormulaText:=0
+    SolverAdd CellRef:=Cells(7, 2), Relation:=1, FormulaText:=1
+    
+    For k = 2 To 7
+        If Cells(k, 2).Font.Bold = "True" Then
+            SolverAdd CellRef:=Cells(k, 2), Relation:=2, FormulaText:=Cells(k, 2)
+        End If
+    Next
+
+    SolverSolve UserFinish:=True
+    SolverFinish KeepFinal:=1
+    
+    Range(Cells(6, 1), Cells(7, 1)).Interior.Color = RGB(156, 204, 101)  '43
+    Range(Cells(6, 2), Cells(7, 2)).Interior.Color = RGB(197, 225, 165)  '35
 End Sub
 
 Sub TangentArcBG()
@@ -8155,14 +8242,15 @@ Sub TangentArcBG()
         Cells(6, 2).Value = 0
         Cells(7, 2).Value = 1
         Range(Cells(4, 2), Cells(7, 2)).Font.Bold = "True"
-    ElseIf Cells(8, 101).Value = 0 Then
+    ElseIf Cells(8, 101).Value = 0 And Cells(4, 2).Font.Bold = "False" Then
         Cells(6, 2).Value = 0.4
         Cells(3, 2).Value = (Cells(3, 101).Value - Cells(2, 101).Value) / 2
         Cells(4, 2).Value = Cells(11 + sftfit2, 2).Value + (Cells(12 + sftfit2, 2).Value - Cells(11 + sftfit2, 2).Value) / 4
         Cells(5, 2).Value = 2
     End If
     
-    Cells(startR, 3).FormulaR1C1 = "=R2C2 + (1-R7C2) * (R6C2 * (RC1 - R4C2)) + R7C2 * (R3C2 * ((0.5) + (1/3.14) * ATAN((RC1 - R4C2)/(R5C2 / 2))))"
+    Cells(startR, 3).FormulaR1C1 = "=R2C2 + (1-R7C2) * (R6C2 * (RC1 - R4C2)) + R7C2 * (R3C2 * ((0.5) + (1/3.14) * ATAN((RC1 - R4C2)/(sqrt(2)*R5C2/2.35))))"
+    ' https://lmfit.github.io/lmfit-py/builtin_models.html#lmfit.models.StepModel
     Range(Cells(startR, 3), Cells(endR, 3)).FillDown
     Cells(11, 101).Value = "squares"
     Cells(20 + sftfit, 100).Value = "least squares"         ' least squares method
@@ -8197,7 +8285,7 @@ Sub TangentArcBG()
         End If
     Next
 
-    SolverSolve UserFinish:=True
+    SolverSolve UserFinish:=True, ShowRef:="HideWindow"     ' mac version use this
     SolverFinish KeepFinal:=1
     Range(Cells(6, 1), Cells(7, 1)).Interior.Color = RGB(156, 204, 101)  '43
     Range(Cells(6, 2), Cells(7, 2)).Interior.Color = RGB(197, 225, 165)  '35
@@ -8268,7 +8356,7 @@ Sub PolynominalBG()
         End If
     Next
     
-    SolverSolve UserFinish:=True
+    SolverSolve UserFinish:=True, ShowRef:="HideWindow"     ' mac version use this
     SolverFinish KeepFinal:=1
 End Sub
 
@@ -8338,7 +8426,7 @@ Sub PolynominalNormalBG()   ' this is non-normalized x ; used for tau plot (opti
         End If
     Next
     
-    SolverSolve UserFinish:=True
+    SolverSolve UserFinish:=True, ShowRef:="HideWindow"     ' mac version use this
     SolverFinish KeepFinal:=1
 End Sub
 
@@ -8630,7 +8718,7 @@ Sub PolynominalTougaardBG()
         End If
     Next
     
-    SolverSolve UserFinish:=True
+    SolverSolve UserFinish:=True, ShowRef:="HideWindow"     ' mac version use this
     SolverFinish KeepFinal:=1
 
     [A2:A10].Interior.Color = RGB(156, 204, 101)    '43
@@ -8640,12 +8728,12 @@ End Sub
 Sub SolverSetup()
     If modePre = 1 Then      ' simple results with quick time
         SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
-        SolverOptions MaxTime:=10, Iterations:=100, Precision:=0.001, AssumeLinear _
+        SolverOptions MaxTime:=60, Iterations:=100, Precision:=0.001, AssumeLinear _
             :=False, StepThru:=False, Estimates:=1, Derivatives:=1, SearchOption:=1, _
             IntTolerance:=5, Scaling:=True, Convergence:=0.001, AssumeNonNeg:=False
     ElseIf modePre = 2 Then     ' fair results with moderate time
         SolverReset ' Error due to the Solver installation! Check the Solver function correctly installed.
-        SolverOptions MaxTime:=10, Iterations:=100, Precision:=0.0001, AssumeLinear _
+        SolverOptions MaxTime:=60, Iterations:=100, Precision:=0.0001, AssumeLinear _
             :=False, StepThru:=False, Estimates:=1, Derivatives:=1, SearchOption:=1, _
             IntTolerance:=5, Scaling:=True, Convergence:=0.0001, AssumeNonNeg:=False
     ElseIf modePre = 3 Then      ' Accurate results with quite long time
@@ -8663,9 +8751,8 @@ Sub SolverSetupEF()      ' Accurate results with quite long time
         IntTolerance:=5, Scaling:=True, Convergence:=0.0000000001, AssumeNonNeg:=False
 End Sub
 
-Function ShowTrial(Reason As Integer)
-    MsgBox "Reason = " & Reason
-    ShowTrial = 0
+Function HideWindow(Reason As Integer)
+    HideWindow = True
 End Function
 
 Sub descriptSigfit()
@@ -9760,7 +9847,7 @@ Sub GetNormalize()
                 SolverAdd CellRef:=Cells(3, 4 + p + (n * 3)), Relation:=2, FormulaText:=Cells(3, 4 + p + (n * 3))
             End If
         Next
-        SolverSolve UserFinish:=True
+        SolverSolve UserFinish:=True, ShowRef:="HideWindow"     ' mac version use this
         SolverFinish KeepFinal:=1
 
         If LCase(Cells(10, 1).Value) = "pe" Then
@@ -10104,7 +10191,7 @@ Sub GetNormalize()
                     SolverAdd CellRef:=Cells(5 + p, 2 + q + (n * 3)), Relation:=2, FormulaText:=Cells(5 + p, 2 + q + (n * 3))
                 End If
             Next
-            SolverSolve UserFinish:=True
+            SolverSolve UserFinish:=True, ShowRef:="HideWindow"     ' mac version use this
             SolverFinish KeepFinal:=1
         Next
 
