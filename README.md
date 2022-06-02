@@ -33,11 +33,11 @@ Spectral intensity is divided (normalized) by the other reference spectrum to co
 The peaks calibrated and identified by the database in the Graph sheet are analyzed in the Fit sheet based on the least-square regression method. Peak area is evaluated with analytical and numerical ways together with the choice of background subtraction processes. The number of peaks can be chosen with parameters such as curve shape, energy, FWHM width, amplitude etc. All the parameters can be constrained or limited in a specific range. Amplitude ratios and peak energy differences among the peaks are also adjustable in the cells with specified syntax described elsewhere. 
 
 ### Type of background subtraction and peak fitting function
-- Gaussian (G), Lorentzian (L), and its blended function (GL) with tail parameters for asymmetric peak (TSGL)
+- Gaussian (G), Lorentzian (L), and its blended function (GL) with tail parameters for asymmetric peak (TGL) based on the models [here](https://lmfit.github.io/lmfit-py/builtin_models.html#builtin-models-chapter)
 - Shirley and Tougaard backgrounds blended with and without polynomial function
 - Constant, linear, quadratic, and cubic for polynomial background
 - Polynomial and its blended backgrounds optimized with peak fittings (active mode: "BG" to "ABG")
-- Arctangent and Victoreen backgrounds for XAS pre-edge subtraction
+- Error-function, Arctangent and Victoreen backgrounds for XAS pre-edge subtraction
 - Trapezoidal (numerical) integration for peak areas normalized by various sensitivity factors including photoionization cross section, source angle correction, MFP, analyzer transmission function etc.
 - User-defined function can be easily implemented in the Visual Basic programming.
 
