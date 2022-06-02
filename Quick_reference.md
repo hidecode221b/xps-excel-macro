@@ -101,11 +101,11 @@
 |TGL|Skewed Pseudo Voigt | 0-1 | skew ||5|G + L with the same FWHM|
 |TG|Skewed Gaussian | 0 | skew ||4||
 |EG|Exponential Gaussian | 0 | skew ||4||
-|LN|Lognormal || skew ||4||
+|LN|Lognormal | 0 | skew ||4||
 |L|Lorentzian | 1 |||3||
 |SL|Split Lorentzian | 1 |||4| two FWHM|
-|F|Breit Wigner Fano || skew ||4||
-|DS|Doniac Sunjic|| skew ||4||
+|F|Breit Wigner Fano | 1 | skew ||4||
+|DS|Doniac Sunjic| 1 | skew ||4||
 |DSL|Doniac Sunjic Lorentzian | 1 | skew ||4||
 
 # Peak shape (old version before 8.46)
