@@ -93,7 +93,22 @@
 |SAXS|sa|fit||
 |CK (C K edge on Arctan BG)|ck|||
 
-# Peak shape
+# Peak shape (new version after 8.47)
+| Syntax | Shape | G/L | Option a | Option b | #par|	Ref.|
+|:-----------|:------|:------|:-------|:-------|:-------|:-------|
+|G|Gaussian| 0 |||3||
+|GL|Pseudo Voigt | 0-1 |||4|G + L with the same FWHM|
+|TGL|Skewed Pseudo Voigt | 0-1 | skew ||5|G + L with the same FWHM|
+|TG|Skewed Gaussian | 0 | skew ||4||
+|EG|Exponential Gaussian | 0 | skew ||4||
+|LN|Lognormal || skew ||4||
+|L|Lorentzian | 1 |||3||
+|SL|Split Lorentzian | 1 |||4| two FWHM|
+|F|Breit Wigner Fano || skew ||4||
+|DS|Doniac Sunjic|| skew ||4||
+|DSL|Doniac Sunjic Lorentzian | 1 | skew ||4||
+
+# Peak shape (old version before 8.46)
 | Syntax | Shape | Option a | Option b | #par|	Ref.|
 |:-----------|:------|:-------|:-------|:-------|:-------|
 |G (0)|Gaussian|||3||
