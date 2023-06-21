@@ -898,6 +898,11 @@ Sub PlotCLAM2()
         Application.DisplayAlerts = True
     End If
     
+    If Len(strSheetGraphName) > 30 And StrComp(mid$(strSheetGraphName, 1, 11), "Graph_Norm_") = 0 Then
+        MsgBox "File name """ & mid$(strSheetGraphName, 12, Len(strSheetGraphName) - 14) & """ should be <= 16", vbOKOnly, "Error in length of filename: " & Len(mid$(strSheetGraphName, 12, Len(strSheetGraphName) - 14))
+        End
+    End If
+    
     Worksheets.Add().Name = strSheetGraphName
     Set sheetGraph = Worksheets(strSheetGraphName)
     sheetGraph.Activate
@@ -2371,11 +2376,11 @@ Sub GetAutoScale()
                 Else
                     iniRow1 = 0
                 End If
-                If IsNumeric(mid$(strAuto, InStr(6, strAuto, ",", 1) + 1, Len(strAuto) - InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) - 1)) Then
-                    If mid$(strAuto, InStr(6, strAuto, ",", 1) + 1, Len(strAuto) - InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) - 1) < 0 Then
-                        iniRow2 = Application.Floor(mid$(strAuto, InStr(6, strAuto, ",", 1) + 1, Len(strAuto) - InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) - 1), -1 * stepEk)
+                If IsNumeric(mid$(strAuto, InStr(6, strAuto, ",", 1) + 1, InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) - InStr(6, strAuto, ",", 1) - 1)) Then
+                    If mid$(strAuto, InStr(6, strAuto, ",", 1) + 1, InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) - InStr(6, strAuto, ",", 1) - 1) < 0 Then
+                        iniRow2 = Application.Floor(mid$(strAuto, InStr(6, strAuto, ",", 1) + 1, InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) - InStr(6, strAuto, ",", 1) - 1), -1 * stepEk)
                     Else
-                        iniRow2 = Application.Floor(mid$(strAuto, InStr(6, strAuto, ",", 1) + 1, Len(strAuto) - InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) - 1), stepEk)
+                        iniRow2 = Application.Floor(mid$(strAuto, InStr(6, strAuto, ",", 1) + 1, InStr(InStr(6, strAuto, ",", 1) + 1, strAuto, ":", 1) - InStr(6, strAuto, ",", 1) - 1), stepEk)
                     End If
                 Else
                     iniRow2 = 0
@@ -2739,7 +2744,7 @@ Sub ExportCmp(ByRef strXas As String)
         End If
     End If
     
-    If mid$(LCase(Cells(1, 1).Value), 1, 3) = "exp" Or strXas = "Is" Or strXas = "Is" Then
+    If mid$(LCase(Cells(1, 1).Value), 1, 3) = "exp" Or strXas = "Is" Or strXas = "If" Then
         If ExistSheet(strSheetAnaName) Then
             Application.DisplayAlerts = False
             Worksheets(strSheetAnaName).Delete
@@ -2756,15 +2761,15 @@ Sub ExportCmp(ByRef strXas As String)
             sheetGraph.Activate
             ncomp = sheetGraph.Cells(45, para + 10).Value
             Results = vbNullString
-            Call CombineLegend
-            Set sheetTarget = Worksheets("samples")
+            'Call CombineLegend
+            'Set sheetTarget = Worksheets("samples")
             sheetAna.Activate
         End If
         
         wb = ActiveWorkbook.Name
         sheetGraph.Activate
         
-        If strXas = "Is" Or strXas = "Is" Then
+        If strXas = "Is" Or strXas = "If" Then
             Cells(1, 1).Value = "Grating"
             ncomp = 0
             expOgn = 0
@@ -2813,7 +2818,7 @@ Sub ExportCmp(ByRef strXas As String)
     Application.CutCopyMode = False
     Cells(1, 1).Select
     
-    If strXas = "Is" Or strXas = "Is" Then
+    If strXas = "Is" Or strXas = "If" Then
     Else
         strErr = "end"
     End If
@@ -2897,7 +2902,7 @@ Sub Convert2Txt(ByRef strXas As String, delimiter As String)
         If iCol <= 3 Then
             If strXas = "Ip" Then
                 strLabel = strSheetAnaName
-            ElseIf strXas = "Is" Or strXas = "Is" Then
+            ElseIf strXas = "Is" Or strXas = "If" Then
                 strLabel = strSheetDataName
             Else
                 strLabel = strSheetDataName
@@ -2937,7 +2942,7 @@ Sub Convert2Txt(ByRef strXas As String, delimiter As String)
     
     Application.CutCopyMode = False
     
-    If strXas = "Is" Or strXas = "Ip" Or strXas = "Is" Then
+    If strXas = "Is" Or strXas = "Ip" Or strXas = "If" Then
     Else
         strErr = "end"
     End If
@@ -9511,7 +9516,7 @@ Sub GetNormalize()
     Dim iniRow1 As Single, iniRow2 As Single, endRow1 As Single, endRow2 As Single, pstart As Integer, pend As Integer
     Dim x0 As Single, x1 As Single, y0 As Single, y1 As Single, Pre_slope As Single, Pre_offset As Single, Post_slope As Single, Post_offset As Single
     
-    strNorm = Cells(1, 1).Value
+    strNorm = LCase(Cells(1, 1).Value)
     
     If mid$(LCase(strNorm), 1, 4) = "norm" Then
         strSheetAnaName = "Norm_" + strSheetDataName
@@ -9619,7 +9624,7 @@ Sub GetNormalize()
             strl(3) = "In"
         End If
         
-        If Cells(1, 1).Value = "norm" Then
+        If LCase(Cells(1, 1).Value) = "norm" Then
             strTest = strSheetDataName + "_norm"
         Else
             strTest = strSheetDataName + "_diff"
