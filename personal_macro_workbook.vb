@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.47p"                             ' Version of this code.
+    ver = "8.48p"                             ' Version of this code.
     If Application.OperatingSystem Like "*Mac*" Then
         backSlash = "/"
     Else
@@ -2343,6 +2343,9 @@ Sub GetAutoScale()
                 If Application.WorksheetFunction.Average(dataData) > Application.WorksheetFunction.Average(rng) Then  ' PES mode
                     Cells(9, 3 * dt + 2).Value = Application.WorksheetFunction.Average(rng) - offset0
                     Cells(9, 3 * dt + 3).Value = multiple0 / Abs(Application.WorksheetFunction.Average(dataData) - Cells(9, 3 * dt + 2).Value)
+                ElseIf StrComp(mid$(LCase(Cells(10, 3 * dt + 1).Value), 1, 2), "po", 1) = 0 Then
+                    Cells(9, 3 * dt + 2).Value = Application.WorksheetFunction.Average(dataData) - offset0
+                    Cells(9, 3 * dt + 3).Value = multiple0 / Abs(Application.WorksheetFunction.Average(rng) - Cells(9, 3 * dt + 2).Value)
                 Else ' XAS mode
                     Cells(9, 3 * dt + 2).Value = Application.WorksheetFunction.Average(dataData.Offset(0, -1)) - offset0
                     Cells(9, 3 * dt + 3).Value = multiple0 / Abs(Application.WorksheetFunction.Average(rng.Offset(0, -1)) - Cells(9, 3 * dt + 2).Value)
@@ -2431,7 +2434,11 @@ Sub GetAutoScale()
                         'Debug.Print iniRow1, endRow1, p, q
                         
                         If pstart >= 1 And pend > pstart Then
-                            Set rng = Range(Cells(11 + pstart - 1, (3 + (dt * 3))), Cells(11 + pend - 1, (3 + (dt * 3)))).Offset(0, -1)
+                            If StrComp(mid$(LCase(Cells(10, 3 * dt + 1).Value), 1, 2), "pe", 1) = 0 Then
+                                Set rng = Range(Cells(11 + pstart - 1, (3 + (dt * 3))), Cells(11 + pend - 1, (3 + (dt * 3)))).Offset(0, -1)
+                            Else
+                                Set rng = Range(Cells(11 + pstart - 1, (3 + (dt * 3))), Cells(11 + pend - 1, (3 + (dt * 3))))
+                            End If
                             Cells(9, 3 * dt + 2).Value = Application.WorksheetFunction.Average(rng) - offset0
                         End If
                     End If
@@ -2460,7 +2467,11 @@ Sub GetAutoScale()
                         Next
                     
                         If pstart >= 1 And pend > pstart Then
-                            Set dataData = Range(Cells(10 + numDataT - pend + 1, (3 + (dt * 3))), Cells(10 + numDataT - pstart + 1, (3 + (dt * 3)))).Offset(0, -1)
+                            If StrComp(mid$(LCase(Cells(10, 3 * dt + 1).Value), 1, 2), "pe", 1) = 0 Then
+                                Set dataData = Range(Cells(10 + numDataT - pend + 1, (3 + (dt * 3))), Cells(10 + numDataT - pstart + 1, (3 + (dt * 3)))).Offset(0, -1)
+                            Else
+                                Set dataData = Range(Cells(10 + numDataT - pend + 1, (3 + (dt * 3))), Cells(10 + numDataT - pstart + 1, (3 + (dt * 3))))
+                            End If
                             Cells(9, 3 * dt + 3).Value = multiple0 / Abs(Application.WorksheetFunction.Average(dataData) - Cells(9, 3 * dt + 2).Value)
                         End If
                     End If
@@ -2798,8 +2809,13 @@ Sub ExportCmp(ByRef strXas As String)
                 sheetAna.Cells(1, 2 + (q * 2)).Value = sheetAna.Cells(1 + expOgn, 2 + (q * 2)).Value
                 sheetAna.Cells(2, 1 + (q * 2)).Value = "eV"
                 sheetAna.Cells(2, 2 + (q * 2)).Value = "arb. units"
-                sheetAna.Cells(3, 1 + (q * 2)).Value = sheetTarget.Cells(2 + q, 2).Value
-                sheetAna.Cells(3, 2 + (q * 2)).Value = sheetTarget.Cells(2 + q, 2).Value
+                If ExistSheet("samples") Then
+                    sheetAna.Cells(3, 1 + (q * 2)).Value = sheetTarget.Cells(2 + q, 2).Value
+                    sheetAna.Cells(3, 2 + (q * 2)).Value = sheetTarget.Cells(2 + q, 2).Value
+                Else
+                    sheetAna.Cells(3, 1 + (q * 2)).Value = "no." & (q + 1)
+                    sheetAna.Cells(3, 2 + (q * 2)).Value = "no." & (q + 1)
+                End If
             Else
                 If expAuger = 1 Then
                     sheetGraph.Range(Cells(11 + numDataT + 8, 1), Cells(11 + (numDataT * 2) + 8, 1)).Copy
@@ -2807,6 +2823,8 @@ Sub ExportCmp(ByRef strXas As String)
                     sheetAna.Cells(1, 1 + (q * 2)).Value = "KE/eV"
                 ElseIf mid$(LCase(Cells(10, 1).Value), 1, 2) = "pe" Then   'XAS mode
                     sheetAna.Cells(1, 1 + (q * 2)).Value = "PE/eV"
+                ElseIf mid$(LCase(Cells(10, 1).Value), 1, 2) = "po" Then   'ME mode
+                    sheetAna.Cells(1, 1 + (q * 2)).Value = "ME/eV"
                 Else
                     sheetAna.Cells(1, 1 + (q * 2)).Value = "BE/eV"          ' this is option if want to name with "BE/eV" on x axis name
                 End If
@@ -10163,7 +10181,33 @@ Sub GetNormalize()
             End If
         End If
         
-        If sheetGraph.Cells(1, (2 + (n * 3))) <> "Pre edge" Then
+        If sheetGraph.Cells(1, (2 + (n * 3))) = "Baseline" Then
+            sheetGraph.Cells(1, (2 + (n * 3))) = "Baseline"
+            sheetGraph.Cells(1, (3 + (n * 3))) = "Cutoff"
+            
+            sheetGraph.Cells(10, (2 + (n * 3))) = "Baseline"
+            sheetGraph.Cells(10, (3 + (n * 3))) = "Cutoff"
+            
+            sheetGraph.Cells(1, (9 + (n * 3))) = "Baseline"
+            sheetGraph.Cells(1, (10 + (n * 3))) = "Cutoff"
+            sheetGraph.Cells(2, (8 + (n * 3))) = "a0"
+            sheetGraph.Cells(3, (8 + (n * 3))) = "a1"
+            sheetGraph.Cells(4, (8 + (n * 3))) = "Onset"
+            sheetGraph.Cells(4, (10 + (n * 3))) = "eV"
+            
+            Range(Cells(1, (9 + (n * 3))), Cells(1, (10 + (n * 3)))).Interior.ColorIndex = 44
+            Range(Cells(2, (9 + (n * 3))), Cells(3, (10 + (n * 3)))).Interior.ColorIndex = 27
+            Range(Cells(2, (8 + (n * 3))), Cells(3, (8 + (n * 3)))).Interior.ColorIndex = 44
+            Range(Cells(4, (8 + (n * 3))), Cells(4, (8 + (n * 3)))).Interior.ColorIndex = 38
+            Range(Cells(4, (9 + (n * 3))), Cells(4, (10 + (n * 3)))).Interior.ColorIndex = 39
+            
+            Cells(2, (9 + (n * 3))).FormulaR1C1 = "=R11C5 - R[1]C * R11C4"
+            Cells(2, (10 + (n * 3))).FormulaR1C1 = "=R11C6 - R[1]C * R11C4"
+            Cells(3, (9 + (n * 3))).FormulaR1C1 = "=(R11C5 - R" & (10 + numData) & "C5)/(R11C4 - R" & (10 + numData) & "C4)"
+            Cells(3, (10 + (n * 3))).FormulaR1C1 = "=(R11C6 - R" & (10 + numData) & "C6)/(R11C4 - R" & (10 + numData) & "C4)"
+            Cells(4, (9 + (n * 3))).FormulaR1C1 = "=(R[-2]C[1] - R[-2]C)/(R[-1]C - R[-1]C[1])"
+            
+        Else    'If sheetGraph.Cells(1, (2 + (n * 3))) <> "Pre edge" Then
             Cells(5, 5).Value = Pre_offset
             Cells(6, 5).Value = Pre_slope
             Cells(5, 6).Value = Post_offset
@@ -10183,14 +10227,17 @@ Sub GetNormalize()
             sheetGraph.Cells(7, (1 + (n * 3))) = "a2"
             sheetGraph.Cells(8, (1 + (n * 3))) = "a3"
             sheetGraph.Cells(9, (1 + (n * 3))) = "chi^2"
+            
             sheetGraph.Cells(10, (1 + (n * 3))) = Cells(10, 2 - jc).Value
             sheetGraph.Cells(10, (2 + (n * 3))) = "Pre-edge"
             sheetGraph.Cells(10, (3 + (n * 3))) = "Post-edge"
             
+    '        Range(Cells(1, (1 + (n * 3))), Cells(1, (1 + (n * 3)))).Interior.ColorIndex = 48
             Range(Cells(1, (2 + (n * 3))), Cells(1, (3 + (n * 3)))).Interior.ColorIndex = 15
             Range(Cells(2, (1 + (n * 3))), Cells(3, (1 + (n * 3)))).Interior.ColorIndex = 14
             Range(Cells(2, (2 + (n * 3))), Cells(3, (2 + (n * 3)))).Interior.ColorIndex = 42
             Range(Cells(2, (3 + (n * 3))), Cells(3, (3 + (n * 3)))).Interior.ColorIndex = 8
+    '        Range(Cells(4, (1 + (n * 3))), Cells(4, (1 + (n * 3)))).Interior.ColorIndex = 48
             Range(Cells(4, (2 + (n * 3))), Cells(4, (3 + (n * 3)))).Interior.ColorIndex = 15
             Range(Cells(5, (1 + (n * 3))), Cells(8, (1 + (n * 3)))).Interior.ColorIndex = 45
             Range(Cells(5, (2 + (n * 3))), Cells(8, (2 + (n * 3)))).Interior.ColorIndex = 44
@@ -10358,36 +10405,54 @@ Sub GetNormalize()
             .Format.Line.DashStyle = msoLineSysDash
         End With
         
-        ActiveChart.SeriesCollection.NewSeries
-        With ActiveChart.SeriesCollection(p + n + 2)
-            .ChartType = xlXYScatterLinesNoMarkers
-            .Name = Cells(1, 5 + (n * 3)).Value
-            .XValues = dataKeGraph.Offset(imax - 1, 1 - jc)
-            .Values = dataKeGraph.Offset(imax - 1, 2 - jc)
-            .Border.ColorIndex = 45
-            .AxisGroup = xlSecondary
-        End With
-        
-        If jc = 0 Then
+        If sheetGraph.Cells(1, (2 + (n * 3))) <> "Baseline" Then
+            ActiveChart.SeriesCollection.NewSeries
+            With ActiveChart.SeriesCollection(p + n + 2)
+                .ChartType = xlXYScatterLinesNoMarkers
+                .Name = Cells(1, 5 + (n * 3)).Value
+                .XValues = dataKeGraph.Offset(imax - 1, 1 - jc)
+                .Values = dataKeGraph.Offset(imax - 1, 2 - jc)
+                .Border.ColorIndex = 45
+                .AxisGroup = xlSecondary
+            End With
+
+            If jc = 0 Then
+                With ActiveChart
+                    .HasAxis(xlCategory, xlSecondary) = True
+                    With .Axes(xlCategory, xlSecondary)
+                        .ReversePlotOrder = True
+                        .Crosses = xlMinimum
+                    End With
+                End With
+            End If
+                
             With ActiveChart
-                .HasAxis(xlCategory, xlSecondary) = True
-                With .Axes(xlCategory, xlSecondary)
-                    .ReversePlotOrder = True
-                    .Crosses = xlMinimum
+                .HasAxis(xlCategory, xlSecondary) = False
+                With .Axes(xlValue, xlPrimary)
+                    .HasMajorGridlines = False
+                End With
+                With .Axes(xlValue, xlSecondary)
+                    .HasMajorGridlines = True
+                    .MajorGridlines.Border.LineStyle = xlDot
                 End With
             End With
+        Else
+            With ActiveChart.SeriesCollection(1)
+                .Border.LineStyle = xlLineStyleNone
+
+                With .Format.Fill
+'                    .BackColor.RGB = RGB(68, 114, 194)
+'                    .ForeColor.RGB = RGB(218, 227, 243)
+                    .Solid
+                    .Visible = True
+                    .Transparency = 0.5
+                End With
+                .MarkerStyle = 8 'round points
+                .MarkerSize = 6 'size of the points
+                .MarkerForegroundColor = RGB(68, 114, 194) 'Border colour of the points
+                .MarkerBackgroundColor = RGB(218, 227, 243) 'Colour of the points themselves
+            End With
         End If
-        
-        With ActiveChart
-            .HasAxis(xlCategory, xlSecondary) = False
-            With .Axes(xlValue, xlPrimary)
-                .HasMajorGridlines = False
-            End With
-            With .Axes(xlValue, xlSecondary)
-                .HasMajorGridlines = True
-                .MajorGridlines.Border.LineStyle = xlDot
-            End With
-        End With
 
         Range(Cells(10, (4 + (n * 3))), Cells(10, ((4 + (n * 3))))).Interior.ColorIndex = 45
         Range(Cells(9 + (imax), (4 + (n * 3))), Cells(9 + (imax), ((4 + (n * 3))))).Interior.ColorIndex = 45
@@ -10682,47 +10747,7 @@ Sub debugAll()      ' multiple file analysis in sequence
         End If
         
         If modex = 1 Then
-            strTest = mid$(strTest, 1, InStr(1, strTest, ".") - 1)
-            If Len(ElemXbef) = 0 Then
-                If Len(strTest) >= 13 And InStr(13, strTest, "stop") = 0 And mid$(strTest, 7, 1) = "_" And mid$(strTest, 12, 1) = "_" Then
-                    ElemX = mid$(strTest, 13, Len(strTest) - 12 - 2)
-                    If InStr(1, AElist, ElemX) = 0 Then ElemX = vbNullString
-                ElseIf Len(strTest) >= 18 And InStr(13, strTest, "stop") > 0 And mid$(strTest, 7, 1) = "_" And mid$(strTest, 12, 1) = "_" Then
-                    ElemX = mid$(strTest, 13, Len(strTest) - 12 - 5 - 2)    ' 12 for data&time, 5 for _stop, 2 for orbit
-                    If InStr(1, AElist, ElemX) = 0 Then ElemX = vbNullString
-                ElseIf Len(strTest) >= 5 And InStrRev(strTest, "_") > 0 Then
-                    strElem = Split(strTest, "_")
-                    For q = 0 To UBound(strElem)
-                        ElemT = strElem(q)
-                        If StrComp(ElemT, "ig", 1) = 0 Or Len(ElemT) < 3 Or Len(ElemT) > 5 Then
-                            ElemX = ElemXbef
-                        Else
-                            If mid$(ElemT, Len(ElemT) - 1, 1) Like "[0-9]" And IsNumeric(mid$(ElemT, 1, Len(ElemT) - 2)) = False Then
-                                If mid$(ElemT, 1, Len(ElemT) - 2) <> "Su" Then
-                                    ElemX = mid$(ElemT, 1, Len(ElemT) - 2)
-                                    If InStr(1, AElist, ElemX) = 0 Then
-                                        ElemX = ElemXbef
-                                    Else
-                                        Exit For
-                                    End If
-                                Else
-                                    ElemX = ElemXbef
-                                End If
-                            ElseIf mid$(ElemT, Len(ElemT) - 2, 1) Like "[0-9]" And IsNumeric(mid$(ElemT, 1, Len(ElemT) - 3)) = False Then
-                                ElemX = mid$(ElemT, 1, Len(ElemT) - 3)  ' it forms Cu2p3
-                                Exit For
-                            ElseIf InStr(1, AESlist, mid$(ElemT, Len(ElemT) - 2, 3)) > 0 Then
-                                ElemX = mid$(ElemT, 1, Len(ElemT) - 3)  ' it forms ZnLMM
-                                Exit For
-                            Else
-                                ElemX = ElemXbef
-                            End If
-                        End If
-                    Next
-                Else
-                    ElemX = ElemXbef
-                End If
-            End If
+
         ElseIf modex = -2 Then
             Application.DisplayAlerts = False
             strSheetDataName = strNorm + mid$(Target, InStrRev(Target, backSlash) + 1, Len(Target) - InStrRev(Target, backSlash) - 5)
