@@ -11349,7 +11349,9 @@ End Function
 
 Function grantFileAccess(filePermissionCandidates)
 'https://warwick.ac.uk/fac/sci/systemsbiology/staff/dyer/software/excelvbafileopen/
-  grantFileAccess = GrantAccessToMultipleFiles(filePermissionCandidates) 'returns true if access granted, false otherwise_
+    On Error Resume Next
+    grantFileAccess = GrantAccessToMultipleFiles(filePermissionCandidates) 'returns true if access granted, false otherwise_
+    On Error GoTo 0
 End Function
 
 
