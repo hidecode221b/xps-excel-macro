@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.48p"                             ' Version of this code.
+    ver = "8.50p"                             ' Version of this code.
     If Application.OperatingSystem Like "*Mac*" Then
         backSlash = "/"
     Else
@@ -310,7 +310,7 @@ DeadInTheWater3:
             Call ExportCmp("")
             ActiveWorkbook.Save
             If Len(strErr) > 0 Then Exit Sub
-        ElseIf StrComp(LCase(Cells(1, 1).Value), "norm", 1) = 0 Or StrComp(LCase(Cells(1, 1).Value), "edge", 1) = 0 Or StrComp(LCase(Cells(1, 1).Value), "diff", 1) = 0 Then
+        ElseIf StrComp(LCase(Cells(1, 1).Value), "norm", 1) = 0 Or StrComp(LCase(Cells(1, 1).Value), "edge", 1) = 0 Or StrComp(LCase(Cells(1, 1).Value), "extr", 1) = 0 Or StrComp(LCase(Cells(1, 1).Value), "diff", 1) = 0 Then
             Call GetNormalize
             If Len(strErr) > 0 Then Exit Sub
         ElseIf StrComp(LCase(mid$(Cells(1, 1).Value, 1, 4)), "auto", 1) = 0 Or StrComp(LCase(mid$(Cells(1, 1).Value, 1, 6)), "offset", 1) = 0 Then
@@ -9540,6 +9540,8 @@ Sub GetNormalize()
         strSheetAnaName = "Norm_" + strSheetDataName
     ElseIf mid$(LCase(strNorm), 1, 4) = "edge" Then
         strSheetAnaName = "Edge_" + strSheetDataName
+    ElseIf mid$(LCase(strNorm), 1, 4) = "extr" Then
+        strSheetAnaName = "Extr_" + strSheetDataName
     ElseIf mid$(LCase(strNorm), 1, 4) = "diff" Then
         strSheetAnaName = "Diff_" + strSheetDataName
     Else
@@ -9961,7 +9963,7 @@ Sub GetNormalize()
         
         If Len(strErr) > 0 Then Exit Sub
         
-    ElseIf strNorm = "edge" And ncomp = 0 Then
+    ElseIf (strNorm = "edge" Or strNorm = "extr") And ncomp = 0 Then
         n = 1   ' means data to be generated on second set of data column
         k = 1   ' means data to be normalized on first set of data column
         Debug.Print "edge process"
@@ -9970,6 +9972,7 @@ Sub GetNormalize()
         If multi = 0 Then
             multi = 1
         End If
+        'Debug.Print off, multi
         
         If LCase(Cells(10, 1).Value) = "pe" Then
             jc = 1
@@ -9980,6 +9983,7 @@ Sub GetNormalize()
         sheetGraph.Range(Cells(1, (4 + (n * 3))), Cells((2 * (numData + 10)) - 1, (6 + (n * 3)))).Clear
         Set rng = Range(Cells(11, (k + 1 - jc + ((0) * 3))), Cells(11, (k + 1 - jc + (0 * 3))).End(xlDown))
         numData = Application.CountA(rng)   ' first data set
+        'Debug.Print numData, iCol
         
         stepEk = Cells(7, (k + 1 + (0 * 3))).Value
 
@@ -10013,6 +10017,7 @@ Sub GetNormalize()
                 Cells(3, 6).Value = endRow2
             End If
             
+'        If StrComp(mid$(LCase(Cells(10, 1).Value), 1, 2), "pe", 1) = 0 Then
             If iniRow1 = endRow1 Then
                 End
             Else
@@ -10033,6 +10038,8 @@ Sub GetNormalize()
                         Exit Sub
                     End If
                 Next
+                
+                'Debug.Print iniRow1, endRow1, p, q
                 
                 If pstart >= 1 And pend > pstart Then
                     x0 = Cells(11 + pstart - 1, 2).Offset(0, -1)
@@ -10076,6 +10083,8 @@ Sub GetNormalize()
                     Cells(9, 3 + (n * 3)).FormulaR1C1 = "=Sum(R" & ((10 + numData) * 2 - 1 - pstart) & "C:R" & ((10 + numData) * 2 - 1 - pend) & "C)/(" & (Abs(pend - pstart) + 1) & ")"
                 End If
             End If
+            
+            Debug.Print "Post", x0, x1, y0, y1, iniRow2, endRow2, pstart, pend
         Else
             If IsEmpty(Cells(2, 5)) Or IsEmpty(Cells(3, 5)) Or IsEmpty(Cells(2, 6)) Or IsEmpty(Cells(3, 6)) Then
                 If StrComp(mid$(Cells(5, 1).Value, 7, 2), "BE", 1) = 0 Then
@@ -10084,10 +10093,47 @@ Sub GetNormalize()
                     iniRow2 = Cells(5, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
                     endRow2 = Cells(5, 2).Value
                 Else
-                    iniRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(6, 2).Value
-                    endRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(6, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
-                    iniRow2 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
-                    endRow2 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value
+                    If strNorm = "extr" Then
+                        If Cells(10 + numData, 2).Value < 0 Then    ' VBM in the UPS mode
+                            iniRow1 = Cells(10 + numData, 2).Value
+                            endRow1 = Cells(10 + numData - 20, 2).Value
+                            iniRow2 = Cells(10 + numData - Int(numData / 5), 2).Value
+                            endRow2 = Cells(10 + numData - Int(numData / 5) - 20, 2).Value
+                            
+                            For p = numData To 1 Step -1
+                                If Cells(10 + p, 3).Value > 5 * WorksheetFunction.Average(Cells(10 + numData, 3), Cells(10 + numData - 20, 3)) Then
+                                    iniRow2 = Cells(10 + p, 2).Value
+                                    endRow2 = Cells(10 + p + 15, 2).Value
+                                    Exit For
+                                End If
+                            Next
+                        Else    ' cutoff in the UPS mode
+                            iniRow1 = Cells(11, 2).Value
+                            'endRow1 = Cells(11 + Int(numData / 3), 2).Value
+                            endRow1 = iniRow1 - 1
+                            iniRow2 = Cells(11 + Int(numData / 2), 2).Value
+                            endRow2 = Cells(11 + Int(numData / 2) + 5, 2).Value
+                            chkMax = Application.WorksheetFunction.Max(Range(Cells(11, 3), Cells(10 + numData, 3)))
+                            chkMin = Application.WorksheetFunction.Min(Range(Cells(11, 3), Cells(10 + numData, 3)))
+                            
+                            For p = 1 To numData
+                                'If Cells(10 + p, 3).Value > 5 * WorksheetFunction.Average(Cells(11, 3), Cells(11 + Int(numData / 3), 3)) Then
+                                If Cells(10 + p, 3).Value > (chkMax - chkMin) / 10 + chkMin Then
+                                    iniRow2 = Cells(10 + p, 2).Value
+                                    'endRow2 = Cells(10 + p + 15, 2).Value
+                                    endRow2 = iniRow2 - 0.1
+                                    iniRow1 = iniRow2 + 1.5
+                                    endRow1 = iniRow2 + 0.5
+                                    Exit For
+                                End If
+                            Next
+                        End If
+                    Else
+                        iniRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(6, 2).Value
+                        endRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(6, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
+                        iniRow2 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
+                        endRow2 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value
+                    End If
                 End If
                 Cells(2, 5).Value = iniRow1
                 Cells(3, 5).Value = endRow1
@@ -10105,10 +10151,24 @@ Sub GetNormalize()
                     iniRow2 = Cells(5, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
                     endRow2 = Cells(5, 2).Value
                 Else
-                    iniRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(6, 2).Value
-                    endRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(6, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
-                    iniRow2 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
-                    endRow2 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value
+                    If strNorm = "extr" Then
+                        If Cells(10 + numData, 2).Value < 0 Then
+                            iniRow1 = Cells(10 + numData, 2).Value
+                            endRow1 = Cells(10 + numData - 20, 2).Value
+                            iniRow2 = Cells(10 + numData - Int(numData / 5), 2).Value
+                            endRow2 = Cells(10 + numData - Int(numData / 5) - 20, 2).Value
+                        Else
+                            iniRow1 = Cells(11, 2).Value
+                            endRow1 = Cells(11 + Int(numData / 3), 2).Value
+                            iniRow2 = Cells(11 + Int(numData / 2), 2).Value
+                            endRow2 = Cells(11 + Int(numData / 2) + 5, 2).Value
+                        End If
+                    Else
+                        iniRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(6, 2).Value
+                        endRow1 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(6, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
+                        iniRow2 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
+                        endRow2 = Cells(2, 2).Value - Cells(3, 2).Value - Cells(4, 2).Value - Cells(5, 2).Value
+                    End If
                 End If
                 Cells(2, 5).Value = iniRow1
                 Cells(3, 5).Value = endRow1
@@ -10116,6 +10176,7 @@ Sub GetNormalize()
                 Cells(3, 6).Value = endRow2
             End If
             
+            Debug.Print iniRow1, endRow1, iniRow2, endRow2, "sadf"
             If iniRow1 = endRow1 Then
                 End
             Else
@@ -10137,11 +10198,13 @@ Sub GetNormalize()
                     End If
                 Next
                 
+                Debug.Print iniRow2, endRow2, pstart, pend
+                
                 If pstart >= 1 Then
-                    x0 = Cells(10 + numData - pstart, 2)
-                    x1 = Cells(10 + numData - pend, 2)
-                    y0 = Cells(10 + numData - pstart, 3)
-                    y1 = Cells(10 + numData - pend, 3)
+                    x0 = Cells(11 + numData - pstart, 2)
+                    x1 = Cells(11 + numData - pend, 2)
+                    y0 = Cells(11 + numData - pstart, 3)
+                    y1 = Cells(11 + numData - pend, 3)
                     Pre_slope = (y1 - y0) / (x1 - x0)
                     Pre_offset = y1 - Pre_slope * x1
                     Cells(9, 2 + (n * 3)).FormulaR1C1 = "=Sum(R" & ((10 + numData) * 2 - 1 - pstart) & "C:R" & ((10 + numData) * 2 - 1 - pend) & "C)/(" & (Abs(pend - pstart) + 1) & ")"
@@ -10179,9 +10242,49 @@ Sub GetNormalize()
                     Cells(9, 3 + (n * 3)).FormulaR1C1 = "=Sum(R" & (19 + numData + pstart) & "C:R" & (19 + numData + pend) & "C)/(" & (Abs(pend - pstart) + 1) & ")"
                 End If
             End If
+    '                    Debug.Print iniRow2, endRow2, pstart, pend
         End If
         
-        If sheetGraph.Cells(1, (2 + (n * 3))) = "Baseline" Then
+        If sheetGraph.Cells(9, (1 + (n * 3))) <> "chi^2" Then
+            Cells(5, 5).Value = 0   'Pre_offset
+            Cells(6, 5).Value = 0   'Pre_slope
+            Cells(5, 6).Value = Post_offset
+            Cells(6, 6).Value = Post_slope
+            Cells(7, 5).Value = 0
+            Cells(8, 5).Value = 0
+            Cells(7, 6).Value = 0
+            Cells(8, 6).Value = 0
+        End If
+        
+        sheetGraph.Cells(1, (2 + (n * 3))) = "Pre edge"
+        sheetGraph.Cells(1, (3 + (n * 3))) = "Post edge"
+        sheetGraph.Cells(2, (1 + (n * 3))) = "Start, eV"
+        sheetGraph.Cells(3, (1 + (n * 3))) = "End, eV"
+        sheetGraph.Cells(4, (2 + (n * 3))) = "Polynominal coeff"
+        sheetGraph.Cells(5, (1 + (n * 3))) = "a0"
+        sheetGraph.Cells(6, (1 + (n * 3))) = "a1"
+        sheetGraph.Cells(7, (1 + (n * 3))) = "a2"
+        sheetGraph.Cells(8, (1 + (n * 3))) = "a3"
+        sheetGraph.Cells(9, (1 + (n * 3))) = "chi^2"
+        
+        sheetGraph.Cells(10, (1 + (n * 3))) = Cells(10, 2 - jc).Value
+        sheetGraph.Cells(10, (2 + (n * 3))) = "Pre-edge"
+        sheetGraph.Cells(10, (3 + (n * 3))) = "Post-edge"
+        
+'        Range(Cells(1, (1 + (n * 3))), Cells(1, (1 + (n * 3)))).Interior.ColorIndex = 48
+        Range(Cells(1, (2 + (n * 3))), Cells(1, (3 + (n * 3)))).Interior.ColorIndex = 15
+        Range(Cells(2, (1 + (n * 3))), Cells(3, (1 + (n * 3)))).Interior.ColorIndex = 14
+        Range(Cells(2, (2 + (n * 3))), Cells(3, (2 + (n * 3)))).Interior.ColorIndex = 42
+        Range(Cells(2, (3 + (n * 3))), Cells(3, (3 + (n * 3)))).Interior.ColorIndex = 8
+'        Range(Cells(4, (1 + (n * 3))), Cells(4, (1 + (n * 3)))).Interior.ColorIndex = 48
+        Range(Cells(4, (2 + (n * 3))), Cells(4, (3 + (n * 3)))).Interior.ColorIndex = 15
+        Range(Cells(5, (1 + (n * 3))), Cells(8, (1 + (n * 3)))).Interior.ColorIndex = 45
+        Range(Cells(5, (2 + (n * 3))), Cells(8, (2 + (n * 3)))).Interior.ColorIndex = 44
+        Range(Cells(5, (3 + (n * 3))), Cells(8, (3 + (n * 3)))).Interior.ColorIndex = 36
+        Range(Cells(9, (1 + (n * 3))), Cells(9, (1 + (n * 3)))).Interior.ColorIndex = 7
+        Range(Cells(9, (2 + (n * 3))), Cells(9, (3 + (n * 3)))).Interior.ColorIndex = 38
+        
+        If strNorm = "extr" Or Cells(1, 5).Value = "Baseline" Then
             sheetGraph.Cells(1, (2 + (n * 3))) = "Baseline"
             sheetGraph.Cells(1, (3 + (n * 3))) = "Cutoff"
             
@@ -10206,44 +10309,6 @@ Sub GetNormalize()
             Cells(3, (9 + (n * 3))).FormulaR1C1 = "=(R11C5 - R" & (10 + numData) & "C5)/(R11C4 - R" & (10 + numData) & "C4)"
             Cells(3, (10 + (n * 3))).FormulaR1C1 = "=(R11C6 - R" & (10 + numData) & "C6)/(R11C4 - R" & (10 + numData) & "C4)"
             Cells(4, (9 + (n * 3))).FormulaR1C1 = "=(R[-2]C[1] - R[-2]C)/(R[-1]C - R[-1]C[1])"
-            
-        Else    'If sheetGraph.Cells(1, (2 + (n * 3))) <> "Pre edge" Then
-            Cells(5, 5).Value = Pre_offset
-            Cells(6, 5).Value = Pre_slope
-            Cells(5, 6).Value = Post_offset
-            Cells(6, 6).Value = Post_slope
-            Cells(7, 5).Value = 0
-            Cells(8, 5).Value = 0
-            Cells(7, 6).Value = 0
-            Cells(8, 6).Value = 0
-            
-            sheetGraph.Cells(1, (2 + (n * 3))) = "Pre edge"
-            sheetGraph.Cells(1, (3 + (n * 3))) = "Post edge"
-            sheetGraph.Cells(2, (1 + (n * 3))) = "Start, eV"
-            sheetGraph.Cells(3, (1 + (n * 3))) = "End, eV"
-            sheetGraph.Cells(4, (2 + (n * 3))) = "Polynominal coeff"
-            sheetGraph.Cells(5, (1 + (n * 3))) = "a0"
-            sheetGraph.Cells(6, (1 + (n * 3))) = "a1"
-            sheetGraph.Cells(7, (1 + (n * 3))) = "a2"
-            sheetGraph.Cells(8, (1 + (n * 3))) = "a3"
-            sheetGraph.Cells(9, (1 + (n * 3))) = "chi^2"
-            
-            sheetGraph.Cells(10, (1 + (n * 3))) = Cells(10, 2 - jc).Value
-            sheetGraph.Cells(10, (2 + (n * 3))) = "Pre-edge"
-            sheetGraph.Cells(10, (3 + (n * 3))) = "Post-edge"
-            
-    '        Range(Cells(1, (1 + (n * 3))), Cells(1, (1 + (n * 3)))).Interior.ColorIndex = 48
-            Range(Cells(1, (2 + (n * 3))), Cells(1, (3 + (n * 3)))).Interior.ColorIndex = 15
-            Range(Cells(2, (1 + (n * 3))), Cells(3, (1 + (n * 3)))).Interior.ColorIndex = 14
-            Range(Cells(2, (2 + (n * 3))), Cells(3, (2 + (n * 3)))).Interior.ColorIndex = 42
-            Range(Cells(2, (3 + (n * 3))), Cells(3, (3 + (n * 3)))).Interior.ColorIndex = 8
-    '        Range(Cells(4, (1 + (n * 3))), Cells(4, (1 + (n * 3)))).Interior.ColorIndex = 48
-            Range(Cells(4, (2 + (n * 3))), Cells(4, (3 + (n * 3)))).Interior.ColorIndex = 15
-            Range(Cells(5, (1 + (n * 3))), Cells(8, (1 + (n * 3)))).Interior.ColorIndex = 45
-            Range(Cells(5, (2 + (n * 3))), Cells(8, (2 + (n * 3)))).Interior.ColorIndex = 44
-            Range(Cells(5, (3 + (n * 3))), Cells(8, (3 + (n * 3)))).Interior.ColorIndex = 36
-            Range(Cells(9, (1 + (n * 3))), Cells(9, (1 + (n * 3)))).Interior.ColorIndex = 7
-            Range(Cells(9, (2 + (n * 3))), Cells(9, (3 + (n * 3)))).Interior.ColorIndex = 38
         End If
         
         imax = numData + 10
@@ -10267,11 +10332,20 @@ Sub GetNormalize()
             Call SolverSetupEF
             SolverOk SetCell:=Cells(9, 2 + q + (n * 3)), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(5, 2 + q + (n * 3)), Cells(8, 2 + q + (n * 3)))
             For p = 0 To 3
-                If Cells(5 + p, 2 + q + (n * 3)).Font.Bold = "True" Then
-                    SolverAdd CellRef:=Cells(5 + p, 2 + q + (n * 3)), Relation:=2, FormulaText:=Cells(5 + p, 2 + q + (n * 3))
+                If strNorm = "extr" Then
+                    If Cells(5 + p, 2 + q + (n * 3)).Font.Bold = "True" Then
+                        SolverAdd CellRef:=Cells(5 + p, 2 + q + (n * 3)), Relation:=2, FormulaText:=Cells(5 + p, 2 + q + (n * 3))
+                    ElseIf p >= 2 Then
+                        SolverAdd CellRef:=Cells(5 + p, 2 + q + (n * 3)), Relation:=2, FormulaText:=0
+                        Cells(5 + p, 2 + q + (n * 3)).Font.Bold = "True"
+                    End If
+                Else
+                    If Cells(5 + p, 2 + q + (n * 3)).Font.Bold = "True" Then
+                        SolverAdd CellRef:=Cells(5 + p, 2 + q + (n * 3)), Relation:=2, FormulaText:=Cells(5 + p, 2 + q + (n * 3))
+                    End If
                 End If
             Next
-            SolverSolve UserFinish:=True, ShowRef:="HideWindow"     ' mac version use this
+            SolverSolve UserFinish:=True
             SolverFinish KeepFinal:=1
         Next
 
@@ -10289,6 +10363,8 @@ Sub GetNormalize()
             strTest = strSheetDataName + "_norm"
         ElseIf mid$(LCase(strNorm), 1, 4) = "edge" Then
             strTest = strSheetDataName + "_edge"
+        ElseIf mid$(LCase(strNorm), 1, 4) = "extr" Then
+            strTest = strSheetDataName + "_extr"
         Else
             strTest = strSheetDataName + "_diff"
         End If
@@ -10356,35 +10432,11 @@ Sub GetNormalize()
         Set dataKeGraph = Range(Cells(11, (4 + (n * 3))), Cells(10 + numData, (4 + (n * 3))))
         
         ActiveSheet.ChartObjects(1).Activate
-        p = ActiveChart.SeriesCollection.Count
-        For j = 1 To p
-            If ActiveChart.SeriesCollection(j).Name = Cells(1, 5 + (n * 3)).Value Then
-                ActiveChart.SeriesCollection(j).Delete
-                p = p - 1
-                Exit For
-            End If
+        For j = ActiveChart.SeriesCollection.Count To 2 Step -1
+            ActiveChart.SeriesCollection(j).Delete
         Next
         
-        ActiveSheet.ChartObjects(1).Activate
         p = ActiveChart.SeriesCollection.Count
-        For j = 1 To p
-            If ActiveChart.SeriesCollection(j).Name = Cells(10, 5).Value Then
-                ActiveChart.SeriesCollection(j).Delete
-                p = p - 1
-                Exit For
-            End If
-        Next
-        
-        ActiveSheet.ChartObjects(1).Activate
-        p = ActiveChart.SeriesCollection.Count
-        For j = 1 To p
-            If ActiveChart.SeriesCollection(j).Name = Cells(10, 6).Value Then
-                ActiveChart.SeriesCollection(j).Delete
-                p = p - 1
-                Exit For
-            End If
-        Next
-        
         ActiveChart.SeriesCollection.NewSeries
         With ActiveChart.SeriesCollection(p + n + 0)
             .ChartType = xlXYScatterLinesNoMarkers
@@ -10393,6 +10445,7 @@ Sub GetNormalize()
             .Values = dataKeGraph.Offset(0, -2)
             .Border.ColorIndex = 50
             .Format.Line.DashStyle = msoLineSysDash
+            .Format.Line.Weight = 1
         End With
         
         ActiveChart.SeriesCollection.NewSeries
@@ -10403,6 +10456,7 @@ Sub GetNormalize()
             .Values = dataKeGraph.Offset(0, -1)
             .Border.ColorIndex = 54
             .Format.Line.DashStyle = msoLineSysDash
+            .Format.Line.Weight = 1
         End With
         
         If sheetGraph.Cells(1, (2 + (n * 3))) <> "Baseline" Then
@@ -10414,6 +10468,7 @@ Sub GetNormalize()
                 .Values = dataKeGraph.Offset(imax - 1, 2 - jc)
                 .Border.ColorIndex = 45
                 .AxisGroup = xlSecondary
+                .Format.Line.Weight = 1
             End With
 
             If jc = 0 Then
@@ -10460,6 +10515,7 @@ Sub GetNormalize()
         Range(Cells(9 + (imax), (2 + (n * 3))), Cells(9 + (imax), ((2 + (n * 3))))).Interior.ColorIndex = 50
         Range(Cells(10, (3 + (n * 3))), Cells(10, ((3 + (n * 3))))).Interior.ColorIndex = 54
         Range(Cells(9 + (imax), (3 + (n * 3))), Cells(9 + (imax), ((3 + (n * 3))))).Interior.ColorIndex = 54
+
         Range(Cells(10, (5 + (n * 3))), Cells(10, ((5 + (n * 3))))).Interior.ColorIndex = 45
         Range(Cells(9 + (imax), (5 + (n * 3))), Cells(9 + (imax), ((5 + (n * 3))))).Interior.ColorIndex = 45
 
@@ -11054,7 +11110,7 @@ End Function
 ' "EX3ms" is a set of VBA codes based on Windows/Mac Excel 2016 for
 ' soft x-ray XPS/XAS data analysis working with a bunch of database files
 '
-' Copyright (C) 2012 - 2019 Hideki NAKAJIMA
+' Copyright (C) 2012 - 2024 Hideki NAKAJIMA
 '
 ' This program is free software; you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
