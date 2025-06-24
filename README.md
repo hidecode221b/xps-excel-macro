@@ -122,3 +122,14 @@ Harwell XPS GURU (technical detailed in knowledge base)
 ## For beamline users
 
 This repository is public to test the code for general purpose of any curve fitting. In fact, I have developed the bunch of code optimized for BL3.2Ua data format and analysis at SLRI. If you are an user of BL3.2Ua in Siam Photon Laboratory, I will send you a link of the beamline version of code. 
+
+## Citing
+
+Hideki NAKAJIMA. (2024). hidecode221b/xps-excel-macro: minor fixes (v3.0). Zenodo. 
+[https://doi.org/10.5281/zenodo.1320738](https://doi.org/10.5281/zenodo.1320738)
+
+## Buy me a coffee
+
+[https://buymeacoffee.com/hidecode221b](https://buymeacoffee.com/hidecode221b)
+
+
