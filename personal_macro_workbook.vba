@@ -20,7 +20,7 @@ Option Explicit
     Dim a0 As Single, a1 As Single, a2 As Single, fitLimit As Single, mfp As Single, peX As Single
     
 Sub CLAM2()
-    ver = "8.50p"                             ' Version of this code.
+    ver = "8.51p"                             ' Version of this code.
     If Application.OperatingSystem Like "*Mac*" Then
         backSlash = "/"
     Else
@@ -310,6 +310,34 @@ DeadInTheWater3:
             Call ExportCmp("")
             ActiveWorkbook.Save
             If Len(strErr) > 0 Then Exit Sub
+        ElseIf StrComp(LCase(Cells(1, 1).Value), "vms", 1) = 0 Then
+            Call formatVamas
+            If Len(strErr) > 0 Then Exit Sub
+        ElseIf StrComp(LCase(Cells(1, 1).Value), "vamas", 1) = 0 Then
+            Cells(1, 1).Value = "Grating"
+            testMacro = "debugVamas"
+            Call debugAll
+            wbpath = ActiveWorkbook.Path
+            sh = ActiveSheet.Name
+            Set sheetAna = Worksheets(sh)
+            numData = sheetAna.UsedRange.Rows.Count + 3
+            strAna = wbpath + backSlash + mid$(sh, 5, 11) & "_All_khe.vms"
+            fileNum = FreeFile(0)
+
+            Open strAna For Output As #fileNum
+            For j = 1 To numData
+                strTest = sheetAna.Cells(j, 1)
+                Print #fileNum, strTest
+                strTest = vbNullString
+            Next j
+            Close #fileNum
+            
+            strSheetGraphName = "Graph_" + mid$(sh, 5, Len(sh) - 4)
+            Worksheets(strSheetGraphName).Activate
+            Application.CutCopyMode = False
+            Cells(1, 1).Select
+    
+            End
         ElseIf StrComp(LCase(Cells(1, 1).Value), "norm", 1) = 0 Or StrComp(LCase(Cells(1, 1).Value), "edge", 1) = 0 Or StrComp(LCase(Cells(1, 1).Value), "extr", 1) = 0 Or StrComp(LCase(Cells(1, 1).Value), "diff", 1) = 0 Then
             Call GetNormalize
             If Len(strErr) > 0 Then Exit Sub
@@ -2731,6 +2759,138 @@ Sub GetAutoScale()
             multi = 1
         End If
     End If
+End Sub
+
+Sub formatVamas()
+    Dim rng As Range, Fname As String, C1 As Variant, Record As Variant, pass_energy As Single
+    Dim numDataT As Integer, strPath As String, strTest As String, strElem As String
+    
+    strSheetAnaName = "Vms_" + strSheetDataName
+    strSheetGraphName = "Graph_" + strSheetDataName
+    strSheetFitName = "Fit_" + strSheetDataName
+            
+    If ExistSheet(strSheetAnaName) Then
+        Application.DisplayAlerts = False
+        Worksheets(strSheetAnaName).Delete
+        Application.DisplayAlerts = True
+    End If
+    
+    If ExistSheet(strSheetFitName) Then
+        pass_energy = Worksheets(strSheetFitName).Cells(14 + sftfit2, 2).Value
+    Else
+        pass_energy = 50
+    End If
+        
+    ' template for header
+    Fname = direc + "vamas.txt"
+    fileNum = FreeFile(0)
+    Open Fname For Input As #fileNum
+    j = 1
+    ReDim C1(1 To 69, 1 To 1)
+    
+    Do
+        Line Input #fileNum, Record
+        'Debug.Print Record
+        C1(j, 1) = Record
+        j = j + 1
+    Loop Until EOF(fileNum)
+    
+    Close #fileNum
+    
+    strPath = ActiveWorkbook.Path
+    Worksheets.Add().Name = strSheetAnaName
+    Set sheetData = Worksheets(strSheetDataName)
+    Set sheetAna = Worksheets(strSheetAnaName)
+    Set sheetGraph = Worksheets(strSheetGraphName)
+    
+    sheetAna.Range(Cells(1, 1), Cells(69, 1)) = C1
+    sheetGraph.Activate
+    sheetGraph.Cells(1, 1).Value = "Goto " & strSheetAnaName
+    
+    Set rng = sheetGraph.Range(Cells(11, 3), Cells(11, 3).End(xlDown))
+    numDataT = Application.CountA(rng)
+    dblMax = Application.Max(rng)
+    dblMin = Application.Min(rng)
+    
+    pe = sheetGraph.Cells(2, 2).Value
+    startEb = sheetGraph.Cells(11, 2).Value
+    stepEk = sheetGraph.Cells(12, 2).Value - sheetGraph.Cells(11, 2).Value
+    'sheetGraph.Range(Cells(11 + numDataT + 8, 3), Cells(11 + (numDataT * 2) + 8, 3)).Copy
+    rng.Copy
+    sheetAna.Cells(69, 1).PasteSpecial Paste:=xlValues
+    sheetAna.Cells(69 + numDataT, 1).Value = "end of experiment"
+    sheetAna.Cells(66, 1).Value = numDataT
+    sheetAna.Cells(67, 1).Value = dblMin
+    sheetAna.Cells(68, 1).Value = dblMax
+    sheetAna.Cells(53, 1).Value = startEb
+    sheetAna.Cells(54, 1).Value = stepEk
+    sheetAna.Cells(33, 1).Value = pe
+    
+    If StrComp(mid$(sheetData.Cells(2, 1).Value, 1, 5), "CLAM2", 1) = 0 Then
+'   If CLAM2 format data use below
+        sheetAna.Cells(40, 1).Value = pass_energy                           'cae from fit sheet
+        sheetAna.Cells(21, 1).Value = "20" & mid$(strSheetDataName, 1, 2)   'year
+        sheetAna.Cells(22, 1).Value = mid$(strSheetDataName, 3, 2)          'month
+        sheetAna.Cells(23, 1).Value = mid$(strSheetDataName, 5, 2)          'date
+        sheetAna.Cells(24, 1).Value = mid$(strSheetDataName, 8, 2)          'hour
+        sheetAna.Cells(25, 1).Value = mid$(strSheetDataName, 10, 2)         'minute
+        sheetAna.Cells(29, 1).Value = "IntensityCalCoeff: 1.350000 0.350000 "   ' A, B coefficients
+    Else
+        sheetAna.Cells(40, 1).Value = pass_energy   'pass energy
+        sheetAna.Cells(21, 1).Value = "2020"        'year
+        sheetAna.Cells(22, 1).Value = "01"          'month
+        sheetAna.Cells(23, 1).Value = "01"          'date
+        sheetAna.Cells(24, 1).Value = "00"          'hour
+        sheetAna.Cells(25, 1).Value = "00"          'minute
+        sheetAna.Cells(29, 1).Value = "IntensityCalCoeff: 1.350000 0.350000 "   ' A, B coefficients
+    End If
+    
+    sheetAna.Cells(19, 1).Value = strSheetDataName
+    
+    If Len(strSheetDataName) > 12 Then
+        For j = 1 To Len(strSheetDataName) - 12
+            strTest = mid(strSheetDataName, j + 12, 1)
+            If strTest Like "[0-9]" And j > 1 Then
+                sheetAna.Cells(48, 1).Value = mid$(strSheetDataName, 13, j - 1) ' atomic element
+'                sheetAna.Cells(49, 1).Value = mid$(strSheetDataName, j + 12, Len(strSheetDataName) - j - 11)    'atomic orbital
+                sheetAna.Cells(49, 1).Value = mid$(strSheetDataName, j + 12, 2)    'atomic orbital
+                Exit For
+            End If
+        Next j
+    ElseIf sheetGraph.Cells(43, para + 12) > 0 Then
+        For k = 1 To sheetGraph.Cells(43, para + 12)
+            If sheetGraph.Cells(50 + k, para + 14) < startEb And sheetGraph.Cells(50 + k, para + 14) > startEb + stepEk * numDataT Then
+                strElem = sheetGraph.Cells(50 + k, para + 11).Value
+'                Debug.Print strElem
+                For j = 1 To Len(strElem)
+                    strTest = mid$(strElem, j, 1)
+                    If strTest Like "[0-9]" Then
+                        sheetAna.Cells(48, 1).Value = mid$(strElem, 1, j - 1) ' atomic element
+                        sheetAna.Cells(49, 1).Value = mid$(strElem, j, 2)    'atomic orbital
+                        Exit For
+                    End If
+                Next j
+            End If
+        Next k
+    End If
+    
+    ' export worksheet
+    
+    Fname = strPath + backSlash + strSheetDataName & "_khe.vms"
+    fileNum = FreeFile(0)
+    
+    Open Fname For Output As #fileNum
+    For j = 1 To 69 + numDataT
+        strTest = sheetAna.Cells(j, 1)
+        Print #fileNum, strTest
+        strTest = vbNullString
+    Next j
+    Close #fileNum
+    
+    Application.CutCopyMode = False
+    Cells(1, 1).Select
+    
+    strErr = "end"
 End Sub
 
 Sub ExportCmp(ByRef strXas As String)
@@ -10254,6 +10414,10 @@ Sub GetNormalize()
             Cells(8, 5).Value = 0
             Cells(7, 6).Value = 0
             Cells(8, 6).Value = 0
+            Cells(7, 5).Font.Bold = "True"
+            Cells(7, 6).Font.Bold = "True"
+            Cells(8, 6).Font.Bold = "True"
+            Cells(8, 5).Font.Bold = "True"
         End If
         
         sheetGraph.Cells(1, (2 + (n * 3))) = "Pre edge"
@@ -10332,17 +10496,8 @@ Sub GetNormalize()
             Call SolverSetupEF
             SolverOk SetCell:=Cells(9, 2 + q + (n * 3)), MaxMinVal:=2, ValueOf:="0", ByChange:=Range(Cells(5, 2 + q + (n * 3)), Cells(8, 2 + q + (n * 3)))
             For p = 0 To 3
-                If strNorm = "extr" Then
-                    If Cells(5 + p, 2 + q + (n * 3)).Font.Bold = "True" Then
-                        SolverAdd CellRef:=Cells(5 + p, 2 + q + (n * 3)), Relation:=2, FormulaText:=Cells(5 + p, 2 + q + (n * 3))
-                    ElseIf p >= 2 Then
-                        SolverAdd CellRef:=Cells(5 + p, 2 + q + (n * 3)), Relation:=2, FormulaText:=0
-                        Cells(5 + p, 2 + q + (n * 3)).Font.Bold = "True"
-                    End If
-                Else
-                    If Cells(5 + p, 2 + q + (n * 3)).Font.Bold = "True" Then
-                        SolverAdd CellRef:=Cells(5 + p, 2 + q + (n * 3)), Relation:=2, FormulaText:=Cells(5 + p, 2 + q + (n * 3))
-                    End If
+                If Cells(5 + p, 2 + q + (n * 3)).Font.Bold = "True" Then
+                    SolverAdd CellRef:=Cells(5 + p, 2 + q + (n * 3)), Relation:=2, FormulaText:=Cells(5 + p, 2 + q + (n * 3))
                 End If
             Next
             SolverSolve UserFinish:=True
@@ -10669,7 +10824,7 @@ Sub descriptGConv()
 End Sub
 
 Sub debugAll()      ' multiple file analysis in sequence
-    Dim be4all() As Variant, am4all() As Variant, fw4all() As Variant, wbX As String, shgX As Worksheet, shfX As Worksheet, strSheetDataNameX As String, numpeakX As Integer
+    Dim be4all() As Variant, am4all() As Variant, fw4all() As Variant, wbX As String, shgX As Worksheet, shfX As Worksheet, strSheetDataNameX As String, numpeakX As Integer, numDataO As Integer, numDataV As Integer
     Dim Target As Variant, C1 As Variant, C2 As Variant, OpenFileName As Variant, debugMode As String, seriesnum As Integer, SourceRangeColor1 As Long, rng As Range, strNorm As String, showError As String
     Dim debugcp As Integer, shf As Worksheet, strTest As String, ElemXbef As String, ElemT As String, AElist As String, AElist1 As String, AElist2 As String
     Dim strElem() As String, AESlist As String
@@ -10698,6 +10853,9 @@ Sub debugAll()      ' multiple file analysis in sequence
         ElseIf testMacro = "debugCopy" Then ' fit the spectrum based on the fitted sheet
             debugMode = "debugCopy"
             modex = -3
+        ElseIf testMacro = "debugVamas" Then
+            debugMode = "vamas"
+            modex = 5
         End If
     Else
         modex = 1
@@ -10705,7 +10863,7 @@ Sub debugAll()      ' multiple file analysis in sequence
     
     strErrX = ""
     
-    If modex <= -2 Then
+    If modex <= -2 Or modex = 5 Then
         If backSlash = "/" Then
             OpenFileName = Select_File_Or_Files_Mac("xlsx")
             grantFileAccess (OpenFileName)
@@ -10762,11 +10920,23 @@ Sub debugAll()      ' multiple file analysis in sequence
         ElseIf debugMode = "debugCopy" Then
             Set shfX = Workbooks(wbX).Sheets("Fit_" + strSheetDataNameX)
         End If
+    ElseIf modex = 5 Then
+        wbX = ActiveWorkbook.Name
+        strSheetDataNameX = "Vms_" & strSheetDataName
+        If ExistSheet(strSheetDataNameX) Then
+            Application.DisplayAlerts = False
+            Worksheets(strSheetDataNameX).Delete
+            Application.DisplayAlerts = True
+        End If
+        Call formatVamas
+        Set shfX = Workbooks(wbX).Sheets(strSheetDataNameX)
+        shfX.Activate
+        numDataO = shfX.UsedRange.Rows.Count
     End If
     
     If modex = -1 Then
         ElemX = Workbooks(wbX).Sheets("Graph_" + strSheetDataName).Cells(51, para + 9).Value
-    ElseIf modex <= -2 Then
+    ElseIf modex <= -2 Or modex = 5 Then
     ElseIf Len(ElemX) > 0 Then
         'Debug.Print ElemX, "ElemX", Len(ElemX)
     Else
@@ -10803,7 +10973,20 @@ Sub debugAll()      ' multiple file analysis in sequence
         End If
         
         If modex = 1 Then
-
+        ElseIf modex = 5 Then
+            If StrComp(mid$(ActiveSheet.Name, 1, 6), "Graph_", 1) = 0 Then
+            Else
+                strTest = vbNullString
+                For p = 1 To Sheets.Count
+                    If mid$(Sheets(p).Name, 1, 6) = "Graph_" And Len(Sheets(p).Name) > Len(strTest) Then
+                        Worksheets(Sheets(p).Name).Activate
+                        strTest = Sheets(p).Name
+'                        Exit For
+                    End If
+                Next
+            End If
+            
+            Cells(1, 1).Value = "vms"
         ElseIf modex = -2 Then
             Application.DisplayAlerts = False
             strSheetDataName = strNorm + mid$(Target, InStrRev(Target, backSlash) + 1, Len(Target) - InStrRev(Target, backSlash) - 5)
@@ -11016,6 +11199,21 @@ Sub debugAll()      ' multiple file analysis in sequence
                     Exit Sub
                 End If
             End If
+        ElseIf modex = 5 Then
+            sheetAna.Activate
+            Set rng = sheetAna.Range(Cells(19, 1), Cells(19, 1).End(xlDown))
+            numDataV = Application.CountA(rng)
+            rng.Copy
+            
+            shfX.Activate
+            shfX.Cells(numDataO, 1).PasteSpecial Paste:=xlValues
+            numDataO = numDataO + numDataV - 1
+            
+            shfX.Cells(12, 1).Value = shfX.Cells(12, 1).Value + 1
+            shfX.Cells(18, 1).Value = shfX.Cells(18, 1).Value + 1
+            sheetAna.Activate
+            Application.CutCopyMode = False
+            Workbooks(ActiveWorkbook.Name).Save
         End If
         
         If StrComp(mid$(strErr, 1, 3), "err", 1) = 0 Then showError = showError & ActiveWorkbook.Name & ":" & mid$(strErr, 4, Len(strErr) - 3) & vbCrLf
@@ -11110,7 +11308,7 @@ End Function
 ' "EX3ms" is a set of VBA codes based on Windows/Mac Excel 2016 for
 ' soft x-ray XPS/XAS data analysis working with a bunch of database files
 '
-' Copyright (C) 2012 - 2024 Hideki NAKAJIMA
+' Copyright (C) 2012 - 2019 Hideki NAKAJIMA
 '
 ' This program is free software; you can redistribute it and/or modify
 ' it under the terms of the GNU General Public License as published by
@@ -11409,6 +11607,8 @@ Function grantFileAccess(filePermissionCandidates)
     grantFileAccess = GrantAccessToMultipleFiles(filePermissionCandidates) 'returns true if access granted, false otherwise_
     On Error GoTo 0
 End Function
+
+
 
 
 
