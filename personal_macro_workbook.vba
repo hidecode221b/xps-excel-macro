@@ -690,223 +690,151 @@ Sub TargetDataAnalysis()
 End Sub
 
 Sub LoadVAMAS()
-    Dim numNotes As Long, numRegions As Long, numVpara As Long, numVcoeff As Long, numBlocks As Long, list_file As String
-    Dim C1 As Variant, C2 As Variant, rng As Range, strPath As String, strTest As String, Fname As String, strInstr As String
-    Dim numCpara As Long, numTfunc As Single, numVscans As Long, numExp As Long, scanMode As String, list_tec As String
-    Dim expMode As String, numVadd As Long, strID As String, startRl As Long, numFut As Long, strTec As String, arrTec() As String
+    Dim numNotes As Integer, numRegions As Integer, numVpara As Integer, numVcoeff As Integer, numBlocks As Integer
+    Dim C1 As Variant, C2 As Variant, rng As Range, strPath As String, strTest As String, Fname As String, vmsMode As String
     
-    ' limited less than 99 blocks, BE scale exporting, file name length < 7 character
-    list_file = ""
-    list_tec = "AES diff,AES dir,EDX,ELS,FABMS,FABMS energy spec,ISS,SIMS,SIMS energy spec,SNMS,SNMS energy spec,UPS,XPS,XRF"
-    arrTec = Split(list_tec, ",")
     strPath = ActiveWorkbook.Path
     strSheetDataName = ActiveSheet.Name
     
-    Set sheetData = Worksheets(strSheetDataName)
-    Set rng = sheetData.UsedRange
+    Set sheetAna = Worksheets(strSheetDataName)
+    Set rng = sheetAna.UsedRange
     C1 = rng
-    strInstr = C1(3, 1)
     
-    numVpara = 5    ' initial note lines
-    numNotes = CInt(C1(numVpara + 1, 1))    ' additional note lines before NORM
+    j = 0
+    numVpara = 5
+    numNotes = CInt(C1(6, 1))
+    numRegions = CInt(C1(9 + numNotes, 1))
     
-    expMode = C1(numVpara + numNotes + 2, 1)
-    scanMode = C1(numVpara + numNotes + 3, 1)
-
-    numVpara = numVpara + numNotes + 4
-    If expMode = "MAP" Or expMode = "MAPDP" Or expMode = "NORM" Or expMode = "SDP" Then
-        numVpara = numVpara + 1
+    Debug.Print numNotes, "numNotes", numRegions, "numRegions"
+    If StrComp(C1(7 + numNotes, 1), "SDP", 1) = 0 Then
+        vmsMode = "AES"
+    ElseIf StrComp(C1(7 + numNotes, 1), "NORM", 1) = 0 Then
+        vmsMode = "XPS"
     End If
     
-    If expMode = "MAP" Or expMode = "MAPDP" Then
-        numVpara = numVpara + 3
-    End If
-    
-    numExp = CInt(C1(numVpara, 1))
-    numVpara = numVpara + CInt(C1(numVpara, 1)) * 2 + 1
-
-    If CInt(C1(numVpara, 1)) > 0 Then                                'number of entries in parameter
-        numVpara = numVpara + CInt(C1(numVpara, 1)) + 1
-    Else
-        numVpara = numVpara + 1
-    End If
-
-    If CInt(C1(numVpara, 1)) > 0 Then                                'number of manually entered items in block
-        numVpara = numVpara + CInt(C1(numVpara, 1)) + 1
-    Else
-        numVpara = numVpara + 1
-    End If
-    
-    numFut = CInt(C1(numVpara + 1, 1))                                ' number of future upgrade block entries
-    If CInt(C1(numVpara, 1)) > 0 Then                                ' number of future upgrade experiment entries
-        numVpara = numVpara + CInt(C1(numVpara, 1)) + 2
-    Else
-        numVpara = numVpara + 2
-    End If
-    
-    numBlocks = CInt(C1(numVpara, 1))
-    startRl = numVpara + 1
-    Debug.Print "numBlocks", numBlocks ' this is starting block
-    
-    For p = 1 To numBlocks
-        Debug.Print "block", p, "startRl", startRl
-'        If StrComp(mid$(strInstr, 1, 14), "PHI VersaProbe", 1) = 0 Then    ' if ElemD (atom and transition) is multiple, strID should be used.
-'            strID = Str(p)
-'            strID = Replace(strID, " ", "")
-'        Else
-'            strID = C1(startRl + 1, 1) + "_" + C1(startRl, 1)
-'            strID = Replace(strID, "/", "")
-'            strID = Replace(strID, " ", "")
-'            strID = Replace(strID, ":", "")
-'        End If
-        strID = Application.WorksheetFunction.Trim(strID)
-
-        numVcoeff = CInt(C1(startRl + 9, 1))    ' cell position of block
-        numVcoeff = startRl + 9 + numVcoeff + 1 ' position "XPS" for strTec
-        j = 0
-        For k = 0 To 100
-            If k = 100 Then
-                Debug.Print "technique is not found"
-                End
-            ElseIf IsEmpty(C1(numVcoeff + k, 1)) = False Then
-                strTec = C1(numVcoeff + k, 1)
+    For k = 1 To 100
+        If IsNumeric(C1(9 + numNotes + k, 1)) Then
+            'Debug.Print C1(9 + numNotes + k, 1), numVpara
+            If 0 < C1(9 + numNotes + k, 1) And C1(9 + numNotes + k, 1) <= 32767 Then
                 
-                For q = 0 To UBound(arrTec)
-                    If StrComp(arrTec(q), strTec, 1) = 0 Then
-                        numVcoeff = numVcoeff + k
-                        j = 1
-                        Debug.Print "technique is found"
-                        Exit For
-                    End If
-                Next q
-            End If
-            If j > 0 Then Exit For
-        Next k
-
-        If expMode = "MAP" Or expMode = "MAPDP" Then numVcoeff = numVcoeff + 2
-        
-        If expMode = "SDP" Or expMode = "MAPDP" Or expMode = "MAPSVDP" Or expMode = "SDPSV" Then
-            numVcoeff = numVcoeff + 3
-        ElseIf mid$(strTec, 1, 5) = "FABMS" Or strTec = "ISS" Or mid$(strTec, 1, 4) = "SIMS" Or mid$(strTec, 1, 4) = "SNMS" Then
-            numVcoeff = numVcoeff + 3
-        End If
-        
-        pe = CSng(C1(numVcoeff + numExp + 2, 1))
-        Debug.Print pe, "pe", numVcoeff + numExp + 2
-        numVcoeff = numVcoeff + numExp + 2
-        
-        If expMode = "MAP" Or expMode = "MAPDP" Or expMode = "MAPSV" Or expMode = "MAPSVDP" Or expMode = "SEM" Then numVcoeff = numVcoeff + 2
-        If expMode = "SEM" Or expMode = "MAPSV" Or expMode = "MAPSVDP" Then numVcoeff = numVcoeff + 6
-        If strTec = "AES diff" Then numVcoeff = numVcoeff + 1
-        
-        wf = CSng(C1(numVcoeff + 9, 1))
-        If wf > 100 Or wf < -100 Then wf = 0                                ' wf = "1e+037"
-        Debug.Print wf, "wf", numVcoeff + 9
-        ' If scanMode = "REGULAR" then
-        If LCase(C1(numVcoeff + 18, 1)) = "binding energy" Then
-            strMode = "BE/eV"
-        ElseIf LCase(C1(numVcoeff + 18, 1)) = "kinetic energy" Then
-            strMode = "KE/eV"
-        ElseIf LCase(C1(numVcoeff + 18, 1)) = "photon energy" Then
-            strMode = "PE/eV"
-        Else
-            strMode = "EE/eV"
-        End If
-            
-        Debug.Print strMode, "strMode", numVcoeff + 18
-            
-        ElemD = C1(numVcoeff + 15, 1) & C1(numVcoeff + 16, 1)
-        startEk = CSng(C1(numVcoeff + 20, 1))
-        stepEk = CSng(C1(numVcoeff + 21, 1))
-        
-        numCpara = CInt(C1(numVcoeff + 22, 1))
-        Debug.Print CInt(C1(numVcoeff + 22, 1)), "numCpara", numVcoeff + 22
-        numVcoeff = numVcoeff + 22
-        
-        numTfunc = CSng(C1(numVcoeff + numCpara * 2 + 2, 1))
-        numVscans = CInt(C1(numVcoeff + numCpara * 2 + 3, 1))
-        
-        Debug.Print CSng(C1(numVcoeff + numCpara * 2 + 2, 1)), "numTfunc", numVcoeff + numCpara * 2 + 2
-        Debug.Print CInt(C1(numVcoeff + numCpara * 2 + 3, 1)), "numVscans", numVcoeff + numCpara * 2 + 3
-        numVcoeff = numVcoeff + numCpara * 2 + 2
-        
-        If expMode = "SDP" Or expMode = "MAPDP" Or expMode = "MAPSVDP" Or expMode = "SDPSV" Then
-            If strTec = "AES diff" Or strTec = "AES dir" Or strTec = "EDX" Or strTec = "ELS" Or strTec = "UPS" Or strTec = "XPS" Or strTec = "XRF" Then
-                numVcoeff = numVcoeff + 7
+                If vmsMode = "AES" And k = 1 Then
+                    numVpara = numVpara + C1(9 + numNotes + k, 1) + 1
+                    k = k + C1(9 + numNotes + k, 1) + 1
+                Else
+                    numVpara = numVpara + C1(9 + numNotes + k, 1)
+                    k = k + C1(9 + numNotes + k, 1)
+                End If
+                j = j + 1
+            ElseIf C1(9 + numNotes + k, 1) <= 0 Then
+                j = j + 1
+            Else
+                MsgBox "Somthing wrong in parameters.", vbInformation
+                End
             End If
         End If
         
-        numVadd = CInt(C1(numVcoeff + 6, 1))
-        numVcoeff = numVcoeff + 6 + numVadd * 3 + 1 + numFut
+        If j >= 5 Then Exit For
+    Next
+    
+    startR = 10 + numNotes + numVpara
+    numBlocks = CInt(C1(startR, 1))
+    
+    Debug.Print "startR", startR, "numBlocks", numBlocks ' this is starting block
+    
+    For p = 1 To numBlocks / numRegions
+        For k = 1 To numRegions
+            numVcoeff = CInt(C1(startR + 10, 1))
+            Debug.Print numVcoeff, "numVcoeff", startR + 10
+            
+            If vmsMode = "AES" Then numVcoeff = numVcoeff + 4
+            
+            pe = C1(startR + 13 + numVcoeff, 1)
+            Debug.Print pe, "pe", startR + 13 + numVcoeff
+            
+            If LCase(C1(startR + numVcoeff + 31, 1)) = "binding energy" Then
+                strMode = "BE/eV"
+            ElseIf LCase(C1(startR + numVcoeff + 31, 1)) = "kinetic energy" Then
+                strMode = "KE/eV"
+            ElseIf LCase(C1(startR + numVcoeff + 31, 1)) = "photon energy" Then
+                strMode = "PE/eV"
+            Else
+                strMode = "EE/eV"
+            End If
+            
+            Debug.Print strMode, "strMode", startR + numVcoeff + 31
+            ' if ElemD is the same string as the previous region, ElemD is revised to add numRegions
+            
+            If ElemD = C1(startR + numVcoeff + 28, 1) & C1(startR + numVcoeff + 29, 1) Then
+                ElemD = C1(startR + numVcoeff + 28, 1) & C1(startR + numVcoeff + 29, 1) & k
+            Else
+                ElemD = C1(startR + numVcoeff + 28, 1) & C1(startR + numVcoeff + 29, 1)
+            End If
+            
+            startEk = C1(startR + numVcoeff + 33, 1)
+            stepEk = C1(startR + numVcoeff + 34, 1)
+            
+            If vmsMode = "AES" Then numVcoeff = numVcoeff + 7
 
-        numData = CInt(C1(numVcoeff, 1)) / numCpara
-        Debug.Print CInt(C1(numVcoeff, 1)), "numDataRaw", numVcoeff
-        numVcoeff = numVcoeff + (numCpara * 2) + 1
-        Debug.Print "startEk", startEk, "stepEk", stepEk, "numData", numData, ElemD
-
-        If StrComp(mid$(strSheetDataName, 1, 6), "Vamas_", 1) = 0 Then strSheetDataName = mid$(strSheetDataName, 7, Len(strSheetDataName) - 6)
-        If Len(strSheetDataName) > 11 Then strSheetDataName = mid$(strSheetDataName, 1, 11)
-        If Len(ElemD) > 5 Then ElemD = mid$(ElemD, 1, 5)
-'        If Len(strID) > 7 Then strID = mid$(strID, 1, 7)
-        
-'        strSheetAnaName = strSheetDataName + "_" + strID + "_" + ElemD
-        strSheetAnaName = strSheetDataName + "_" + ElemD
-        If p = 0 Then sheetData.Name = "Vamas_" + strSheetDataName
-        
-        If ExistSheet(strSheetAnaName) Then
-            Application.DisplayAlerts = False
-            Worksheets(strSheetAnaName).Delete
-            Application.DisplayAlerts = True
-        End If
-        
-        Worksheets.Add().Name = strSheetAnaName
-        Set sheetAna = Worksheets(strSheetAnaName)
-        sheetAna.Activate
-        
-        C2 = sheetAna.Range(Cells(1, 1), Cells(1 + numData, 2))
-        
-        For j = 0 To numData - 1
-            If strTec = "XPS" Or strTec = "UPS" Then
-                If strMode = "KE/eV" Then   ' convert BE/eV
-                    C2(2 + j, 1) = WorksheetFunction.Round(pe - wf - (startEk + j * stepEk), 3)
-                Else                               ' BE/eV case as it is
-                    C2(2 + j, 1) = WorksheetFunction.Round(startEk + j * stepEk, 3)
+            numData = C1(startR + numVcoeff + 46, 1)
+            
+            Debug.Print startEk, stepEk, numData, ElemD
+            
+            If StrComp(mid$(strSheetDataName, 1, 6), "Vamas_", 1) = 0 Then strSheetDataName = mid$(strSheetDataName, 7, Len(strSheetDataName) - 6)
+            If numRegions > 1 And numRegions = numBlocks Then
+                strSheetGraphName = strSheetDataName + "_" + ElemD
+                If k = 1 Then
+                    ActiveSheet.Name = "Vamas_" + strSheetDataName
+                End If
+            ElseIf numRegions < numBlocks Then
+                strSheetGraphName = strSheetDataName + "_" + ElemD + CStr(p)
+                If k = 1 And p = 1 Then
+                    ActiveSheet.Name = "Vamas_" + strSheetDataName
                 End If
             Else
-                C2(2 + j, 1) = WorksheetFunction.Round(startEk + j * stepEk, 3)
+                strSheetGraphName = strSheetDataName
+                ActiveSheet.Name = "Vamas_" + strSheetDataName
             End If
-            C2(2 + j, 2) = C1(numVcoeff + j * numCpara, 1) / numTfunc / numVscans
-        Next
+            
+            If ExistSheet(strSheetGraphName) Then
+                Application.DisplayAlerts = False
+                Worksheets(strSheetGraphName).Delete
+                Application.DisplayAlerts = True
+            End If
         
-        sheetAna.Range(Cells(1, 1), Cells(1 + numData, 2)) = C2
-        If strTec = "XPS" Or strTec = "UPS" Then
-            Cells(1, 1).Value = "BE/eV"
-            Cells(1, 2).Value = "PE: " & pe & " eV"
-        Else
+            Worksheets.Add().Name = strSheetGraphName
+            Set sheetGraph = Worksheets(strSheetGraphName)
+            sheetGraph.Activate
+            
+            C2 = sheetGraph.Range(Cells(1, 1), Cells(1 + numData, 2))
+            
+            For j = 0 To numData - 1
+                C2(2 + j, 1) = WorksheetFunction.Round(startEk + j * stepEk, 3)
+                C2(2 + j, 2) = C1(startR + numVcoeff + 49 + j, 1)
+            Next
+            
+            sheetGraph.Range(Cells(1, 1), Cells(1 + numData, 2)) = C2
             Cells(1, 1).Value = strMode
-            Cells(1, 2).Value = "EE: " & pe & " eV"
-        End If
+            Cells(1, 2).Value = "PE: " & pe & " eV"
+            
+            If numRegions > 1 Then
+                Fname = strPath + backSlash + strSheetGraphName & ".txt"
+                fileNum = FreeFile(0)
+                
+                Open Fname For Output As #fileNum
+                For j = 1 To 1 + numData
+                    strTest = sheetGraph.Cells(j, 1) & vbTab & sheetGraph.Cells(j, 2)
+                    Print #fileNum, strTest
+                    strTest = vbNullString
+                Next j
+                Close #fileNum
+            End If
         
-        Fname = strPath + backSlash + strSheetAnaName & ".txt"
-        list_file = list_file & strSheetAnaName & ".txt" & vbCrLf
-        fileNum = FreeFile(0)
-        
-        Open Fname For Output As #fileNum
-        For j = 1 To 1 + numData
-            strTest = sheetAna.Cells(j, 1) & vbTab & sheetAna.Cells(j, 2)
-            Print #fileNum, strTest
-            strTest = vbNullString
-        Next j
-        Close #fileNum
-        
-        Application.DisplayAlerts = False
-        sheetAna.Delete
-        Application.DisplayAlerts = True
-        startRl = numVcoeff + numData * numCpara
+            startR = startR + numVcoeff + 48 + numData
+            
+        Next k
     Next p
     
-    If testMacro <> "debug" Then MsgBox "Export " & numBlocks & " text files." & vbCrLf & list_file, vbInformation
-    sheetData.Activate
+    If numRegions > 1 Then sheetAna.Activate
 End Sub
 
 Sub PlotCLAM2()
@@ -10153,10 +10081,10 @@ Sub GetNormalize()
         
         If StrComp(mid$(LCase(Cells(10, 1).Value), 1, 2), "pe", 1) = 0 Then
             If IsEmpty(Cells(2, 5)) Or IsEmpty(Cells(3, 5)) Or IsEmpty(Cells(2, 6)) Or IsEmpty(Cells(3, 6)) Then
-                iniRow1 = Cells(5, 2).Value
-                endRow1 = Cells(5, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
-                iniRow2 = Cells(6, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
-                endRow2 = Cells(6, 2).Value
+                iniRow1 = Cells(5, 2).Value + Cells(2, 2).Value
+                endRow1 = Cells(5, 2).Value + Cells(2, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
+                iniRow2 = Cells(6, 2).Value + Cells(2, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
+                endRow2 = Cells(6, 2).Value + Cells(2, 2).Value
                 Cells(2, 5).Value = iniRow1
                 Cells(3, 5).Value = endRow1
                 Cells(2, 6).Value = iniRow2
@@ -10167,10 +10095,10 @@ Sub GetNormalize()
                 iniRow2 = Cells(2, 6).Value
                 endRow2 = Cells(3, 6).Value
             Else
-                iniRow1 = Cells(5, 2).Value
-                endRow1 = Cells(5, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) / 5
-                iniRow2 = Cells(6, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) / 5
-                endRow2 = Cells(6, 2).Value
+                iniRow1 = Cells(5, 2).Value + Cells(2, 2).Value
+                endRow1 = Cells(5, 2).Value + Cells(2, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) / 5
+                iniRow2 = Cells(6, 2).Value + Cells(2, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) / 5
+                endRow2 = Cells(6, 2).Value + Cells(2, 2).Value
                 Cells(2, 5).Value = iniRow1
                 Cells(3, 5).Value = endRow1
                 Cells(2, 6).Value = iniRow2
@@ -10201,7 +10129,9 @@ Sub GetNormalize()
                 
                 'Debug.Print iniRow1, endRow1, p, q
                 
-                If pstart >= 1 And pend > pstart Then
+                If pstart = pend Then
+                    End
+                ElseIf pstart >= 1 And pend > pstart Then
                     x0 = Cells(11 + pstart - 1, 2).Offset(0, -1)
                     x1 = Cells(11 + pend - 1, 2).Offset(0, -1)
                     y0 = Cells(11 + pstart - 1, 3).Offset(0, -1)
@@ -10233,7 +10163,9 @@ Sub GetNormalize()
                     End If
                 Next
             
-                If pstart >= 1 And pend > pstart Then
+                If pstart = pend Then
+                    End
+                ElseIf pstart >= 1 And pend > pstart Then
                     x0 = Cells(10 + numData - pstart, 2).Offset(0, -1)
                     x1 = Cells(10 + numData - pend, 2).Offset(0, -1)
                     y0 = Cells(10 + numData - pstart, 3).Offset(0, -1)
@@ -10248,10 +10180,10 @@ Sub GetNormalize()
         Else
             If IsEmpty(Cells(2, 5)) Or IsEmpty(Cells(3, 5)) Or IsEmpty(Cells(2, 6)) Or IsEmpty(Cells(3, 6)) Then
                 If StrComp(mid$(Cells(5, 1).Value, 7, 2), "BE", 1) = 0 Then
-                    iniRow1 = Cells(6, 2).Value
-                    endRow1 = Cells(6, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
-                    iniRow2 = Cells(5, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
-                    endRow2 = Cells(5, 2).Value
+                    iniRow1 = Cells(6, 2).Value - Cells(4, 2).Value
+                    endRow1 = Cells(6, 2).Value - Cells(4, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
+                    iniRow2 = Cells(5, 2).Value - Cells(4, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
+                    endRow2 = Cells(5, 2).Value - Cells(4, 2).Value
                 Else
                     If strNorm = "extr" Then
                         If Cells(10 + numData, 2).Value < 0 Then    ' VBM in the UPS mode
@@ -10306,10 +10238,10 @@ Sub GetNormalize()
                 endRow2 = Cells(3, 6).Value
             Else
                 If StrComp(mid$(Cells(5, 1).Value, 7, 2), "BE", 1) = 0 Then
-                    iniRow1 = Cells(6, 2).Value
-                    endRow1 = Cells(6, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
-                    iniRow2 = Cells(5, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
-                    endRow2 = Cells(5, 2).Value
+                    iniRow1 = Cells(6, 2).Value - Cells(4, 2).Value
+                    endRow1 = Cells(6, 2).Value - Cells(4, 2).Value - (Cells(6, 2).Value - Cells(5, 2).Value) * 1 / 10
+                    iniRow2 = Cells(5, 2).Value - Cells(4, 2).Value + (Cells(6, 2).Value - Cells(5, 2).Value) * 4 / 10
+                    endRow2 = Cells(5, 2).Value - Cells(4, 2).Value
                 Else
                     If strNorm = "extr" Then
                         If Cells(10 + numData, 2).Value < 0 Then
@@ -10360,7 +10292,9 @@ Sub GetNormalize()
                 
                 Debug.Print iniRow2, endRow2, pstart, pend
                 
-                If pstart >= 1 Then
+                If pstart = pend Then
+                    End
+                ElseIf pstart >= 1 Then
                     x0 = Cells(11 + numData - pstart, 2)
                     x1 = Cells(11 + numData - pend, 2)
                     y0 = Cells(11 + numData - pstart, 3)
@@ -10392,7 +10326,9 @@ Sub GetNormalize()
                     End If
                 Next
                 
-                If pstart >= 1 Then
+                If pstart = pend Then
+                    End
+                ElseIf pstart >= 1 Then
                     x0 = Cells(10 + pstart, 2)
                     x1 = Cells(10 + pend, 2)
                     y0 = Cells(10 + pstart, 3)
